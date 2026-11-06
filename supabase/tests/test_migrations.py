@@ -115,9 +115,31 @@ with psycopg.connect(uri, autocommit=True) as conn:
     print("doc_chunks after deleting one session:", left)
     ok &= left == 1
 
-    # anon must not read tables or call the function
+    # Per-session quotas (20261106000004_security.sql): atomic, capped, cascade-deleted.
+    results = [
+        conn.execute("select consume_quota(%s, 'analysis', 2)", (other,)).fetchone()[0]
+        for _ in range(3)
+    ]
+    print("consume_quota x3 with limit 2:", results)
+    ok &= results == [True, True, False]
+    used = conn.execute(
+        "select count from session_usage where session_id = %s and action = 'analysis'", (other,)
+    ).fetchone()[0]
+    ok &= used == 2
+    ok &= conn.execute("select consume_quota(%s, 'upload', 0)", (other,)).fetchone()[0] is False
+    conn.execute("delete from sessions where id = %s", (other,))
+    usage_left = conn.execute("select count(*) from session_usage").fetchone()[0]
+    print("session_usage rows after deleting the session:", usage_left)
+    ok &= usage_left == 0
+
+    # anon must not read tables or call the functions
     conn.execute("set role anon")
-    for stmt in ("select * from knowledge_chunks", f"select * from hybrid_search('{vec(1)}'::extensions.vector,'x')"):
+    for stmt in (
+        "select * from knowledge_chunks",
+        "select * from session_usage",
+        f"select * from hybrid_search('{vec(1)}'::extensions.vector,'x')",
+        "select consume_quota(gen_random_uuid(), 'x', 5)",
+    ):
         try:
             conn.execute(stmt)
             ok = False
