@@ -255,3 +255,49 @@ Besides the 96 unit and API tests (fake DB plus a scripted fake LLM), the flow w
 headless Chrome. The test clicks "Try with a sample CV", waits for the streamed results, reloads (served
 from cache) and opens the page in a second browser (blocked). It also checks form validation, on both
 desktop and mobile screen sizes.
+
+---
+
+## Security (cross-cutting pass, 2026-11-06)
+
+Full details and the SPEC checklist are in [SECURITY.md](SECURITY.md). The key ideas:
+
+### 1. Think in "who could abuse this, and what does it cost us?"
+A threat model lists assets (CVs, keys, LLM quota), attackers (a stranger, a bot, a malicious
+file, a sneaky CV) and the control for each. Writing it down shows gaps you'd never spot by
+reading code line by line.
+
+### 2. Cost abuse is a real attack on AI apps
+Every analysis spends about four LLM calls. Re-uploading a CV deleted the saved analysis, so one
+guest could loop "upload, analyze" forever and drain the free-tier quota for everyone. The fix is
+a **per-session quota** stored in Postgres and taken with one atomic SQL statement
+(`INSERT ... ON CONFLICT DO UPDATE ... WHERE count < limit`), so two parallel requests can't both
+take the last unit. Per-IP rate limits (Upstash) and a bot check (Turnstile) stop people from just
+creating new sessions; they are coded behind small interfaces and switch on when their env vars are set.
+
+### 3. Fail open or fail closed?
+If the rate limiter's Redis is down we **allow** the request (the DB quota still caps spend). If
+Turnstile can't be reached we **reject**, because a bot check you can skip is useless. Decide this
+per control, on purpose.
+
+### 4. Small files can be huge
+A 40 KB PDF can inflate to 40 MB (a "decompression bomb"); a ZIP can claim millions of entries.
+We give the PDF library strict limits, check DOCX sizes before unpacking, cap the whole request at
+4.5 MB, and parse in a worker thread with a timeout so one bad file can't freeze the server.
+
+### 5. Prompt injection: the CV is written by the attacker
+Untrusted text is fenced in tags like `<cv>...</cv>`, and any fake `</cv>` inside it is broken up
+so the text can't "escape" its fence. But fences only help; the real defence is **not trusting the
+output**: JSON schemas, quotes that must really exist in the CV, links only from our list, and a
+score computed in code. One subtle lesson: "the quote exists in the CV" doesn't prove it's honest,
+because the attacker wrote the CV. So quotes that read like instructions ("ignore previous
+instructions...") are rejected too.
+
+### 6. Logs are a data leak waiting to happen
+Error messages often contain the data that caused them. Pydantic's validation error includes the
+model's output (which can include CV text), so we log only "ValidationError (3 errors)". As a safety
+net the log formatter masks emails and truncates long strings.
+
+### 7. Defence in depth for HTTP
+The backend has its own public URL, so it can't rely on the frontend's headers. Every API response
+says `no-store` (don't cache personal data), `nosniff`, and "never frame me".
