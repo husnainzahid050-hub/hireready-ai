@@ -4,6 +4,58 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Integration & fixes (2026-11-06)
+
+Merged the backend, frontend, security and QA work and fixed the open QA bugs. **Apply
+`supabase/PENDING_MIGRATIONS.md` (migrations 04 and 05) before deploying this backend.**
+
+#### Fixed
+- **B3** Concurrent analyze calls ran the whole pipeline twice. Analyze now claims the session with
+  `claim_analysis()` (migration `20261106000005_analysis_claim.sql`, one conditional UPDATE, atomic)
+  before spending quota or LLM calls. A second caller streams a `waiting` status and then the first
+  run's result (`analysis_interrupted` if that run dies, `analysis_in_progress` after 45 s). Claims
+  are released when a run ends and expire after 120 s if a function is killed.
+- **B8** The analysis has a 50 s budget (`analysis_timeout`, inside Vercel's 60 s), each LLM provider
+  gets at most 25 s including retries, and a `slow` status is streamed after 15 s without progress or
+  as soon as the LLM falls back to Gemini. The page shows an error with Try again if the stream ends
+  without `done`/`error`.
+- Interview security parity: `interview_start` / `interview_answer` quotas and rate limits, charged
+  only for turns that call the LLM; the planning prompt now fences the JD-derived job and slot data.
+- **B9** Internships, TA and similar student roles no longer count as experience for mid/senior roles.
+- **B10** "Power BI or Tableau" stays one skill, satisfied by either option.
+- **B12** JD over 20k chars gives `jd_too_long`; a malformed session id gives 404 `session_not_found`.
+- **B13** A wrong or expired token shows the "another browser / expired" panel on the analysis page.
+- **B14** A failed upload on `/start` reuses its session on retry (no orphan sessions).
+- **B15** Insights and interview questions address the user as "you"; weak skills aren't called gaps.
+- **B16** Index-based React keys on the analysis page.
+
+#### Changed (simplification, no behaviour change)
+- One set of test fakes (`backend/tests/fakes.py`) instead of copies in five test modules
+  (-242 lines in tests); test modules no longer import from each other.
+- One `session_not_found()` / `ai_unavailable()` error each; SSE formatting and error mapping in one
+  helper (`app/core/sse.py` + `_sse_response`); `rubric_level()` replaces three copies;
+  `submit_answer` uses a plain `gather` instead of manual task bookkeeping.
+
+#### Tests
+- 230 backend tests (+18: `tests/test_analysis_stream.py`, interview quota/rate-limit/fencing
+  tests, seniority), migration smoke test covers the claim race with two connections, new mocked
+  browser test `frontend/e2e/analysis.mock.py`.
+
+#### Verified live (local backend + live Supabase, Groq, Gemini)
+- Migrations 04/05 are not on the live database yet, so a local-only test harness stubbed the
+  `consume_quota` / `claim_analysis` calls (production code unchanged; both are covered by the
+  embedded-Postgres smoke test).
+- Demo analysis: first event 0.7 s, done in 26.7 s. Groq returned 429 on the insights step, Gemini
+  took over and the `slow` notice was streamed. Cached re-analyze 0.34 s.
+- Interview: start 9.7 s, two answers 2.1 s and 1.8 s; the one-line answer got a follow-up.
+- Browser: "Try with a sample CV" on `/start` streamed to a finished analysis with "Start interview".
+
+#### Still open
+- B4 (hidden white text counts as evidence), B6 (row-interleaved two-column PDFs), B11 (silent 30k
+  truncation notice). pypdf's layout mode was tried for B6: it reversed Urdu text and interleaved a
+  column-ordered Chrome PDF, so it is not a safe default.
+- Two concurrent answers to the same interview question can still race (last write wins).
+
 ### Phase 3: Interviewer agent, text mode (2026-11-06)
 
 #### Added
@@ -26,6 +78,12 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 - Practice mode returns a one-line summary and a tip after each answer. Scores are never sent during
   the interview.
 - 17 new tests (113 backend tests in total).
+- Frontend `/session/[id]/interview` (text mode): start screen with practice-mode switch, question
+  caption card with interviewer status, "Question X of ~N" + follow-up badge, answer box (5,000-char
+  counter, Ctrl/⌘+Enter), optimistic "thinking" state, transcript (collapsible on mobile),
+  practice feedback, completion screen, resume after reload, and friendly 503/429/network/
+  wrong-question handling that never loses the typed answer. The analysis page's "Start interview" CTA
+  now links to it. Mocked-API browser test in `frontend/e2e/interview.mock.py`.
 
 #### Dependencies
 - `langgraph==1.2.20`, which pulls in `langchain-core` 1.7.6, langsmith, orjson, ormsgpack, xxhash
@@ -47,13 +105,7 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
   lock.
 - Transitive dependencies of langgraph are not pinned.
 - Report generation (Phase 5) is not built yet. `finish` only sets `report_pending`.
-#### Added (frontend)
-- Frontend: `/session/[id]/interview` (text mode): start screen with practice-mode switch, question
-  caption card with interviewer status, "Question X of ~N" + follow-up badge, answer box (5,000-char
-  counter, Ctrl/⌘+Enter), optimistic "thinking" state, transcript (collapsible on mobile),
-  practice feedback, completion screen, resume after reload, and friendly 503/429/network/
-  wrong-question handling that never loses the typed answer. The analysis page's "Start interview" CTA
-  now links to it. Mocked-API browser test in `frontend/e2e/interview.mock.py`.
+
 ### Security pass (2026-11-06)
 
 #### Added

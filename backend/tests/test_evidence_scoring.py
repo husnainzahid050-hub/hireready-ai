@@ -127,3 +127,19 @@ def test_sanitize_insights_enforces_urls_quotes_and_days() -> None:
 def test_catalog_has_curated_urls() -> None:
     urls = allowed_urls()
     assert len(urls) > 20 and all(u.startswith("https://") for u in urls)
+
+
+def test_internships_and_ta_jobs_do_not_count_for_mid_roles() -> None:
+    # QA B9: an intern + a TA job made a fresh graduate a 100% fit for a "3+ years" role.
+    def job(role: str) -> Experience:
+        return Experience(role=role, org="o", duration=None, bullets=[])
+
+    grad = EMPTY_CV.model_copy(
+        update={"experience": [job("AI Engineering Intern"), job("Teaching Assistant, ML course")]}
+    )
+    _, b = compute_match([], "mid", grad)
+    assert b.seniority_fit.score == 0.5 and "beyond internships" in b.seniority_fit.detail
+    worked = EMPTY_CV.model_copy(update={"experience": [job("Backend Engineer"), job("TA")]})
+    assert compute_match([], "mid", worked)[1].seniority_fit.score == 0.5  # "TA" is excluded
+    worked.experience.append(job("International Sales Lead"))  # not an "intern" role
+    assert compute_match([], "mid", worked)[1].seniority_fit.score == 1.0

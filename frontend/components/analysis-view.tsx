@@ -20,6 +20,12 @@ const STEPS = [
   { id: "match", label: "Match skills" },
   { id: "insights", label: "Questions & plan" },
 ];
+const STEP_IDS = new Set(STEPS.map((s) => s.id));
+
+const STREAM_ENDED = {
+  code: "stream_ended",
+  message: "The connection closed before the analysis finished. Please try again.",
+};
 
 type State = {
   step: string | null;
@@ -191,6 +197,7 @@ function hostname(url: string) {
 
 export function AnalysisView({ sessionId }: { sessionId: string }) {
   const [s, setS] = useState<State>(INITIAL);
+  // No token in this browser, or the server doesn't know it (wrong / expired session).
   const [noToken, setNoToken] = useState(false);
   const started = useRef(false);
 
@@ -219,11 +226,20 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
           });
           return;
         }
+        let finished = false;
         for await (const ev of streamAnalysis(sessionId, controller.signal)) {
+          if (ev.event === "done" || ev.event === "error") finished = true;
+          if (ev.event === "error" && ev.data.code === "session_not_found") {
+            setNoToken(true);
+            return;
+          }
           setS((prev) => {
             switch (ev.event) {
               case "status":
-                return { ...prev, step: ev.data.step, message: ev.data.message };
+                // "waiting" / "slow" only change the message, not the progress step.
+                return STEP_IDS.has(ev.data.step)
+                  ? { ...prev, step: ev.data.step, message: ev.data.message }
+                  : { ...prev, message: ev.data.message };
               case "profiles":
                 return { ...prev, profiles: ev.data, roleTitle: ev.data.role_title };
               case "score":
@@ -253,8 +269,15 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
             }
           });
         }
+        // e.g. a proxy or the platform closed the stream: never leave the page spinning.
+        if (!finished && !controller.signal.aborted)
+          setS((prev) => ({ ...prev, error: STREAM_ENDED }));
       } catch (e) {
         if (controller.signal.aborted) return;
+        if (e instanceof ApiError && e.code === "session_not_found") {
+          setNoToken(true);
+          return;
+        }
         setS((prev) => ({
           ...prev,
           error: {
@@ -272,8 +295,8 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
   if (noToken) {
     return (
       <div className="rounded-xl bg-amber-50 p-6 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-        This session belongs to another browser, or it was cleared. For privacy, sessions can only
-        be opened on the device that created them.{" "}
+        This session belongs to another browser, or it was cleared or has expired. For privacy,
+        sessions can only be opened on the device that created them.{" "}
         <Link href="/start" className="font-medium underline">
           Start a new one
         </Link>
@@ -289,7 +312,11 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
     <div className="space-y-6">
       <header className="space-y-3">
         <h1 className="text-3xl font-semibold tracking-tight">
-          {s.roleTitle ? `Your match for ${s.roleTitle}` : "Analyzing your CV…"}
+          {s.roleTitle
+            ? `Your match for ${s.roleTitle}`
+            : s.error
+              ? "Analysis stopped"
+              : "Analyzing your CV…"}
         </h1>
         {!s.done && !s.error && (
           <p className="text-zinc-600 dark:text-zinc-400" aria-live="polite">
@@ -367,8 +394,8 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
                     {label as string}
                   </h3>
                   <ul className="space-y-3">
-                    {(items as GapItem[]).map((g) => (
-                      <GapRow key={g.skill} g={g} />
+                    {(items as GapItem[]).map((g, i) => (
+                      <GapRow key={`${g.skill}-${i}`} g={g} />
                     ))}
                   </ul>
                 </div>
@@ -389,8 +416,8 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
             </p>
           ) : s.strengths ? (
             <ul className="space-y-4">
-              {s.strengths.map((st) => (
-                <li key={st.title}>
+              {s.strengths.map((st, i) => (
+                <li key={`${st.title}-${i}`}>
                   <p className="font-medium">{st.title}</p>
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">{st.why_it_matters}</p>
                   {st.evidence_quote && (
@@ -407,12 +434,12 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
         <Card title="Likely interview questions">
           {s.questions ? (
             <div className="space-y-4">
-              {s.questions.map((g) => (
-                <div key={g.topic}>
+              {s.questions.map((g, i) => (
+                <div key={`${g.topic}-${i}`}>
                   <p className="font-medium">{g.topic}</p>
                   <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-zinc-700 dark:text-zinc-300">
-                    {g.questions.map((q) => (
-                      <li key={q}>{q}</li>
+                    {g.questions.map((q, i) => (
+                      <li key={i}>{q}</li>
                     ))}
                   </ul>
                 </div>
@@ -435,15 +462,15 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
                 <div className="space-y-1">
                   <p className="font-medium">{d.focus}</p>
                   <ul className="list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-300">
-                    {d.tasks.map((t) => (
-                      <li key={t}>{t}</li>
+                    {d.tasks.map((t, i) => (
+                      <li key={i}>{t}</li>
                     ))}
                   </ul>
                   {d.resource_urls.length > 0 && (
                     <p className="flex flex-wrap gap-2 text-sm">
-                      {d.resource_urls.map((u) => (
+                      {d.resource_urls.map((u, i) => (
                         <a
-                          key={u}
+                          key={`${u}-${i}`}
                           href={u}
                           target="_blank"
                           rel="noopener noreferrer"

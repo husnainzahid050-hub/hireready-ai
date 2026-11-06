@@ -105,22 +105,33 @@ plan had exactly 7 days.
 | B5 | Med | PDF ligatures (`ﬁ`, `ﬀ`) and Arabic presentation forms were kept in `raw_text`, which broke Postgres full-text matching ("fine-tuned", "certified", "workflow") and gave the LLM odd text | `clean_text` applies NFKC normalization (`parsing.py`) |
 | B7 | Med | Seniority fit for senior roles was a flat 0.25, even for an 11-year staff engineer | It now scales like mid roles: 3+ roles = 1.0, 2 = 0.5, otherwise 0.25 (`scoring.py`) |
 
+### Fixed in the integration pass (branch `fixer-agent`)
+
+| ID | Sev | Bug | Fix | Tests |
+|---|---|---|---|---|
+| B3 | High | Concurrent analyze ran the pipeline twice | Atomic `claim_analysis()` (migration 05) before quota/LLM; a second caller streams `waiting` then the first run's result; stale claims expire after 120 s; claim released on success, error and cancel | `tests/test_analysis_stream.py` (real overlapping requests), migration smoke test (two-connection race) |
+| B8 | Med | No deadline or "still working" feedback; UI spun forever on a cut stream | 50 s analysis budget (`analysis_timeout`), 25 s per LLM provider incl. retries, `slow` status after 15 s or on Gemini fallback; UI shows error + Try again when the stream ends without `done`/`error` | `tests/test_analysis_stream.py`, `frontend/e2e/analysis.mock.py` |
+| B9 | Low | Internship/TA counted as experience | Intern, trainee, apprentice, TA, student and volunteer roles are not counted for mid/senior fit | `test_internships_and_ta_jobs_do_not_count_for_mid_roles` |
+| B10 | Low | "Power BI or Tableau" split in two | `JD_SYSTEM` keeps alternatives as one skill; `JUDGE_SYSTEM` accepts either option | prompt only (verify in the next live eval) |
+| B12 | Low | Generic 422s | No `Form(max_length)`, so `validate_jd` returns `jd_too_long`; a malformed `session_id` returns 404 `session_not_found` | `tests/test_analysis_stream.py` |
+| B13 | Low | Wrong/expired token showed "Analyzing…" + useless retry | `session_not_found` shows the "another browser / expired" panel; header says "Analysis stopped" on errors | `frontend/e2e/analysis.mock.py` |
+| B14 | Low | Orphan session per failed upload | `/start` reuses the session on retry (new one if options change, quota is used up or it is gone) | manual |
+| B15 | Low | Third-person insights, weak skills called gaps | `INSIGHTS_SYSTEM` writes to "you" and uses verdict wording; plan prompt asks for "you" | prompt only |
+| B16 | Low | Duplicate React keys | Composite / index keys | `frontend/e2e/analysis.mock.py` (duplicate skills render) |
+
 ### Open
 
 | ID | Sev | Bug | Repro | Suspected cause / suggestion |
 |---|---|---|---|---|
-| B3 | **High** | Concurrent analyze runs the whole pipeline twice: double token spend (this caused Groq 429s), and the last run overwrites the first, so a reload can show different results. It happened in real use by opening the analysis in a second tab during a run, and in run 6 with two parallel POSTs. The second run **kept going after its client disconnected** | `POST /analyze` twice within 1 s on one session; both log `analysis_done` | `sessions.py` `analyze()` checks `gap_analyses` without an atomic claim; `analysis.py` upserts with `on_conflict=session_id`. Fix: add an `analyzing` value to `session_status` and claim with `PATCH sessions?id=eq.X&status=eq.created` (`return=representation`). If the claim fails, return 409 (or stream "already running") and have the frontend poll `GET /analysis`. Also stop LLM work on client disconnect |
 | B4 | Med | White or hidden keyword-stuffed text counts as evidence. The injection CV went from about 10 to 52, with 10 skills "weak" from an invisible line | `cv_injection.pdf` against the junior AI JD | `_pdf_text` extracts all text regardless of colour or size. Options: drop white or tiny text using a pypdf `visitor_text` that tracks fill colour; flag keyword-only lines; give skills-list-only evidence lower weight |
 | B6 | Med | Two-column PDFs whose text is emitted row by row merge the sidebar and main column into one line, so "verified" quotes mix unrelated facts and can upgrade verdicts | `cv_senior_two_column.pdf` (strict xfail test `test_two_column_lines_are_not_merged`) | `parsing._pdf_text` uses pypdf's plain mode. Try `extract_text(extraction_mode="layout")` and split on runs of 3+ spaces, or group by x position |
-| B8 | Med | No overall deadline and no "still working / switched provider" feedback. Each Gemini call can take up to 3 × 60 s. Separately, if the stream closes without `done`/`error` (proxy timeout), the UI shows "…" forever | Groq unreachable plus Gemini 503 | `llm.py` (`timeout=60`, `max_attempts=3`). Add a per-analysis time budget and a status event on fallback. `analysis-view.tsx` should show an error when the stream ends without `done` |
-| B9 | Low | The seniority heuristic counts an internship or TA job as a role, so a fresh grad gets 100% fit for a "3+ years" mid role | Run 6 | `scoring.seniority_fit` counts `cv.experience`. Use the JD's required years against the CV's summed durations, or exclude intern/TA roles |
-| B10 | Low | Alternatives in a JD ("Power BI or Tableau") become two separate must-haves | Run 5 | Add a `JD_SYSTEM` rule to merge "X or Y" into one skill ("Power BI or Tableau") |
 | B11 | Low | A long CV is silently cut at 30k chars, and only the first 12k reach CV extraction. DOCX files have no 5-page check | `cv_long.docx` | Return a `truncated` flag from `/documents` and show a notice; read the page count from DOCX `docProps/app.xml` |
-| B12 | Low | JD over 20k chars gives a generic 422 (not `jd_too_long`); an invalid UUID gives 422 (not 404) | API matrix | `Form(max_length=20_000)` fires before `validate_jd`; an `UUID` path type |
-| B13 | Low | Wrong or expired token on the analysis page shows a confusing "Analyzing…" header and a Try again button that cannot help | Edit localStorage, reload | `analysis-view.tsx`: on `session_not_found`, show the existing "another browser / expired" panel |
-| B14 | Low | A failed upload on `/start` leaves an orphan session, and each retry creates another | Upload a scanned PDF twice | `start-form.tsx` creates the session before upload; reuse the session id on retry |
-| B15 | Low | Insights wording: tasks in third person ("the candidate's RAG assistant"); a group labelled "(must-have gap)" when the verdict was weak | Run 1 | `INSIGHTS_SYSTEM`: address the user as "you"; pass verdict labels |
-| B16 | Low | React keys use `g.skill`, `st.title` and question text, which can be duplicated | — | Use the index or a composite key |
+
+Integration-pass notes on the open bugs: pypdf `extraction_mode="layout"` was tried for B6. It
+separates the columns with runs of spaces, but it reversed the Urdu name in
+`cv_unicode_urdu_chrome.pdf` and interleaved `cv_two_column_chrome.pdf`, which plain mode reads
+column by column. It is not a safe default, so B6 stays open (strict xfail test kept). B4 needs a
+pypdf `visitor_text` that tracks fill colour and font size, which is more than a small fix.
 
 ## 5. AI output quality
 
@@ -152,16 +163,15 @@ load testing.
 
 ## 7. Recommendations (in priority order)
 
-1. **Fix B3 (concurrent analyze)** before any public traffic: it doubles cost, triggers rate limits and
-   makes results unstable. Rate limits (Phase 7) will not prevent this on their own.
-2. **Add a time budget and fallback feedback (B8)**, and a "stream ended unexpectedly" state in the UI.
+1. ~~Fix B3 (concurrent analyze) before any public traffic.~~ Fixed in the integration pass.
+2. ~~Add a time budget and fallback feedback (B8), and a "stream ended unexpectedly" state.~~ Fixed.
 3. **Defend against hidden text (B4)** and fix two-column extraction (B6). Both distort the core
    promise that "evidence is verified".
 4. Set `APP_ENV=production` and the real env vars on Vercel; deploy Phase 2.
-5. Improve the seniority heuristic (B9) and JD alternatives (B10); add soft-skill examples to `JUDGE_SYSTEM`.
+5. ~~Seniority heuristic (B9) and JD alternatives (B10)~~ fixed; still to do: soft-skill examples in `JUDGE_SYSTEM`.
 6. Turn these fixtures into the `evals/` gap-detection set (SPEC §11): the expected verdicts in section 2
    are a starting label set.
-7. Small UX fixes: B11–B16.
+7. Small UX fixes: B12–B16 fixed; B11 (truncation notice) open.
 
 ## 8. How to re-run
 
