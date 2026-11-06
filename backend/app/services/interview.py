@@ -7,6 +7,7 @@ Phase 5 report). LangGraph is imported lazily so other endpoints don't pay its i
 
 import asyncio
 import time
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
@@ -169,6 +170,13 @@ def to_turn(state: "InterviewState", *, history: bool, last_answer: bool) -> Int
 
 
 Inputs = tuple[CVProfile, JobProfile, list[GapItem]]
+# Called once the request is known to need an LLM turn (after validation, before the LLM call):
+# the router uses it for rate limits and per-session quotas, so rejected requests cost nothing.
+Charge = Callable[[], Awaitable[None]]
+
+
+async def _free() -> None:
+    return None
 
 
 async def _run(
@@ -213,13 +221,16 @@ async def start_interview(
     embedder: Embedder,
     session: dict[str, Any],
     practice_mode: bool,
+    charge: Charge = _free,
 ) -> InterviewTurn:
     from app.agents.interviewer.state import InterviewState
 
     sid = UUID(session["id"])
     existing = await load_state(db, sid)
-    if existing is not None:  # idempotent: never re-plan
+    if existing is not None:  # idempotent: never re-plan (and never charged twice)
         return to_turn(existing, history=False, last_answer=False)
+    inputs = await load_inputs(db, sid)
+    await charge()
     state = InterviewState(
         session_id=str(sid),
         practice_mode=practice_mode,
@@ -227,7 +238,7 @@ async def start_interview(
         interview_type=session.get("interview_type") or "mixed",
         event="start",
     )
-    result = await _run(db, llm, embedder, state, sid, await load_inputs(db, sid))
+    result = await _run(db, llm, embedder, state, sid, inputs)
     await persist(db, None, result)
     return to_turn(result, history=False, last_answer=False)
 
@@ -246,6 +257,7 @@ async def submit_answer(
     session: dict[str, Any],
     question_id: UUID,
     transcript: str,
+    charge: Charge = _free,
 ) -> InterviewTurn:
     """Text answers now; Phase 4 voice will transcribe audio and call this same function."""
     sid = UUID(session["id"])
@@ -264,6 +276,7 @@ async def submit_answer(
         elif not inputs_task.cancelled():
             inputs_task.exception()  # mark a failure as retrieved (we raised our own error)
     assert state is not None  # noqa: S101 (checked above)
+    await charge()
     turn_input = state.model_copy(update={"event": "answer", "answer_text": transcript})
     result = await _run(db, llm, embedder, turn_input, sid, inputs)
     await persist(db, state, result)

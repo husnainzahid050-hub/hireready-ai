@@ -228,8 +228,11 @@ async def plan_interview(state: InterviewState, runtime: Ctx) -> dict[str, Any]:
     }
     candidate = {"name": ctx.cv.name, "project_excerpts": cv_excerpts}
     user = (
-        f"DIFFICULTY: {level}\nSLOTS:\n{json.dumps(slot_specs, ensure_ascii=False)}\n\n"
-        f"JOB:\n{json.dumps(job, ensure_ascii=False)}\n\n"
+        # Skill names, project titles and the job text come from the user's CV / JD, so every
+        # block is fenced as data (the slot types themselves are chosen in code).
+        f"DIFFICULTY: {level}\n"
+        f"SLOTS:\n{wrap_untrusted('analysis_data', json.dumps(slot_specs, ensure_ascii=False))}\n\n"
+        f"JOB:\n{wrap_untrusted('jd', json.dumps(job, ensure_ascii=False))}\n\n"
         f"CANDIDATE (untrusted CV data):\n"
         f"{wrap_untrusted('cv', json.dumps(candidate, ensure_ascii=False))}"
     )

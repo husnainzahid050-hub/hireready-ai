@@ -10,9 +10,12 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
+import app.core.rate_limit as rate_limit
 from app.agents.interviewer.graph import get_graph
 from app.agents.interviewer.nodes import choose_slots
 from app.agents.interviewer.tools import to_scores
+from app.core.quotas import SESSION_QUOTAS
+from app.core.rate_limit import Policy, RateLimitResult
 from app.main import app
 from app.schemas.analysis import (
     CVProfile,
@@ -511,3 +514,64 @@ def test_state_document_is_compact(env) -> None:  # type: ignore[no-untyped-def]
     client.post(url(sid, "/start"), json={}, headers=h)
     size = len(json.dumps(copy.deepcopy(db.rows("interview_state")[0]["state"])))
     assert size < 30_000
+
+
+# ------------------------------------------------------------------ security parity (SECURITY.md)
+
+
+def test_interview_quotas_charge_only_real_llm_turns(env, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    client, db, llm = env
+    sid, h = new_session(client, db)
+    qid = client.post(url(sid, "/start"), json={}, headers=h).json()["question"]["id"]
+    client.post(url(sid, "/start"), json={}, headers=h)  # idempotent re-start: free
+    assert db.usage[(sid, "interview_start")] == 1
+
+    r = client.post(
+        url(sid, "/answer"), json={"question_id": str(uuid.uuid4()), "text": "x"}, headers=h
+    )
+    assert r.status_code == 400 and (sid, "interview_answer") not in db.usage  # rejected: free
+
+    monkeypatch.setitem(SESSION_QUOTAS, "interview_answer", 1)
+    t = client.post(url(sid, "/answer"), json={"question_id": qid, "text": GOOD}, headers=h).json()
+    calls = len(llm.calls)
+    r = client.post(
+        url(sid, "/answer"), json={"question_id": t["question"]["id"], "text": GOOD}, headers=h
+    )
+    assert r.status_code == 429 and r.json()["error"]["code"] == "quota_exceeded"
+    assert len(llm.calls) == calls and len(db.rows("answers")) == 1  # no LLM call, nothing saved
+    assert client.get(url(sid), headers=h).json()["question"]["id"] == t["question"]["id"]
+
+
+def test_interview_start_quota_blocks_planning(env, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    client, db, llm = env
+    monkeypatch.setitem(SESSION_QUOTAS, "interview_start", 0)
+    sid, h = new_session(client, db)
+    r = client.post(url(sid, "/start"), json={}, headers=h)
+    assert r.status_code == 429 and r.json()["error"]["code"] == "quota_exceeded"
+    assert llm.calls == [] and db.rows("interview_state") == []
+
+
+def test_interview_endpoints_are_rate_limited(env, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    client, db, llm = env
+    sid, h = new_session(client, db)
+    qid = client.post(url(sid, "/start"), json={}, headers=h).json()["question"]["id"]
+    seen: list[str] = []
+
+    class DenyAnswers:
+        async def hit(self, key: str, policy: Policy) -> RateLimitResult:
+            seen.append(key.split(":")[0])
+            return RateLimitResult(allowed=not key.startswith("interview_answer"), retry_after_s=60)
+
+    monkeypatch.setattr(rate_limit, "_limiter", DenyAnswers())
+    r = client.post(url(sid, "/answer"), json={"question_id": qid, "text": GOOD}, headers=h)
+    assert r.status_code == 429 and r.headers["Retry-After"] == "60"
+    assert seen == ["interview_answer"] and llm.calls == ["InterviewPlanDraft"]
+
+
+def test_plan_prompt_fences_jd_and_slot_data(env) -> None:  # type: ignore[no-untyped-def]
+    client, db, llm = env
+    sid, h = new_session(client, db)
+    client.post(url(sid, "/start"), json={}, headers=h)
+    prompt = llm.prompts[0]
+    assert "<analysis_data>" in prompt and "<jd>" in prompt and "<cv>" in prompt
+    assert '"title": "Junior AI Engineer"' in prompt.split("<jd>", 1)[1]
