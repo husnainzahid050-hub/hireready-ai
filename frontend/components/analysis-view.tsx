@@ -462,16 +462,15 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
         <div className="flex flex-col items-start gap-2 rounded-2xl bg-indigo-50 p-6 dark:bg-indigo-950">
           <p className="font-medium">Ready to practise?</p>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            The AI mock interview (6 tailored questions with follow-ups) is coming in the next
-            update.
+            Take the AI mock interview: about 6 questions tailored to your CV and this job, with
+            follow-ups.
           </p>
-          <button
-            type="button"
-            disabled
-            className="mt-2 rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white opacity-50"
+          <Link
+            href={`/session/${sessionId}/interview`}
+            className="mt-2 rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
           >
-            Start interview (coming soon)
-          </button>
+            Start interview
+          </Link>
         </div>
       )}
     </div>

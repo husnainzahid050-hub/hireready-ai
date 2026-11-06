@@ -61,3 +61,33 @@ export type SessionOptions = {
   email_opt_in: boolean;
   consent: boolean;
 };
+
+// ------------------------------------------------------------------ interview (Phase 3)
+
+export type QuestionType =
+  "technical" | "project" | "gap_probe" | "behavioral" | "role_fit" | "follow_up";
+
+export type Question = {
+  id: string;
+  /** 1-based; a follow-up shares its parent's order. */
+  order: number;
+  type: QuestionType;
+  competency: string | null;
+  text: string;
+  is_follow_up: boolean;
+};
+
+export type AnswerFeedback = { summary: string; tip: string };
+
+export type InterviewTurn = {
+  status: "interviewing" | "completed";
+  practice_mode: boolean;
+  progress: { answered: number; total_planned: number };
+  question: Question | null;
+  last_answer: {
+    question_id: string;
+    transcript: string;
+    feedback: AnswerFeedback | null;
+  } | null;
+  history: { question: Question; answer_text: string }[];
+};
