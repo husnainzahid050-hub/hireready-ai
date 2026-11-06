@@ -3,9 +3,17 @@ name = "hireready-backend"
 version = "0.1.0"
 description = "HireReady AI backend (FastAPI)"
 requires-python = ">=3.12,<3.13"
+# Vercel installs from THIS list when pyproject.toml exists (requirements.txt is ignored).
+# Keep it identical to requirements.txt; tests/test_dependencies.py enforces that.
+dependencies = [
+    "fastapi==0.162.0",
+    "pydantic==2.14.3",
+    "pydantic-settings==2.16.2",
+    "httpx==0.28.1",
+    "pyyaml==6.0.3",
+]
 
-# Vercel auto-detects a FastAPI `app` in app/main.py (zero-config).
-# Runtime deps live in requirements.txt (what Vercel installs).
+# Vercel auto-detects the FastAPI `app` in app/main.py (zero-config).
 
 [tool.ruff]
 line-length = 100
