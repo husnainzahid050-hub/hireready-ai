@@ -118,7 +118,7 @@ def test_sanitize_insights_enforces_urls_quotes_and_days() -> None:
     )
     out = sanitize_insights(draft, NCV)
     assert out.strengths[0].evidence_quote is not None
-    assert out.strengths[1].evidence_quote is None  # fabricated quote dropped
+    assert [s.title for s in out.strengths] == ["RAG"]  # strength with fabricated quote dropped
     assert [d.day for d in out.prep_plan] == [1, 2, 3, 4, 5, 6, 7]
     assert all(d.resource_urls == [real_url] for d in out.prep_plan)  # invented URL removed
     assert len(out.likely_questions[0].questions) == 4

@@ -40,8 +40,9 @@ Rules:
 
 INSIGHTS_SYSTEM = """You are an interview coach preparing a candidate for a specific job.
 Using the analysis provided, produce:
-1. strengths: 3 to 5 things the candidate should highlight, each tied to the job. evidence_quote must be
-   copied exactly from the provided strong-evidence quotes, or null.
+1. strengths: up to 5 things the candidate should highlight, each tied to the job and backed by one of
+   the provided evidence_quotes (copy it exactly into evidence_quote). Never list a strength without
+   such a quote; if there are no quotes, return an empty list.
 2. likely_questions: 3 to 5 topic groups, each with 2 to 4 realistic questions for THIS role. Adapt the
    provided question-bank items to the job and the candidate's actual projects; include at least one
    question probing a missing must-have skill (asked fairly) and one behavioral question.
