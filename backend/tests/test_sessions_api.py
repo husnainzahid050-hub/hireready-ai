@@ -258,6 +258,15 @@ def test_upload_documents_replaces_old_analysis(env) -> None:  # type: ignore[no
     assert db.rows("gap_analyses") == []
 
 
+def test_analysis_is_null_before_analyze(env) -> None:  # type: ignore[no-untyped-def]
+    client, _, _ = env
+    s = client.post("/api/v1/sessions?demo=true", json={"consent": True}).json()
+    r = client.get(
+        f"/api/v1/sessions/{s['session_id']}/analysis", headers={"X-Guest-Token": s["guest_token"]}
+    )
+    assert r.status_code == 200 and r.json()["analysis"] is None
+
+
 def test_analyze_without_documents_streams_error(env) -> None:  # type: ignore[no-untyped-def]
     client, _, _ = env
     s = client.post("/api/v1/sessions", json={"consent": True}).json()

@@ -148,7 +148,7 @@ async def judge_skills(
         + "\n".join(skill_lines),
         schema=EvidenceJudgements,
         tier="strong",
-        temperature=0.1,
+        temperature=0.0,  # judging should be as repeatable as possible
         max_tokens=3000,
     )
     by_name = {normalize(j.skill): j for j in result.judgements}

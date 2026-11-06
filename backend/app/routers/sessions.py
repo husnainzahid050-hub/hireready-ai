@@ -143,8 +143,6 @@ async def get_analysis(session_id: UUID, token: GuestToken = NO_TOKEN) -> dict[s
     db = get_db()
     session = await get_owned_session(db, session_id, token)
     rows = await db.select("gap_analyses", {"select": "*", "session_id": f"eq.{session_id}"})
-    if not rows:
-        raise AppError("analysis_not_found", "This session has not been analyzed yet.", 404)
     return {
         "session": {
             "id": session["id"],
@@ -154,5 +152,6 @@ async def get_analysis(session_id: UUID, token: GuestToken = NO_TOKEN) -> dict[s
             "interview_type": session["interview_type"],
             "is_demo": session["is_demo"],
         },
-        "analysis": analysis_from_row(rows[0]).model_dump(),
+        # null until analyzed (200, not 404: "not analyzed yet" is a normal state, not an error)
+        "analysis": analysis_from_row(rows[0]).model_dump() if rows else None,
     }
