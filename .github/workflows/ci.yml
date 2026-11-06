@@ -32,8 +32,21 @@ jobs:
         run: mypy app
       - name: Test
         run: pytest
+      - name: Validate knowledge base
+        run: python -m scripts.ingest_knowledge --dry-run
       - name: Dependency audit
         run: pip-audit -r requirements.txt
+
+  database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install -r supabase/tests/requirements.txt
+      - name: Migrations smoke test (embedded Postgres + pgvector)
+        run: python supabase/tests/test_migrations.py
 
   frontend:
     runs-on: ubuntu-latest
