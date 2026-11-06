@@ -1,0 +1,30 @@
+[project]
+name = "hireready-backend"
+version = "0.1.0"
+description = "HireReady AI backend (FastAPI)"
+requires-python = ">=3.12,<3.13"
+
+# Vercel auto-detects a FastAPI `app` in app/main.py (zero-config).
+# Runtime deps live in requirements.txt (what Vercel installs).
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "ASYNC"]
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # assert is fine in tests
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]

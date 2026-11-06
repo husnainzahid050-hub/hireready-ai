@@ -1,0 +1,7 @@
+-r requirements.txt
+uvicorn==0.54.0
+pytest==9.2.0
+pytest-asyncio==1.4.1.post1
+ruff==0.17.4
+mypy==2.4.1
+pip-audit
