@@ -1,8 +1,10 @@
 """Gemini embeddings over REST (batchEmbedContents).
 
-Request shape verified against the official discovery document
-(generativelanguage.googleapis.com/$discovery/rest?version=v1beta, rev 20261105):
-`embedContentConfig.{taskType, outputDimensionality}` (the top-level fields are deprecated).
+Gotcha found by live testing (2026-11-06): the discovery document marks the top-level
+`taskType` / `outputDimensionality` fields as deprecated in favour of `embedContentConfig`,
+but the live API IGNORES `embedContentConfig` for gemini-embedding-001 and returns 3072 dims.
+Only the top-level fields are honoured, so we send those. We also check the returned
+dimension, so a silent API change fails loudly instead of corrupting the vector index.
 
 Gemini only pre-normalizes full-size (3072-d) vectors, so we L2-normalize ourselves.
 With unit vectors, cosine similarity == dot product, which keeps the math simple.
@@ -53,7 +55,8 @@ class GeminiEmbedder:
                 {
                     "model": self._model,
                     "content": {"parts": [{"text": t[:MAX_CHARS]}]},
-                    "embedContentConfig": {"taskType": task, "outputDimensionality": self.dim},
+                    "taskType": task,
+                    "outputDimensionality": self.dim,
                 }
                 for t in texts
             ]

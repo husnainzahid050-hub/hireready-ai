@@ -44,7 +44,10 @@ async def test_request_shape_and_auth_header() -> None:
     r0 = req["body"]["requests"][0]
     assert r0["model"] == "models/gemini-embedding-001"
     assert r0["content"] == {"parts": [{"text": "hello"}]}
-    assert r0["embedContentConfig"] == {"taskType": "RETRIEVAL_QUERY", "outputDimensionality": DIM}
+    # Top-level fields: the live API ignores embedContentConfig (see module docstring).
+    assert r0["taskType"] == "RETRIEVAL_QUERY"
+    assert r0["outputDimensionality"] == DIM
+    assert "embedContentConfig" not in r0
     # normalized: [3,4,0,0] -> [0.6, 0.8, 0, 0]
     assert out == [[0.6, 0.8, 0.0, 0.0]]
 
