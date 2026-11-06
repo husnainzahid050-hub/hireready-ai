@@ -14,6 +14,7 @@ event loop for other requests.
 import asyncio
 import io
 import re
+import unicodedata
 import zipfile
 from typing import Literal
 
@@ -68,7 +69,9 @@ def detect_kind(data: bytes, content_type: str | None) -> FileKind:
 
 
 def clean_text(text: str) -> str:
-    text = text.replace("\x00", "")
+    # NFKC folds PDF ligatures ("ﬁ" -> "fi", common in LaTeX/Chrome exports) and Arabic-script
+    # presentation forms back to normal letters, so keyword search and the LLM see real words.
+    text = unicodedata.normalize("NFKC", text).replace("\x00", "")
     text = re.sub(r"[ \t ]+", " ", text)
     text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
     return text.strip()

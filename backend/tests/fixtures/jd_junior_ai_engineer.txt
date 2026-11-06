@@ -1,0 +1,27 @@
+Junior AI Engineer - Kestrel Labs (fictional), Islamabad (Hybrid)
+
+About the role
+Kestrel Labs builds AI assistants for logistics companies. As a Junior AI Engineer you will help build and ship LLM-powered features, from data preparation to production APIs.
+
+Responsibilities
+- Build retrieval-augmented generation (RAG) pipelines over customer documents.
+- Develop and maintain Python REST APIs (FastAPI) that serve model outputs.
+- Write SQL to prepare evaluation datasets and analyze model performance.
+- Evaluate LLM outputs and reduce hallucinations.
+- Collaborate with the team through Git code reviews.
+
+Requirements (must have)
+- Strong Python programming skills
+- Solid understanding of machine learning fundamentals (overfitting, evaluation metrics)
+- Hands-on experience with LLMs, prompt engineering or RAG
+- Experience building REST APIs, ideally with FastAPI
+- Working knowledge of SQL
+- Git and collaborative development
+
+Nice to have
+- Docker and basic cloud deployment (AWS or GCP)
+- Experience with vector databases (pgvector, Pinecone, Chroma)
+- LangChain or LlamaIndex
+- Good written and verbal communication
+
+0-2 years of experience. Fresh graduates are welcome to apply.

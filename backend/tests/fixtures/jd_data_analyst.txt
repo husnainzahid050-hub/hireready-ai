@@ -1,0 +1,7 @@
+Data Analyst - Greenfield Grocers (fictional), Lahore
+
+Greenfield Grocers is a fast-growing chain of 120 grocery stores. Our analytics team helps store managers and the leadership team make better decisions about pricing, stock and promotions.
+
+In this role you will turn sales and inventory data into clear insights. You will write SQL queries against our PostgreSQL warehouse every day, build and maintain dashboards in Power BI or Tableau, and use Excel for quick ad-hoc analysis. Some of our reporting is automated with Python and pandas, and you will help extend it. You will design and analyze A/B tests for promotions, explain results to non-technical managers in plain language, and present a monthly business review to the leadership team.
+
+We are looking for someone with 1-3 years of experience in a data or business analyst role, a degree in statistics, economics, computer science or a related field, strong attention to detail and good communication skills. Experience in retail is helpful.

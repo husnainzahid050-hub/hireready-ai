@@ -35,7 +35,13 @@ def seniority_fit(job_seniority: Seniority, cv: CVProfile) -> tuple[float, str]:
         if roles >= 2:
             return 1.0, f"Mid-level role; CV lists {roles} roles."
         return 0.5, f"Mid-level role; CV lists {roles} role(s), so experience may be light."
-    return 0.25, f"Senior role; CV lists {roles} role(s)."
+    # Senior: previously a flat 0.25 even for a CV with many roles (an experienced senior
+    # candidate was scored as a poor fit for a senior job).
+    if roles >= 3:
+        return 1.0, f"Senior role; CV lists {roles} roles."
+    if roles == 2:
+        return 0.5, f"Senior role; CV lists {roles} roles, so experience may be light."
+    return 0.25, f"Senior role; CV lists {roles} role(s), so experience may be light."
 
 
 def compute_match(

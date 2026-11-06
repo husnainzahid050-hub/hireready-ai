@@ -1,0 +1,394 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 5 0 R 7 0 R 9 0 R] /Count 4 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 11 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 9527 >>
+stream
+0 0 0 rg BT /F1 6 Tf 50.0 742.0 Td (HAMZA QURESHI) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 735.0 Td (Islamabad, Pakistan | hamza.qureshi.demo@example.com | github.com/hamza-q-demo) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 721.0 Td (SUMMARY) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 714.0 Td (AI graduate who ships LLM features end to end: data pipelines, retrieval, APIs and deployment.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 700.0 Td (EDUCATION) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 693.0 Td (BS Artificial Intelligence, Indus Valley University of Technology \(fictional\), 2022 - 2026. CGPA 3.7/4.0) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 686.0 Td (Coursework: Machine Learning, Deep Learning, NLP, Database Systems, Software Engineering.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 672.0 Td (EXPERIENCE) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 665.0 Td (AI Engineering Intern, Kestrel Data Works \(fictional\), Jun 2025 - Sep 2025) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 658.0 Td (- Built a RAG assistant over 2,000 internal support tickets using LangChain and pgvector in PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 651.0 Td (- Wrote SQL queries with joins and window functions to build the evaluation dataset of 400 question-answer pairs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 644.0 Td (- Exposed the assistant through a FastAPI REST service with request validation using Pydantic.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 637.0 Td (- Packaged the service in Docker and deployed it on a Google Cloud Run instance.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 623.0 Td (Teaching Assistant, Machine Learning course, Indus Valley University of Technology, Feb 2025 - Jun 2025) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 616.0 Td (- Ran weekly labs for 60 students on scikit-learn pipelines, cross-validation and overfitting.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 602.0 Td (PROJECTS) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 595.0 Td (Urdu News Classifier \(Final Year Project\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 588.0 Td (- Fine-tuned a multilingual BERT model with Hugging Face Transformers on 18,000 Urdu news articles; 89% macro F1.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 581.0 Td (- Tracked experiments in MLflow and compared against a TF-IDF + logistic regression baseline \(81% F1\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 567.0 Td (Resume Q&A Bot) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 560.0 Td (- Built a prompt-engineered chatbot with the Groq API and a Chroma vector store; added citation checks to reduce hallucinations.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 546.0 Td (Traffic Sign Detector) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 539.0 Td (- Trained a CNN in PyTorch with data augmentation on 30,000 images \(94% test accuracy\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 525.0 Td (SKILLS) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 518.0 Td (Python, SQL, PyTorch, scikit-learn, pandas, NumPy, Hugging Face Transformers, LangChain, FastAPI, Docker, Git, GitHub Actions, PostgreSQL) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 504.0 Td (CERTIFICATIONS) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 497.0 Td (DeepLearning.AI Machine Learning Specialization \(completed\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 476.0 Td (ADDITIONAL PROJECTS) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 469.0 Td (Project 1: Inventory Insights v1 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 462.0 Td (- Built a Python ETL job that loads 1000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 455.0 Td (- Wrote a short report on data quality issues and fixed 4 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 448.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 441.0 Td (Project 2: Inventory Insights v2 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 434.0 Td (- Built a Python ETL job that loads 2000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 427.0 Td (- Wrote a short report on data quality issues and fixed 5 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 420.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 413.0 Td (Project 3: Inventory Insights v3 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 406.0 Td (- Built a Python ETL job that loads 3000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 399.0 Td (- Wrote a short report on data quality issues and fixed 6 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 392.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 385.0 Td (Project 4: Inventory Insights v4 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 378.0 Td (- Built a Python ETL job that loads 4000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 371.0 Td (- Wrote a short report on data quality issues and fixed 7 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 364.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 357.0 Td (Project 5: Inventory Insights v5 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 350.0 Td (- Built a Python ETL job that loads 5000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 343.0 Td (- Wrote a short report on data quality issues and fixed 8 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 336.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 329.0 Td (Project 6: Inventory Insights v6 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 322.0 Td (- Built a Python ETL job that loads 6000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 315.0 Td (- Wrote a short report on data quality issues and fixed 9 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 308.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 301.0 Td (Project 7: Inventory Insights v7 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 294.0 Td (- Built a Python ETL job that loads 7000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 287.0 Td (- Wrote a short report on data quality issues and fixed 10 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 280.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 273.0 Td (Project 8: Inventory Insights v8 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 266.0 Td (- Built a Python ETL job that loads 8000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 259.0 Td (- Wrote a short report on data quality issues and fixed 11 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 252.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 245.0 Td (Project 9: Inventory Insights v9 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 238.0 Td (- Built a Python ETL job that loads 9000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 231.0 Td (- Wrote a short report on data quality issues and fixed 12 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 224.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 217.0 Td (Project 10: Inventory Insights v10 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 210.0 Td (- Built a Python ETL job that loads 10000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 203.0 Td (- Wrote a short report on data quality issues and fixed 13 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 196.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 189.0 Td (Project 11: Inventory Insights v11 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 182.0 Td (- Built a Python ETL job that loads 11000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 175.0 Td (- Wrote a short report on data quality issues and fixed 14 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 168.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 161.0 Td (Project 12: Inventory Insights v12 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 154.0 Td (- Built a Python ETL job that loads 12000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 147.0 Td (- Wrote a short report on data quality issues and fixed 15 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 140.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 133.0 Td (Project 13: Inventory Insights v13 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 126.0 Td (- Built a Python ETL job that loads 13000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 119.0 Td (- Wrote a short report on data quality issues and fixed 16 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 112.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 105.0 Td (Project 14: Inventory Insights v14 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 98.0 Td (- Built a Python ETL job that loads 14000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 91.0 Td (- Wrote a short report on data quality issues and fixed 17 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 84.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 77.0 Td (Project 15: Inventory Insights v15 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 70.0 Td (- Built a Python ETL job that loads 15000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 63.0 Td (- Wrote a short report on data quality issues and fixed 18 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 56.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 11 0 R >> >> /Contents 6 0 R >>
+endobj
+6 0 obj
+<< /Length 10740 >>
+stream
+0 0 0 rg BT /F1 6 Tf 50.0 742.0 Td (Project 16: Inventory Insights v16 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 735.0 Td (- Built a Python ETL job that loads 16000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 728.0 Td (- Wrote a short report on data quality issues and fixed 19 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 721.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 714.0 Td (Project 17: Inventory Insights v17 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 707.0 Td (- Built a Python ETL job that loads 17000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 700.0 Td (- Wrote a short report on data quality issues and fixed 20 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 693.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 686.0 Td (Project 18: Inventory Insights v18 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 679.0 Td (- Built a Python ETL job that loads 18000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 672.0 Td (- Wrote a short report on data quality issues and fixed 21 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 665.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 658.0 Td (Project 19: Inventory Insights v19 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 651.0 Td (- Built a Python ETL job that loads 19000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 644.0 Td (- Wrote a short report on data quality issues and fixed 22 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 637.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 630.0 Td (Project 20: Inventory Insights v20 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 623.0 Td (- Built a Python ETL job that loads 20000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 616.0 Td (- Wrote a short report on data quality issues and fixed 23 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 609.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 602.0 Td (Project 21: Inventory Insights v21 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 595.0 Td (- Built a Python ETL job that loads 21000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 588.0 Td (- Wrote a short report on data quality issues and fixed 24 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 581.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 574.0 Td (Project 22: Inventory Insights v22 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 567.0 Td (- Built a Python ETL job that loads 22000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 560.0 Td (- Wrote a short report on data quality issues and fixed 25 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 553.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 546.0 Td (Project 23: Inventory Insights v23 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 539.0 Td (- Built a Python ETL job that loads 23000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 532.0 Td (- Wrote a short report on data quality issues and fixed 26 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 525.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 518.0 Td (Project 24: Inventory Insights v24 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 511.0 Td (- Built a Python ETL job that loads 24000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 504.0 Td (- Wrote a short report on data quality issues and fixed 27 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 497.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 490.0 Td (Project 25: Inventory Insights v25 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 483.0 Td (- Built a Python ETL job that loads 25000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 476.0 Td (- Wrote a short report on data quality issues and fixed 28 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 469.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 462.0 Td (Project 26: Inventory Insights v26 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 455.0 Td (- Built a Python ETL job that loads 26000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 448.0 Td (- Wrote a short report on data quality issues and fixed 29 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 441.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 434.0 Td (Project 27: Inventory Insights v27 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 427.0 Td (- Built a Python ETL job that loads 27000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 420.0 Td (- Wrote a short report on data quality issues and fixed 30 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 413.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 406.0 Td (Project 28: Inventory Insights v28 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 399.0 Td (- Built a Python ETL job that loads 28000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 392.0 Td (- Wrote a short report on data quality issues and fixed 31 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 385.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 378.0 Td (Project 29: Inventory Insights v29 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 371.0 Td (- Built a Python ETL job that loads 29000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 364.0 Td (- Wrote a short report on data quality issues and fixed 32 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 357.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 350.0 Td (Project 30: Inventory Insights v30 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 343.0 Td (- Built a Python ETL job that loads 30000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 336.0 Td (- Wrote a short report on data quality issues and fixed 33 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 329.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 322.0 Td (Project 31: Inventory Insights v31 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 315.0 Td (- Built a Python ETL job that loads 31000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 308.0 Td (- Wrote a short report on data quality issues and fixed 34 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 301.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 294.0 Td (Project 32: Inventory Insights v32 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 287.0 Td (- Built a Python ETL job that loads 32000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 280.0 Td (- Wrote a short report on data quality issues and fixed 35 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 273.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 266.0 Td (Project 33: Inventory Insights v33 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 259.0 Td (- Built a Python ETL job that loads 33000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 252.0 Td (- Wrote a short report on data quality issues and fixed 36 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 245.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 238.0 Td (Project 34: Inventory Insights v34 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 231.0 Td (- Built a Python ETL job that loads 34000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 224.0 Td (- Wrote a short report on data quality issues and fixed 37 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 217.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 210.0 Td (Project 35: Inventory Insights v35 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 203.0 Td (- Built a Python ETL job that loads 35000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 196.0 Td (- Wrote a short report on data quality issues and fixed 38 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 189.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 182.0 Td (Project 36: Inventory Insights v36 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 175.0 Td (- Built a Python ETL job that loads 36000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 168.0 Td (- Wrote a short report on data quality issues and fixed 39 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 161.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 154.0 Td (Project 37: Inventory Insights v37 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 147.0 Td (- Built a Python ETL job that loads 37000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 140.0 Td (- Wrote a short report on data quality issues and fixed 40 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 133.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 126.0 Td (Project 38: Inventory Insights v38 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 119.0 Td (- Built a Python ETL job that loads 38000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 112.0 Td (- Wrote a short report on data quality issues and fixed 41 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 105.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 98.0 Td (Project 39: Inventory Insights v39 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 91.0 Td (- Built a Python ETL job that loads 39000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 84.0 Td (- Wrote a short report on data quality issues and fixed 42 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 77.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 70.0 Td (Project 40: Inventory Insights v40 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 63.0 Td (- Built a Python ETL job that loads 40000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 56.0 Td (- Wrote a short report on data quality issues and fixed 43 recurring bugs.) Tj ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 11 0 R >> >> /Contents 8 0 R >>
+endobj
+8 0 obj
+<< /Length 10724 >>
+stream
+0 0 0 rg BT /F1 6 Tf 50.0 742.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 735.0 Td (Project 41: Inventory Insights v41 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 728.0 Td (- Built a Python ETL job that loads 41000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 721.0 Td (- Wrote a short report on data quality issues and fixed 44 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 714.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 707.0 Td (Project 42: Inventory Insights v42 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 700.0 Td (- Built a Python ETL job that loads 42000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 693.0 Td (- Wrote a short report on data quality issues and fixed 45 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 686.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 679.0 Td (Project 43: Inventory Insights v43 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 672.0 Td (- Built a Python ETL job that loads 43000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 665.0 Td (- Wrote a short report on data quality issues and fixed 46 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 658.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 651.0 Td (Project 44: Inventory Insights v44 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 644.0 Td (- Built a Python ETL job that loads 44000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 637.0 Td (- Wrote a short report on data quality issues and fixed 47 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 630.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 623.0 Td (Project 45: Inventory Insights v45 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 616.0 Td (- Built a Python ETL job that loads 45000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 609.0 Td (- Wrote a short report on data quality issues and fixed 48 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 602.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 595.0 Td (Project 46: Inventory Insights v46 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 588.0 Td (- Built a Python ETL job that loads 46000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 581.0 Td (- Wrote a short report on data quality issues and fixed 49 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 574.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 567.0 Td (Project 47: Inventory Insights v47 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 560.0 Td (- Built a Python ETL job that loads 47000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 553.0 Td (- Wrote a short report on data quality issues and fixed 50 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 546.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 539.0 Td (Project 48: Inventory Insights v48 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 532.0 Td (- Built a Python ETL job that loads 48000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 525.0 Td (- Wrote a short report on data quality issues and fixed 51 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 518.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 511.0 Td (Project 49: Inventory Insights v49 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 504.0 Td (- Built a Python ETL job that loads 49000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 497.0 Td (- Wrote a short report on data quality issues and fixed 52 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 490.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 483.0 Td (Project 50: Inventory Insights v50 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 476.0 Td (- Built a Python ETL job that loads 50000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 469.0 Td (- Wrote a short report on data quality issues and fixed 53 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 462.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 455.0 Td (Project 51: Inventory Insights v51 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 448.0 Td (- Built a Python ETL job that loads 51000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 441.0 Td (- Wrote a short report on data quality issues and fixed 54 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 434.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 427.0 Td (Project 52: Inventory Insights v52 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 420.0 Td (- Built a Python ETL job that loads 52000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 413.0 Td (- Wrote a short report on data quality issues and fixed 55 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 406.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 399.0 Td (Project 53: Inventory Insights v53 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 392.0 Td (- Built a Python ETL job that loads 53000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 385.0 Td (- Wrote a short report on data quality issues and fixed 56 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 378.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 371.0 Td (Project 54: Inventory Insights v54 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 364.0 Td (- Built a Python ETL job that loads 54000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 357.0 Td (- Wrote a short report on data quality issues and fixed 57 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 350.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 343.0 Td (Project 55: Inventory Insights v55 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 336.0 Td (- Built a Python ETL job that loads 55000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 329.0 Td (- Wrote a short report on data quality issues and fixed 58 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 322.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 315.0 Td (Project 56: Inventory Insights v56 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 308.0 Td (- Built a Python ETL job that loads 56000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 301.0 Td (- Wrote a short report on data quality issues and fixed 59 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 294.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 287.0 Td (Project 57: Inventory Insights v57 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 280.0 Td (- Built a Python ETL job that loads 57000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 273.0 Td (- Wrote a short report on data quality issues and fixed 60 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 266.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 259.0 Td (Project 58: Inventory Insights v58 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 252.0 Td (- Built a Python ETL job that loads 58000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 245.0 Td (- Wrote a short report on data quality issues and fixed 61 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 238.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 231.0 Td (Project 59: Inventory Insights v59 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 224.0 Td (- Built a Python ETL job that loads 59000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 217.0 Td (- Wrote a short report on data quality issues and fixed 62 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 210.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 203.0 Td (Project 60: Inventory Insights v60 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 196.0 Td (- Built a Python ETL job that loads 60000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 189.0 Td (- Wrote a short report on data quality issues and fixed 63 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 182.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 175.0 Td (Project 61: Inventory Insights v61 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 168.0 Td (- Built a Python ETL job that loads 61000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 161.0 Td (- Wrote a short report on data quality issues and fixed 64 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 154.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 147.0 Td (Project 62: Inventory Insights v62 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 140.0 Td (- Built a Python ETL job that loads 62000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 133.0 Td (- Wrote a short report on data quality issues and fixed 65 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 126.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 119.0 Td (Project 63: Inventory Insights v63 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 112.0 Td (- Built a Python ETL job that loads 63000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 105.0 Td (- Wrote a short report on data quality issues and fixed 66 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 98.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 91.0 Td (Project 64: Inventory Insights v64 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 84.0 Td (- Built a Python ETL job that loads 64000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 77.0 Td (- Wrote a short report on data quality issues and fixed 67 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 70.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 63.0 Td (Project 65: Inventory Insights v65 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 56.0 Td (- Built a Python ETL job that loads 65000 rows per day into PostgreSQL.) Tj ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 11 0 R >> >> /Contents 10 0 R >>
+endobj
+10 0 obj
+<< /Length 5488 >>
+stream
+0 0 0 rg BT /F1 6 Tf 50.0 742.0 Td (- Wrote a short report on data quality issues and fixed 68 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 735.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 728.0 Td (Project 66: Inventory Insights v66 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 721.0 Td (- Built a Python ETL job that loads 66000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 714.0 Td (- Wrote a short report on data quality issues and fixed 69 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 707.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 700.0 Td (Project 67: Inventory Insights v67 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 693.0 Td (- Built a Python ETL job that loads 67000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 686.0 Td (- Wrote a short report on data quality issues and fixed 70 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 679.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 672.0 Td (Project 68: Inventory Insights v68 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 665.0 Td (- Built a Python ETL job that loads 68000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 658.0 Td (- Wrote a short report on data quality issues and fixed 71 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 651.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 644.0 Td (Project 69: Inventory Insights v69 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 637.0 Td (- Built a Python ETL job that loads 69000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 630.0 Td (- Wrote a short report on data quality issues and fixed 72 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 623.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 616.0 Td (Project 70: Inventory Insights v70 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 609.0 Td (- Built a Python ETL job that loads 70000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 602.0 Td (- Wrote a short report on data quality issues and fixed 73 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 595.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 588.0 Td (Project 71: Inventory Insights v71 \(fictional client\)) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 581.0 Td (- Built a Python ETL job that loads 71000 rows per day into PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 574.0 Td (- Wrote a short report on data quality issues and fixed 74 recurring bugs.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 567.0 Td (- Presented the results to the client in a 15-minute demo.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 560.0 Td (Configured Kubernetes autoscaling for the Falcon Freight \(fictional\) tracking API.) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 553.0 Td (Volunteer work 72: taught a weekend coding class for school students \(cohort 72\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 546.0 Td (Volunteer work 73: taught a weekend coding class for school students \(cohort 73\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 539.0 Td (Volunteer work 74: taught a weekend coding class for school students \(cohort 74\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 532.0 Td (Volunteer work 75: taught a weekend coding class for school students \(cohort 75\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 525.0 Td (Volunteer work 76: taught a weekend coding class for school students \(cohort 76\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 518.0 Td (Volunteer work 77: taught a weekend coding class for school students \(cohort 77\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 511.0 Td (Volunteer work 78: taught a weekend coding class for school students \(cohort 78\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 504.0 Td (Volunteer work 79: taught a weekend coding class for school students \(cohort 79\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 497.0 Td (Volunteer work 80: taught a weekend coding class for school students \(cohort 80\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 490.0 Td (Volunteer work 81: taught a weekend coding class for school students \(cohort 81\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 483.0 Td (Volunteer work 82: taught a weekend coding class for school students \(cohort 82\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 476.0 Td (Volunteer work 83: taught a weekend coding class for school students \(cohort 83\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 469.0 Td (Volunteer work 84: taught a weekend coding class for school students \(cohort 84\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 462.0 Td (Volunteer work 85: taught a weekend coding class for school students \(cohort 85\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 455.0 Td (Volunteer work 86: taught a weekend coding class for school students \(cohort 86\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 448.0 Td (Volunteer work 87: taught a weekend coding class for school students \(cohort 87\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 441.0 Td (Volunteer work 88: taught a weekend coding class for school students \(cohort 88\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 434.0 Td (Volunteer work 89: taught a weekend coding class for school students \(cohort 89\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 427.0 Td (Volunteer work 90: taught a weekend coding class for school students \(cohort 90\).) Tj ET
+0 0 0 rg BT /F1 6 Tf 50.0 420.0 Td (Volunteer work 91: taught a weekend coding class for school students \(cohort 91) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000133 00000 n 
+0000000260 00000 n 
+0000009839 00000 n 
+0000009966 00000 n 
+0000020759 00000 n 
+0000020886 00000 n 
+0000031663 00000 n 
+0000031791 00000 n 
+0000037332 00000 n 
+trailer
+<< /Size 12 /Root 1 0 R >>
+startxref
+37430
+%%EOF

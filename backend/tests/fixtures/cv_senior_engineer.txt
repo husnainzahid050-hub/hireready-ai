@@ -1,0 +1,27 @@
+USMAN TARIQ
+Lahore, Pakistan | usman.tariq.demo@example.com | linkedin.com/in/usman-tariq-demo
+
+SUMMARY
+Staff software engineer with 11 years of experience building distributed backend and ML platforms.
+
+EXPERIENCE
+Staff Engineer, Machine Learning Platform, Larkspur Commerce (fictional), 2021 - Present
+- Lead a team of 9 engineers building the feature store and model-serving platform used by 40 ML models.
+- Designed a Kubernetes-based model serving layer on AWS EKS handling 25,000 requests per second at p99 under 80 ms.
+- Introduced an LLM-powered product search using retrieval-augmented generation over 3 million product descriptions.
+- Mentor 6 engineers and run the backend architecture review board.
+
+Senior Backend Engineer, Orchid Telecom (fictional), 2017 - 2021
+- Built Python and Go microservices for billing, migrating a monolith to 14 services with zero downtime.
+- Owned PostgreSQL schema design and query tuning; cut the monthly billing job from 9 hours to 40 minutes.
+- Set up CI/CD with GitLab CI and Terraform for 30 services.
+
+Software Engineer, Mapleleaf Systems (fictional), 2014 - 2017
+- Developed REST APIs in Django and Flask; wrote unit and integration tests with pytest.
+
+EDUCATION
+MS Computer Science, Ravi University of Engineering (fictional), 2014
+BS Computer Science, Ravi University of Engineering (fictional), 2012
+
+SKILLS
+Python, Go, SQL, PostgreSQL, Redis, Kafka, Kubernetes, Docker, AWS, Terraform, FastAPI, Django, scikit-learn, PyTorch, system design, technical leadership

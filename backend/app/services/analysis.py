@@ -30,7 +30,6 @@ from app.schemas.analysis import (
     JobProfile,
     JobSkill,
     PrepDay,
-    Strength,
 )
 from app.services.catalog import allowed_urls, resources_for
 from app.services.embeddings import Embedder, to_pgvector
@@ -217,8 +216,12 @@ async def build_insights(
             }
             for g in gaps
         ],
-        "strong_evidence_quotes": [
-            g.evidence_quote for g in gaps if g.verdict == "strong_evidence" and g.evidence_quote
+        # Strong first; weak quotes let a weak candidate still get honest, grounded strengths.
+        "evidence_quotes": [
+            g.evidence_quote
+            for verdict in ("strong_evidence", "weak_evidence")
+            for g in gaps
+            if g.verdict == verdict and g.evidence_quote
         ],
         "candidate_projects": [
             {"title": p.title, "stack": p.stack, "outcome": p.outcome} for p in cv.projects[:5]
@@ -244,12 +247,10 @@ async def build_insights(
 def sanitize_insights(insights: InsightsDraft, normalized_cv: str) -> Insights:
     """Enforce the rules the prompt asked for, in code: real quotes, curated URLs, 7 days."""
     allowed = allowed_urls()
-    strengths = [
-        s
-        if quote_in_text(s.evidence_quote, normalized_cv)
-        else Strength(title=s.title, why_it_matters=s.why_it_matters, evidence_quote=None)
-        for s in insights.strengths[:5]
-    ]
+    # A strength without a verifiable CV quote is an invented claim (seen live: "Foundational
+    # Python knowledge" for a CV with no Python at all), so it is dropped, not shown unquoted.
+    verified = [s for s in insights.strengths if quote_in_text(s.evidence_quote, normalized_cv)]
+    strengths = verified[:5]
     days = insights.prep_plan[:7]
     plan = [
         PrepDay(
@@ -281,6 +282,13 @@ async def run_analysis(
 
     yield "status", {"step": "extract", "message": "Reading your CV and the job description…"}
     cv, job = await extract_profiles(db, llm, docs)
+    if not job.must_have_skills and not job.nice_to_have_skills:
+        # Otherwise every coverage defaults to 1.0 and a non-JD text scores 100/100.
+        raise AppError(
+            "jd_no_skills",
+            "We couldn't find any skills or requirements in this job description. "
+            "Please paste the full posting, including the requirements section.",
+        )
     yield (
         "profiles",
         {

@@ -382,7 +382,12 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card title="Strengths to highlight">
-          {s.strengths ? (
+          {s.strengths && s.strengths.length === 0 ? (
+            <p className="text-sm text-zinc-500">
+              We couldn&apos;t find CV evidence for this job&apos;s skills yet. Use the prep plan
+              below to build some, then add it to your CV.
+            </p>
+          ) : s.strengths ? (
             <ul className="space-y-4">
               {s.strengths.map((st) => (
                 <li key={st.title}>
