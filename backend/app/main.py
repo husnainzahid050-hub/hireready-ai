@@ -11,7 +11,7 @@ from app import __version__
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging, get_logger, request_id_var
-from app.routers import health
+from app.routers import health, sessions
 
 configure_logging()
 log = get_logger("app")
@@ -67,3 +67,4 @@ async def request_context(
 
 register_error_handlers(app)
 app.include_router(health.router, prefix="/api/v1")
+app.include_router(sessions.router, prefix="/api/v1")

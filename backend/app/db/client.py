@@ -83,6 +83,17 @@ class SupabaseRest:
             prefer += ",resolution=merge-duplicates"
         await self._request("POST", table, params=params, json=rows, prefer=prefer)
 
+    async def insert_returning(self, table: str, row: dict[str, Any]) -> dict[str, Any]:
+        result = await self._request("POST", table, json=row, prefer="return=representation")
+        if not result:
+            raise DatabaseError(500, "Insert returned no row")
+        return dict(result[0])
+
+    async def update(self, table: str, params: dict[str, str], values: dict[str, Any]) -> None:
+        if not params:
+            raise ValueError("Refusing to update without a filter")
+        await self._request("PATCH", table, params=params, json=values, prefer="return=minimal")
+
     async def delete(self, table: str, params: dict[str, str]) -> None:
         if not params:
             raise ValueError("Refusing to delete without a filter")
