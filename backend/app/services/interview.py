@@ -11,7 +11,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from app.core.errors import AppError
+from app.core.errors import AppError, ai_unavailable
 from app.core.logging import get_logger
 from app.db.client import SupabaseRest
 from app.schemas.analysis import CVProfile, GapItem, JobProfile
@@ -31,14 +31,6 @@ if TYPE_CHECKING:
     from app.agents.interviewer.state import AskedQuestion, InterviewState
 
 log = get_logger(__name__)
-
-
-def ai_unavailable() -> AppError:
-    return AppError(
-        "ai_unavailable",
-        "Our AI providers are busy right now. Please try again in a minute.",
-        status_code=503,
-    )
 
 
 # ------------------------------------------------------------------ loading

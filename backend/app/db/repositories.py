@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
-from app.core.errors import AppError
+from app.core.errors import session_not_found
 from app.core.security import token_matches
 from app.db.client import SupabaseRest
 
@@ -14,11 +14,6 @@ SESSION_COLUMNS = (
 )
 
 
-def not_found() -> AppError:
-    # Same error for "doesn't exist" and "not yours" so attackers can't probe session ids.
-    return AppError("session_not_found", "Session not found or expired.", status_code=404)
-
-
 async def get_owned_session(
     db: SupabaseRest, session_id: UUID, token: str | None
 ) -> dict[str, Any]:
@@ -26,13 +21,13 @@ async def get_owned_session(
         "sessions", {"select": SESSION_COLUMNS, "id": f"eq.{session_id}", "limit": "1"}
     )
     if not rows:
-        raise not_found()
+        raise session_not_found()
     row = rows[0]
     if not token_matches(token, row["guest_token_hash"]):
-        raise not_found()
+        raise session_not_found()
     expires = datetime.fromisoformat(row["expires_at"])
     if expires < datetime.now(UTC):
-        raise not_found()
+        raise session_not_found()
     return row
 
 
