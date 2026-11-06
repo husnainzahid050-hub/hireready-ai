@@ -255,3 +255,56 @@ Besides the 96 unit and API tests (fake DB plus a scripted fake LLM), the flow w
 headless Chrome. The test clicks "Try with a sample CV", waits for the streamed results, reloads (served
 from cache) and opens the page in a second browser (blocked). It also checks form validation, on both
 desktop and mobile screen sizes.
+
+## Phase 3 (frontend): the interview page
+
+### 1. A thin API client that mirrors the contract
+[frontend/lib/types.ts](../frontend/lib/types.ts) has `InterviewTurn` and `Question` exactly as the backend
+returns them, and [frontend/lib/api.ts](../frontend/lib/api.ts) has `getInterview`, `startInterview` and
+`submitAnswer`. Every call sends `X-Guest-Token`. Errors become an `ApiError` with the envelope's `code`,
+and on 429 it also carries `retryAfter` (parsed from the `Retry-After` header, in seconds or as an HTTP date).
+
+### 2. The server owns the interview; the page only renders turns
+Each answer returns the next `InterviewTurn`, and `GET /interview` returns the same shape plus the full
+history. So **resume after reload** is just "GET and render". A 409 `not_started` shows the start
+screen. See [frontend/components/interview/interview-view.tsx](../frontend/components/interview/interview-view.tsx).
+
+### 3. Never lose what the user typed
+The draft is cleared only after the server accepts the answer. On 503 `ai_unavailable` or a network
+error, the text stays in the box and "Retry" resends it. The draft is also saved in `sessionStorage`
+(keyed by question id), so it survives a reload. On 400 `wrong_question` (for example, another tab
+answered first) the page refetches the state, and keeps the text unless the server already has it.
+
+### 4. Optimistic UI
+While an answer is in flight, it appears in the transcript as "Sending…" and the interviewer shows
+"Interviewer is thinking…". The textarea is `readOnly` (not `disabled`) so keyboard focus stays put.
+
+### 5. Accessibility details
+- A polite `aria-live` region announces each new question ("Question 3 of about 6: …").
+- After a new question, focus moves to the answer box (`preventScroll`) and the question scrolls into view
+  (instantly when `prefers-reduced-motion` is set).
+- Practice mode is a native checkbox with `role="switch"`, so Space toggles it and screen readers read
+  "on/off". Ctrl/⌘+Enter submits.
+- The transcript is a disclosure button (`aria-expanded`) on phones and an always-open sidebar from `lg`.
+- Animations use only `transform` (the `bars` keyframes in [frontend/app/globals.css](../frontend/app/globals.css))
+  and are switched off with `motion-reduce:`.
+
+### 6. Built for voice later
+[frontend/components/interview/parts.tsx](../frontend/components/interview/parts.tsx) has an
+`InterviewerStatus` of `listening | thinking | speaking` and an `InterviewerPanel` with a `controls` slot.
+In Phase 4, `speechSynthesis` will drive "speaking", and a recorder will sit next to
+[answer-composer.tsx](../frontend/components/interview/answer-composer.tsx). Both will call the same
+`onSubmit` path.
+
+### 7. Code splitting for free
+App Router gives each route its own client chunk. The interview code (about 10.6 KB gzipped) loads only
+on `/session/[id]/interview`. The page is a static shell with a skeleton fallback inside `<Suspense>`
+(same pattern as the analysis page, see Phase 2 note 11), and the skeleton matches the real layout, so
+there is no layout shift.
+
+### 8. Testing against a mocked API
+[frontend/e2e/interview.mock.py](../frontend/e2e/interview.mock.py) runs real Chrome against
+`next start`. It answers every `/api/v1/**` call from a small fake state machine (`page.route`), so the
+UI could be built before the backend was ready. It covers start, 6 questions plus a follow-up, reload
+and resume, 503 retry, 429 wait, `wrong_question`, completion, mobile light/dark and "no token". It
+also fails if the browser logs any console error.

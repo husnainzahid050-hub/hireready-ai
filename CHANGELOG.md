@@ -4,6 +4,16 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Phase 3: Interviewer agent
+
+#### Added
+- Frontend: `/session/[id]/interview` (text mode): start screen with practice-mode switch, question
+  caption card with interviewer status, "Question X of ~N" + follow-up badge, answer box (5,000-char
+  counter, Ctrl/⌘+Enter), optimistic "thinking" state, transcript (collapsible on mobile),
+  practice feedback, completion screen, resume after reload, and friendly 503/429/network/
+  wrong-question handling that never loses the typed answer. The analysis page's "Start interview" CTA
+  now links to it. Mocked-API browser test in `frontend/e2e/interview.mock.py`.
+
 ### Phase 2: Intake and gap analysis (2026-11-06)
 
 #### Added
