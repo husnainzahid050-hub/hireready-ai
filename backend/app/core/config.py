@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     gemini_api_key: SecretStr | None = None
     gemini_text_model: str | None = None
     gemini_embedding_model: str | None = None
+    # Gemini 3.x "thinking" depth for the fallback model: low keeps latency ~2 s. Empty = omit.
+    gemini_thinking_level: str = "low"
     embedding_dim: int = 768
 
     # Data
