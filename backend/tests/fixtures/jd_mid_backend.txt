@@ -1,0 +1,25 @@
+Backend Engineer (Mid-level) - Orbitline Payments (fictional), Karachi (On-site)
+
+Orbitline processes card payments for 3,000 merchants. We are looking for a backend engineer with 3+ years of professional experience to join our core payments team.
+
+What you will do
+- Design, build and operate Python services (FastAPI or Django) that process payment events.
+- Model data in PostgreSQL and tune slow queries.
+- Use Redis for caching and rate limiting.
+- Containerize services with Docker and deploy them to Kubernetes on AWS.
+- Own CI/CD pipelines and on-call rotations for your services.
+- Take part in system design discussions for high-availability systems.
+
+Required qualifications
+- 3+ years of backend development in Python
+- Strong experience with FastAPI or Django
+- PostgreSQL and SQL query optimization
+- Docker and Kubernetes
+- CI/CD (GitHub Actions, GitLab CI or similar)
+- System design fundamentals (caching, queues, idempotency)
+- Automated testing with pytest
+
+Preferred qualifications
+- Kafka or another message broker
+- Go
+- Payments or fintech domain experience

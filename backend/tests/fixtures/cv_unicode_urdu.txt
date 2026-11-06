@@ -1,0 +1,24 @@
+AYESHA KHAN | عائشہ خان
+Multan, Pakistan · ayesha.khan.demo@example.com · +92 300 0000000
+
+خلاصہ (Summary)
+Data analyst who turns messy sales data into decisions – “numbers first, story second”.
+
+EXPERIENCE
+Junior Data Analyst — Crescent Retail Group (fictional) — 2024 – Present
+• Built SQL queries (CTEs, window functions) in PostgreSQL to track daily sales across 85 stores.
+• Designed 6 Power BI dashboards used by regional managers every Monday.
+▪ Automated a weekly Excel report with Python (pandas, openpyxl), saving ~5 hours per week.
+▪ Ran an A/B test on store-layout changes and reported a 3.2% uplift in basket size.
+– Presented findings to non-technical stakeholders in Urdu and English.
+
+Data Entry Intern – Sahara Microfinance (fictional) – 2023
+• Cleaned 20,000 loan records; fixed duplicate and missing values.
+
+EDUCATION
+BS Statistics, Bahauddin Valley University (fictional), 2019 – 2023
+ﬁnal-year thesis: “Forecasting wheat prices with ARIMA”
+
+SKILLS
+SQL · Python (pandas) · Excel (pivot tables, XLOOKUP) · Power BI · Tableau (basic) · Statistics · A/B testing
+زبانیں: اردو (مادری)، انگریزی (روانی)، سرائیکی

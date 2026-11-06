@@ -1,0 +1,50 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 1979 >>
+stream
+0 0 0 rg BT /F1 10 Tf 50.0 742.0 Td (AYESHA KHAN | ????? ???) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 729.0 Td (Multan, Pakistan · ayesha.khan.demo@example.com · +92 300 0000000) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 703.0 Td (????? \(Summary\)) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 690.0 Td (Data analyst who turns messy sales data into decisions – “numbers first, story second”.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 664.0 Td (EXPERIENCE) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 651.0 Td (Junior Data Analyst — Crescent Retail Group \(fictional\) — 2024 – Present) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 638.0 Td (• Built SQL queries \(CTEs, window functions\) in PostgreSQL to track daily sales across 85 stores.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 625.0 Td (• Designed 6 Power BI dashboards used by regional managers every Monday.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 612.0 Td (? Automated a weekly Excel report with Python \(pandas, openpyxl\), saving ~5 hours per week.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 599.0 Td (? Ran an A/B test on store-layout changes and reported a 3.2% uplift in basket size.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 586.0 Td (– Presented findings to non-technical stakeholders in Urdu and English.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 560.0 Td (Data Entry Intern – Sahara Microfinance \(fictional\) – 2023) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 547.0 Td (• Cleaned 20,000 loan records; fixed duplicate and missing values.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 521.0 Td (EDUCATION) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 508.0 Td (BS Statistics, Bahauddin Valley University \(fictional\), 2019 – 2023) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 495.0 Td (?nal-year thesis: “Forecasting wheat prices with ARIMA”) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 469.0 Td (SKILLS) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 456.0 Td (SQL · Python \(pandas\) · Excel \(pivot tables, XLOOKUP\) · Power BI · Tableau \(basic\) · Statistics · A/B testing) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 443.0 Td (??????: ???? \(?????\)? ??????? \(?????\)? ???????) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000002272 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2369
+%%EOF

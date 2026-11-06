@@ -1,0 +1,61 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 2226 >>
+stream
+0 0 0 rg BT /F1 9 Tf 40.0 742.0 Td (USMAN TARIQ) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 742.0 Td (SUMMARY) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 730.0 Td (usman.tariq.demo@example.com) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 730.0 Td (Staff engineer, 11 years in backend and ML platforms.) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 718.0 Td (Lahore, Pakistan) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 706.0 Td (EXPERIENCE) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 694.0 Td (SKILLS) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 694.0 Td (Staff Engineer, Larkspur Commerce \(fictional\), 2021 - Present) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 682.0 Td (Python, Go, SQL) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 682.0 Td (- Lead 9 engineers building the model-serving platform.) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 670.0 Td (PostgreSQL, Redis, Kafka) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 670.0 Td (- Designed Kubernetes model serving on AWS EKS \(25k rps\).) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 658.0 Td (Kubernetes, Docker) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 658.0 Td (- Shipped LLM product search using RAG over 3M items.) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 646.0 Td (AWS, Terraform) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 634.0 Td (FastAPI, Django) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 634.0 Td (Senior Backend Engineer, Orchid Telecom \(fictional\), 2017 - 2021) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 622.0 Td (scikit-learn, PyTorch) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 622.0 Td (- Built Python and Go microservices for billing.) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 610.0 Td (- Tuned PostgreSQL queries: billing job 9 h -> 40 min.) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 598.0 Td (EDUCATION) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 598.0 Td (- Set up CI/CD with GitLab CI and Terraform.) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 586.0 Td (MS Computer Science) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 574.0 Td (Ravi University of) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 574.0 Td (Software Engineer, Mapleleaf Systems \(fictional\), 2014 - 2017) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 562.0 Td (Engineering \(fictional\)) Tj ET
+0 0 0 rg BT /F1 9 Tf 210.0 562.0 Td (- Developed REST APIs in Django and Flask with pytest.) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 550.0 Td (2014) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 526.0 Td (LANGUAGES) Tj ET
+0 0 0 rg BT /F1 9 Tf 40.0 514.0 Td (English, Urdu) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000002519 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+2616
+%%EOF

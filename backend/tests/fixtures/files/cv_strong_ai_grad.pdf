@@ -1,0 +1,58 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 3021 >>
+stream
+0 0 0 rg BT /F1 10 Tf 50.0 742.0 Td (HAMZA QURESHI) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 729.0 Td (Islamabad, Pakistan | hamza.qureshi.demo@example.com | github.com/hamza-q-demo) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 703.0 Td (SUMMARY) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 690.0 Td (AI graduate who ships LLM features end to end: data pipelines, retrieval, APIs and deployment.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 664.0 Td (EDUCATION) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 651.0 Td (BS Artificial Intelligence, Indus Valley University of Technology \(fictional\), 2022 - 2026. CGPA 3.7/4.0) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 638.0 Td (Coursework: Machine Learning, Deep Learning, NLP, Database Systems, Software Engineering.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 612.0 Td (EXPERIENCE) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 599.0 Td (AI Engineering Intern, Kestrel Data Works \(fictional\), Jun 2025 - Sep 2025) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 586.0 Td (- Built a RAG assistant over 2,000 internal support tickets using LangChain and pgvector in PostgreSQL.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 573.0 Td (- Wrote SQL queries with joins and window functions to build the evaluation dataset of 400 question-answer pairs.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 560.0 Td (- Exposed the assistant through a FastAPI REST service with request validation using Pydantic.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 547.0 Td (- Packaged the service in Docker and deployed it on a Google Cloud Run instance.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 521.0 Td (Teaching Assistant, Machine Learning course, Indus Valley University of Technology, Feb 2025 - Jun 2025) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 508.0 Td (- Ran weekly labs for 60 students on scikit-learn pipelines, cross-validation and overfitting.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 482.0 Td (PROJECTS) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 469.0 Td (Urdu News Classifier \(Final Year Project\)) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 456.0 Td (- Fine-tuned a multilingual BERT model with Hugging Face Transformers on 18,000 Urdu news articles; 89% macro F1.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 443.0 Td (- Tracked experiments in MLflow and compared against a TF-IDF + logistic regression baseline \(81% F1\).) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 417.0 Td (Resume Q&A Bot) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 404.0 Td (- Built a prompt-engineered chatbot with the Groq API and a Chroma vector store; added citation checks to reduce hallucinations.) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 378.0 Td (Traffic Sign Detector) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 365.0 Td (- Trained a CNN in PyTorch with data augmentation on 30,000 images \(94% test accuracy\).) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 339.0 Td (SKILLS) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 326.0 Td (Python, SQL, PyTorch, scikit-learn, pandas, NumPy, Hugging Face Transformers, LangChain, FastAPI, Docker, Git, GitHub Actions, PostgreSQL) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 300.0 Td (CERTIFICATIONS) Tj ET
+0 0 0 rg BT /F1 10 Tf 50.0 287.0 Td (DeepLearning.AI Machine Learning Specialization \(completed\)) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000003314 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+3411
+%%EOF

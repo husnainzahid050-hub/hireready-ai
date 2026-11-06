@@ -1,0 +1,36 @@
+HAMZA QURESHI
+Islamabad, Pakistan | hamza.qureshi.demo@example.com | github.com/hamza-q-demo
+
+SUMMARY
+AI graduate who ships LLM features end to end: data pipelines, retrieval, APIs and deployment.
+
+EDUCATION
+BS Artificial Intelligence, Indus Valley University of Technology (fictional), 2022 - 2026. CGPA 3.7/4.0
+Coursework: Machine Learning, Deep Learning, NLP, Database Systems, Software Engineering.
+
+EXPERIENCE
+AI Engineering Intern, Kestrel Data Works (fictional), Jun 2025 - Sep 2025
+- Built a RAG assistant over 2,000 internal support tickets using LangChain and pgvector in PostgreSQL.
+- Wrote SQL queries with joins and window functions to build the evaluation dataset of 400 question-answer pairs.
+- Exposed the assistant through a FastAPI REST service with request validation using Pydantic.
+- Packaged the service in Docker and deployed it on a Google Cloud Run instance.
+
+Teaching Assistant, Machine Learning course, Indus Valley University of Technology, Feb 2025 - Jun 2025
+- Ran weekly labs for 60 students on scikit-learn pipelines, cross-validation and overfitting.
+
+PROJECTS
+Urdu News Classifier (Final Year Project)
+- Fine-tuned a multilingual BERT model with Hugging Face Transformers on 18,000 Urdu news articles; 89% macro F1.
+- Tracked experiments in MLflow and compared against a TF-IDF + logistic regression baseline (81% F1).
+
+Resume Q&A Bot
+- Built a prompt-engineered chatbot with the Groq API and a Chroma vector store; added citation checks to reduce hallucinations.
+
+Traffic Sign Detector
+- Trained a CNN in PyTorch with data augmentation on 30,000 images (94% test accuracy).
+
+SKILLS
+Python, SQL, PyTorch, scikit-learn, pandas, NumPy, Hugging Face Transformers, LangChain, FastAPI, Docker, Git, GitHub Actions, PostgreSQL
+
+CERTIFICATIONS
+DeepLearning.AI Machine Learning Specialization (completed)
