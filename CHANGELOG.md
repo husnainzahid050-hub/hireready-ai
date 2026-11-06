@@ -4,6 +4,50 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Phase 3 (backend): Interviewer agent, text mode (2026-11-06)
+
+#### Added
+- `app/agents/interviewer/` (state, graph, nodes, prompts, tools): a LangGraph state machine with
+  the nodes plan_interview, ask_question, evaluate_answer, decide_next, ask_follow_up and finish. The
+  tools are `search_cv`, `search_rubric` and `score_answer`.
+- Stateless turns: each request loads the JSON state from `interview_state`, advances exactly one
+  turn and saves it. Questions go to `questions` (with `rubric_chunk_ids`) and answers to `answers`
+  (scores and feedback). No new tables or migrations.
+- Question mix chosen in code by `interview_type` (mixed, technical, behavioral) and difficulty. ONE
+  strong-model call phrases all 6 questions. Rubric chunks and the 1/3/5 anchors are prefetched at
+  planning time.
+- ONE fast-model call per answer: SPEC 6.5 scores (string enums "1"-"5", quotes checked against the
+  transcript), the follow-up decision signal and the follow-up phrasing. At most 1 follow-up per
+  question.
+- API: `POST /sessions/{id}/interview/start` (idempotent), `GET /sessions/{id}/interview` (with
+  history) and `POST /sessions/{id}/interview/answer`. Errors: `not_analyzed`, `not_started`,
+  `wrong_question`, `interview_completed`, `ai_unavailable` (503, nothing written, safe to retry) and
+  `session_not_found`.
+- Practice mode returns a one-line summary and a tip after each answer. Scores are never sent during
+  the interview.
+- 17 new tests (113 backend tests in total).
+
+#### Dependencies
+- `langgraph==1.2.20`, which pulls in `langchain-core` 1.7.6, langsmith, orjson, ormsgpack, xxhash
+  and others: about 33 MB installed. Not the `langchain` meta-package. LangGraph is imported lazily,
+  inside the interview service, because it takes about 2-3 s to import.
+
+#### Verified live
+- Full demo interview: 6 main questions plus 5 follow-ups, completed, then a 409 for answers after
+  completion.
+- Planning: 1.25K prompt + 0.4K completion tokens (gpt-oss-120b), 8.7 s including one 429 retry.
+- Answer turns on Groq: 1.9-3.7 s end to end (~1.8K prompt + 0.3-0.7K completion tokens).
+- Turns where back-to-back answers went over Groq's 8K TPM limit fell back to Gemini and took
+  11-15 s.
+
+#### Known risks
+- Several users at once can exceed Groq's per-minute token limit and push turns into the slow
+  Gemini fallback.
+- Two concurrent answers to the same question could race. The last write wins, with no optimistic
+  lock.
+- Transitive dependencies of langgraph are not pinned.
+- Report generation (Phase 5) is not built yet. `finish` only sets `report_pending`.
+
 ### Phase 2: Intake and gap analysis (2026-11-06)
 
 #### Added
