@@ -54,6 +54,29 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
   practice feedback, completion screen, resume after reload, and friendly 503/429/network/
   wrong-question handling that never loses the typed answer. The analysis page's "Start interview" CTA
   now links to it. Mocked-API browser test in `frontend/e2e/interview.mock.py`.
+### Security pass (2026-11-06)
+
+#### Added
+- Per-session quotas on LLM-consuming actions (migration `20261106000004_security.sql`:
+  `session_usage` + atomic `consume_quota()`); uploads capped at 5 and fresh analyses at 3 per
+  session, 429 `quota_exceeded`. **Apply the migration before deploying the backend.**
+- Integration points for Phase 7: `RateLimiter` (no-op, or Upstash when `UPSTASH_*` is set) and a
+  Turnstile verifier (no-op, or Cloudflare siteverify of `X-Turnstile-Token` when
+  `TURNSTILE_SECRET_KEY` is set), wired into session create, upload and analyze.
+- 4.5 MB request body limit; security headers and `Cache-Control: no-store` on every API response;
+  `Cross-Origin-Opener-Policy: same-origin` on pages.
+- `docs/SECURITY.md` (threat model, controls, pending items, SPEC 9 checklist).
+- 65 security tests (`tests/test_security_api.py`, `tests/test_security_units.py`); 161 backend tests total.
+
+#### Fixed
+- Upload/analyze loop allowed unlimited LLM calls per session.
+- PDF parser DoS: tighter pypdf limits, external `jbig2dec` disabled, any parser error is now a
+  400 instead of a 500, DOCX entry cap, parsing runs off the event loop with a 15 s timeout.
+- `wrap_untrusted` could be escaped with `</CV>` or `</cv >`; the insights prompt sent CV/JD-derived
+  data unfenced; injected CV lines could be "verified" as evidence quotes.
+- LLM fallback logs could contain model output (CV text); logs now mask emails and truncate long
+  strings; `X-Request-ID` is sanitized.
+- `ALLOWED_ORIGINS=*` is refused; `VERCEL_ENV=production` also hides the API docs.
 
 ### Phase 2: Intake and gap analysis (2026-11-06)
 

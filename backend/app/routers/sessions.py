@@ -5,25 +5,29 @@ from collections.abc import AsyncIterator
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, File, Form, Header, Query, UploadFile
+from fastapi import APIRouter, File, Form, Header, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.core.errors import AppError
 from app.core.logging import get_logger
+from app.core.quotas import consume_quota
+from app.core.rate_limit import client_ip, enforce_rate_limit
 from app.core.security import content_hash, hash_token, new_guest_token
+from app.core.turnstile import require_human
 from app.db.client import get_db
 from app.db.repositories import get_owned_session, save_document
 from app.demo.samples import DEMO_CV, DEMO_JD
 from app.services.analysis import analysis_from_row, run_analysis
 from app.services.embeddings import get_embedder
 from app.services.llm import LLMError, get_llm
-from app.services.parsing import MAX_BYTES, extract_cv_text, validate_jd
+from app.services.parsing import MAX_BYTES, extract_cv_text_async, validate_jd
 
 log = get_logger(__name__)
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 GuestToken = Annotated[str | None, Header(alias="X-Guest-Token")]
+TurnstileToken = Annotated[str | None, Header(alias="X-Turnstile-Token")]
 NO_TOKEN: str | None = None
 
 
@@ -46,10 +50,16 @@ class CreateSessionResponse(BaseModel):
 
 @router.post("", response_model=CreateSessionResponse, status_code=201)
 async def create_session(
-    body: CreateSessionRequest, demo: Annotated[bool, Query()] = False
+    body: CreateSessionRequest,
+    request: Request,
+    demo: Annotated[bool, Query()] = False,
+    turnstile_token: TurnstileToken = None,
 ) -> CreateSessionResponse:
     if not body.consent:
         raise AppError("consent_required", "Please accept the privacy terms to continue.")
+    # Both are no-ops until UPSTASH_* / TURNSTILE_SECRET_KEY are configured (docs/SECURITY.md).
+    await enforce_rate_limit(request, "session_create")
+    await require_human(turnstile_token, client_ip(request))
     db = get_db()
     token = new_guest_token()
     row = await db.insert_returning(
@@ -82,13 +92,17 @@ async def upload_documents(
     session_id: UUID,
     cv: Annotated[UploadFile, File(description="CV as PDF or DOCX, max 2 MB")],
     jd_text: Annotated[str, Form(max_length=20_000)],
+    request: Request,
     token: GuestToken = NO_TOKEN,
 ) -> DocumentsResponse:
     db = get_db()
     await get_owned_session(db, session_id, token)
     jd = validate_jd(jd_text)
+    await enforce_rate_limit(request, "upload")
+    # Each upload deletes the old analysis, so uploads are capped too (else: upload/analyze loop).
+    await consume_quota(db, session_id, "upload")
     data = await cv.read(MAX_BYTES + 1)  # read at most 1 byte past the limit
-    cv_text = extract_cv_text(data, cv.content_type)
+    cv_text = await extract_cv_text_async(data, cv.content_type)
     await save_document(db, session_id, "cv", cv_text, content_hash(cv_text))
     await save_document(db, session_id, "jd", jd, content_hash(jd))
     await db.update("sessions", {"id": f"eq.{session_id}"}, {"status": "created"})
@@ -100,12 +114,17 @@ def _sse(event: str, data: dict[str, Any]) -> str:
 
 
 @router.post("/{session_id}/analyze")
-async def analyze(session_id: UUID, token: GuestToken = NO_TOKEN) -> StreamingResponse:
+async def analyze(
+    session_id: UUID, request: Request, token: GuestToken = NO_TOKEN
+) -> StreamingResponse:
     db = get_db()
     session = await get_owned_session(db, session_id, token)
 
     # Already analyzed? Return the saved result instead of spending LLM calls again.
     existing = await db.select("gap_analyses", {"select": "*", "session_id": f"eq.{session_id}"})
+    if not existing:  # only a fresh run costs LLM calls, so only it is limited (429 as JSON)
+        await enforce_rate_limit(request, "analyze")
+        await consume_quota(db, session_id, "analysis")
 
     async def stream() -> AsyncIterator[str]:
         if existing:

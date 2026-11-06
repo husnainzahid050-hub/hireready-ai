@@ -230,7 +230,9 @@ async def build_insights(
     }
     insights = await llm.structured(
         system=INSIGHTS_SYSTEM,
-        user=json.dumps(payload, ensure_ascii=False),
+        # Job title, responsibilities, skill names and project text all come from the user's
+        # CV / JD, so the whole payload is fenced as untrusted data.
+        user=wrap_untrusted("analysis_data", json.dumps(payload, ensure_ascii=False)),
         schema=InsightsDraft,
         tier="strong",
         temperature=0.3,

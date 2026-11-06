@@ -42,6 +42,7 @@ def _match(row: dict[str, Any], key: str, cond: str) -> bool:
 class FakeDB:
     def __init__(self) -> None:
         self.t: dict[str, list[dict[str, Any]]] = {}
+        self.usage: dict[tuple[str, str], int] = {}  # session_usage (quota counters)
 
     def rows(self, table: str) -> list[dict[str, Any]]:
         return self.t.setdefault(table, [])
@@ -93,7 +94,13 @@ class FakeDB:
             ids = {r["id"] for r in self.rows("documents")}
             self.t["doc_chunks"] = [c for c in self.rows("doc_chunks") if c["document_id"] in ids]
 
-    async def rpc(self, fn: str, args: dict[str, Any]) -> list[dict[str, Any]]:
+    async def rpc(self, fn: str, args: dict[str, Any]) -> Any:
+        if fn == "consume_quota":  # emulates supabase/migrations/20261106000004_security.sql
+            key = (args["p_session_id"], args["p_action"])
+            if self.usage.get(key, 0) >= args["p_limit"]:
+                return False
+            self.usage[key] = self.usage.get(key, 0) + 1
+            return True
         assert fn == "hybrid_search"
         f = args["filter"]
         if f["source"] == "cv":

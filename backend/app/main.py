@@ -8,9 +8,11 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
+from app.core.body_limit import BodySizeLimitMiddleware
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
-from app.core.logging import configure_logging, get_logger, request_id_var
+from app.core.headers import SecurityHeadersMiddleware
+from app.core.logging import configure_logging, get_logger, request_id_var, safe_request_id
 from app.routers import health, interview, sessions
 
 configure_logging()
@@ -33,7 +35,7 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=False,
     allow_methods=["GET", "POST", "DELETE"],
-    allow_headers=["Content-Type", "Authorization", "X-Guest-Token"],
+    allow_headers=["Content-Type", "Authorization", "X-Guest-Token", "X-Turnstile-Token"],
 )
 
 
@@ -41,20 +43,20 @@ app.add_middleware(
 async def request_context(
     request: Request, call_next: Callable[[Request], Awaitable[Response]]
 ) -> Response:
-    rid = request.headers.get("x-request-id") or uuid.uuid4().hex
-    token = request_id_var.set(rid[:64])
+    rid = safe_request_id(request.headers.get("x-request-id")) or uuid.uuid4().hex
+    token = request_id_var.set(rid)
     start = time.perf_counter()
     try:
         response = await call_next(request)
     finally:
         request_id_var.reset(token)
     duration_ms = round((time.perf_counter() - start) * 1000, 1)
-    response.headers["X-Request-ID"] = rid[:64]
+    response.headers["X-Request-ID"] = rid
     log.info(
         "request",
         extra={
             "extra_fields": {
-                "request_id": rid[:64],
+                "request_id": rid,
                 "method": request.method,
                 "path": request.url.path,
                 "status": response.status_code,
@@ -64,6 +66,10 @@ async def request_context(
     )
     return response
 
+
+# Added last = outermost: oversized bodies are rejected before any other work happens.
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(BodySizeLimitMiddleware)
 
 register_error_handlers(app)
 app.include_router(health.router, prefix="/api/v1")

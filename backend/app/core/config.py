@@ -34,11 +34,26 @@ class Settings(BaseSettings):
     supabase_url: str | None = None
     supabase_service_role_key: SecretStr | None = None
 
+    # Abuse protection (Phase 7). Each control is OFF until its env vars are set, so local dev
+    # and tests need no extra accounts. See docs/SECURITY.md.
+    upstash_redis_rest_url: str | None = None
+    upstash_redis_rest_token: SecretStr | None = None
+    turnstile_secret_key: SecretStr | None = None
+    # Set automatically by Vercel ("production" | "preview" | "development").
+    vercel_env: str | None = None
+
     @field_validator("embedding_dim")
     @classmethod
     def _positive_dim(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("EMBEDDING_DIM must be positive")
+        return v
+
+    @field_validator("allowed_origins")
+    @classmethod
+    def _no_wildcard_origin(cls, v: str) -> str:
+        if any(o.strip() == "*" for o in v.split(",")):
+            raise ValueError("ALLOWED_ORIGINS must be an explicit list, not '*'")
         return v
 
     @property
@@ -47,7 +62,8 @@ class Settings(BaseSettings):
 
     @property
     def is_production(self) -> bool:
-        return self.app_env == "production"
+        # Also trust Vercel's own flag, so forgetting APP_ENV can't expose /docs in production.
+        return self.app_env == "production" or self.vercel_env == "production"
 
 
 @lru_cache
