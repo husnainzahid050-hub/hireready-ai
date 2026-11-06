@@ -32,7 +32,7 @@ async def main(dry_run: bool) -> int:
 
     configure_logging()
     try:
-        stats = await ingest(files, get_db(), get_embedder())
+        stats = await ingest(files, get_db(), get_embedder(patient=True))
     finally:
         await close_http_client()
     print(f"Done: inserted={stats.inserted} unchanged={stats.unchanged} deleted={stats.deleted}")

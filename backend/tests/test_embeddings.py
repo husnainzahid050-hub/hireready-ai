@@ -108,3 +108,25 @@ def test_to_pgvector_format() -> None:
 def test_get_embedder_requires_config() -> None:
     with pytest.raises(EmbeddingError):
         get_embedder(Settings(gemini_api_key=None, gemini_embedding_model=None))
+
+
+def test_patient_mode_uses_longer_retries() -> None:
+    s = Settings(gemini_api_key="k", gemini_embedding_model="gemini-embedding-001")
+    fast, patient = get_embedder(s), get_embedder(s, patient=True)
+    assert (fast._max_attempts, fast._max_delay) == (4, 8.0)
+    assert (patient._max_attempts, patient._max_delay) == (7, 30.0)
+
+
+async def test_429_is_retried_then_succeeds() -> None:
+    # One real backoff sleep (<0.5 s) happens here; that's acceptable for a unit test.
+    calls = {"n": 0}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return httpx.Response(429)
+        n = len(json.loads(request.content)["requests"])
+        return httpx.Response(200, json={"embeddings": [{"values": [1.0, 0, 0, 0]}] * n})
+
+    out = await make_embedder(handler).embed(["x"], "RETRIEVAL_DOCUMENT")
+    assert calls["n"] == 2 and out == [[1.0, 0.0, 0.0, 0.0]]

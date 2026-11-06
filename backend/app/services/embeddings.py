@@ -43,8 +43,21 @@ def l2_normalize(v: list[float]) -> list[float]:
 
 
 class GeminiEmbedder:
-    def __init__(self, api_key: str, model: str, dim: int, client: httpx.AsyncClient) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        dim: int,
+        client: httpx.AsyncClient,
+        *,
+        max_attempts: int = 4,
+        max_delay: float = 8.0,
+    ) -> None:
         self._key = api_key
+        # Request-time calls fail fast; batch jobs (ingestion) pass patient values so a
+        # free-tier per-minute quota (429) is waited out instead of crashing the run.
+        self._max_attempts = max_attempts
+        self._max_delay = max_delay
         self._model = model if model.startswith("models/") else f"models/{model}"
         self.dim = dim
         self._client = client
@@ -67,7 +80,9 @@ class GeminiEmbedder:
             # Key in a header, not the URL, so it never shows up in access logs.
             return await self._client.post(url, json=body, headers={"x-goog-api-key": self._key})
 
-        resp = await request_with_retry(send, what="gemini embed")
+        resp = await request_with_retry(
+            send, what="gemini embed", max_attempts=self._max_attempts, max_delay=self._max_delay
+        )
         if resp.status_code != 200:
             raise EmbeddingError(f"Gemini embeddings failed with status {resp.status_code}")
         embeddings = resp.json().get("embeddings", [])
@@ -90,7 +105,7 @@ class GeminiEmbedder:
         return out
 
 
-def get_embedder(settings: Settings | None = None) -> GeminiEmbedder:
+def get_embedder(settings: Settings | None = None, *, patient: bool = False) -> GeminiEmbedder:
     s = settings or get_settings()
     if not s.gemini_api_key or not s.gemini_embedding_model:
         raise EmbeddingError("GEMINI_API_KEY and GEMINI_EMBEDDING_MODEL must be set")
@@ -99,6 +114,9 @@ def get_embedder(settings: Settings | None = None) -> GeminiEmbedder:
         s.gemini_embedding_model,
         s.embedding_dim,
         get_http_client(),
+        # patient: ~6 retries with waits up to 30 s, enough to outlast a per-minute quota.
+        max_attempts=7 if patient else 4,
+        max_delay=30.0 if patient else 8.0,
     )
 
 
