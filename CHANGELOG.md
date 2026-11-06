@@ -28,6 +28,18 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 - Supabase is called over REST with httpx instead of the `supabase` SDK (smaller bundle).
 - `pgcrypto` not enabled: `gen_random_uuid()` is built into Postgres 13+.
 - Added `sessions.is_demo` and `reminders.unsubscribe_token` (needed for demo mode and Phase 7).
+- Groq models are `openai/gpt-oss-20b` (fast) and `openai/gpt-oss-120b` (strong): Llama models are not
+  available on the account. Gemini text fallback: `gemini-2.5-flash`.
+
+#### Verified live
+- Migrations applied on Supabase; 157 knowledge chunks ingested; re-run is a no-op.
+- Sample hybrid searches return the correct rubric section as the top result for all 5 queries.
+
+#### Fixed
+- Gemini embeddings: send top-level `taskType`/`outputDimensionality` (the API ignores
+  `embedContentConfig` and returned 3072 dims).
+- Backend deps declared in `pyproject.toml` (Vercel ignores `requirements.txt` when it exists).
+- Ingestion waits out free-tier per-minute quotas (patient retry mode).
 
 ### Phase 0: Scaffolding (2026-11-06)
 

@@ -154,3 +154,19 @@ won't fix themselves.
 Postgres with pgvector (`pgserver`) and recreates Supabase's roles. It then applies our migrations
 and checks RRF ranking, filters, CV isolation between sessions, cascade deletes, RLS, and that
 `anon` is denied. CI runs it on every push.
+
+### 10. Lessons from running it for real (live keys, 2026-11-06)
+Mocked tests passed, but the first real run found three problems that only live systems reveal:
+- **Docs vs. reality:** Google's official schema says to send `outputDimensionality` inside
+  `embedContentConfig`, but the live API ignored it and returned 3072 numbers. Sending the "deprecated"
+  top-level field works. Our code **checks the vector size it gets back**, so it failed loudly instead of
+  silently storing wrong data.
+- **Model availability:** the Llama models listed in Groq's docs weren't available on this account.
+  Model names live in env vars (`GROQ_FAST_MODEL`, `GROQ_STRONG_MODEL`), so switching to
+  `openai/gpt-oss-20b` / `openai/gpt-oss-120b` changed no code.
+- **Free-tier rate limits:** ingestion hit a per-minute quota (HTTP 429) after 136 of 157 chunks. The
+  ingestion is idempotent, so re-running only embedded the missing 21, and a third run did nothing.
+  Batch jobs now use a "patient" retry mode (waits up to 30 s) to outlast the quota by themselves.
+
+Lesson: unit tests prove *your* logic; a quick live smoke test proves your *assumptions about other
+systems*. Do both.
