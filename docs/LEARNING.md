@@ -170,3 +170,88 @@ Mocked tests passed, but the first real run found three problems that only live 
 
 Lesson: unit tests prove *your* logic; a quick live smoke test proves your *assumptions about other
 systems*. Do both.
+
+---
+
+## Phase 2: Intake and gap analysis
+
+### 1. Structured output: making the LLM return data, not prose
+We never parse free text. Every LLM call sends a **JSON Schema** built from a Pydantic model
+(`CVProfile`, `JobProfile`, `EvidenceJudgements`, `InsightsDraft` in
+[backend/app/schemas/analysis.py](../backend/app/schemas/analysis.py)), and Pydantic validates the
+reply. Groq's **strict mode** uses *constrained decoding*: at each step the model may only pick tokens
+that keep the JSON valid for the schema. Strict mode requires every field to be `required` and every
+object to have `additionalProperties: false`; `to_strict_schema()` in
+[backend/app/services/llm.py](../backend/app/services/llm.py) converts Pydantic's schema to that.
+**Lesson from live testing:** even strict mode once produced `"6"` instead of `6` for a day number.
+The fix: don't ask the model for things code can do (we number the days ourselves).
+
+### 2. Provider fallback
+Groq is fast, but its free tier allows about 8K tokens per minute per model.
+[llm.py](../backend/app/services/llm.py) tries Groq first, and on a 429, a 5xx or invalid JSON it falls
+back to Gemini automatically. Model names are env vars, which mattered twice: Llama wasn't available on
+the account, and `gemini-2.5-flash` was retired for new users. The `gpt-oss` models "think" before
+answering; `reasoning_effort: low` keeps those hidden tokens cheap.
+
+### 3. Token budgets are a design constraint
+The first version of the skill judge sent the same CV excerpts once per skill: 7,016 prompt tokens,
+which hit the per-minute limit. Now each excerpt is sent **once** with an id (`[E1]`, `[E2]`, ...) and
+skills just reference the ids: 1,113 tokens for the same information. See `judge_skills` in
+[backend/app/services/analysis.py](../backend/app/services/analysis.py).
+
+### 4. RAG over the CV, plus the anti-hallucination guard
+For each JD skill we run hybrid search over *this session's* CV chunks (one batched embedding call for
+all skills, then parallel DB searches). The LLM judges strong / weak / no evidence and must quote the
+CV. Then **code checks that the quote really exists** in the CV
+([backend/app/services/evidence.py](../backend/app/services/evidence.py)): both strings are normalized
+(case, whitespace, curly quotes, dashes, bullets), and the quote must be a substring. If it isn't, the
+verdict becomes `no_evidence`. The LLM proposes; deterministic code verifies.
+
+### 5. Explainable scoring
+The match score is plain arithmetic in
+[backend/app/services/scoring.py](../backend/app/services/scoring.py):
+`100 x (0.7 x must-have coverage + 0.2 x nice-to-have coverage + 0.1 x seniority fit)`, with
+strong = 1, weak = 0.5 and none = 0. The UI shows each component and the formula, so users (and
+recruiters) can check it. LLMs are bad at producing consistent numbers; code is perfect at it.
+
+### 6. Guardrails in code, not just in prompts
+The prompt *asks* the model to use only curated resource URLs and real quotes; `sanitize_insights`
+*enforces* it. Unknown URLs are removed, unverifiable strength quotes are dropped, and the plan is cut to
+exactly 7 days. Prompt instructions are requests; code is a guarantee.
+
+### 7. Prompt-injection defence (first layer)
+CV and JD text goes inside `<cv>`, `<jd>` or `<evidence>` tags, and every system prompt says that text
+inside those tags is data, never instructions. `wrap_untrusted` also neutralizes a fake closing tag
+(`</cv>`) hidden in the user's text. Phase 7 adds adversarial tests.
+
+### 8. Upload security
+[backend/app/services/parsing.py](../backend/app/services/parsing.py) checks the size first, then the
+declared MIME type, then the **magic bytes** (`%PDF-` or `PK\x03\x04`), because the browser's MIME type
+is only a claim. Next come the page count, a zip-bomb guard for DOCX (total unpacked size), and finally
+a check for real text (scanned PDFs have none). Files are parsed in memory, and only the extracted text
+is kept.
+
+### 9. Guest ownership without accounts
+Creating a session returns a random 32-byte **guest token**. The database stores only its SHA-256 hash
+([backend/app/core/security.py](../backend/app/core/security.py)), and comparisons use
+`hmac.compare_digest` (constant time). Every session endpoint returns the same 404 for "doesn't exist"
+and "not yours", so attackers can't probe for valid ids. The browser keeps the token in `localStorage`,
+which is why opening the link in another browser is blocked.
+
+### 10. Server-Sent Events (SSE) for progressive results
+`POST /sessions/{id}/analyze` returns a `text/event-stream`: lines like `event: gaps` followed by
+`data: {...}`. The UI fills in each section as its event arrives (the first update comes in about
+0.5 s). Browsers' `EventSource` only supports GET without custom headers, so
+[frontend/lib/api.ts](../frontend/lib/api.ts) reads the stream with `fetch` and parses the events itself.
+A finished analysis is saved, and a second request returns it instantly with zero LLM calls.
+
+### 11. Next.js 16: a static shell plus a streamed dynamic part
+With `cacheComponents` on, a page that reads the URL (`params`) can't be fully static. So the analysis
+page is a static shell, and the session-specific part (`useParams`) sits inside `<Suspense>`. The build
+output marks it as Partial Prerender.
+
+### 12. Testing like a user
+Besides the 96 unit and API tests (fake DB plus a scripted fake LLM), the flow was driven in a real
+headless Chrome. The test clicks "Try with a sample CV", waits for the streamed results, reloads (served
+from cache) and opens the page in a second browser (blocked). It also checks form validation, on both
+desktop and mobile screen sizes.

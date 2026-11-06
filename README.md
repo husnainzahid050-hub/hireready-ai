@@ -6,7 +6,7 @@ HireReady compares your CV against a specific job description, shows evidence-ba
 runs a tailored voice or text mock interview with follow-up questions, and produces a scored report
 with speech metrics and a 7-day prep plan.
 
-**Status:** 🚧 Phase 1 (database and knowledge base). See [SPEC.md](SPEC.md) for the full plan and
+**Status:** 🚧 Phase 2 (CV + job analysis working; mock interview next). See [SPEC.md](SPEC.md) for the full plan and
 [CHANGELOG.md](CHANGELOG.md) for progress. The full README (demo, architecture, evals) lands in Phase 9.
 
 ## Stack

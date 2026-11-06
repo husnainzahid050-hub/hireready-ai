@@ -4,6 +4,34 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Phase 2: Intake and gap analysis (2026-11-06)
+
+#### Added
+- API: `POST /sessions` (consent required; `?demo=true` preloads the fictional "Ali Raza" CV and a
+  Junior AI Engineer JD), `POST /sessions/{id}/documents` (multipart CV + JD),
+  `POST /sessions/{id}/analyze` (SSE stream) and `GET /sessions/{id}/analysis`. Guest tokens are stored
+  as SHA-256 hashes, and ownership is checked on every call.
+- CV parsing: PDF/DOCX only, 2 MB and 5 pages max, MIME + magic-byte checks, a zip-bomb guard, and a
+  clear error for scanned PDFs.
+- LLM client: Groq strict JSON-schema output (`gpt-oss-20b` fast / `gpt-oss-120b` strong) with automatic
+  fallback to Gemini (`gemini-3.5-flash`); token usage is logged.
+- Gap analysis: parallel CV/JD extraction (JD cached by content hash), CV chunking + embedding, hybrid
+  search per skill, evidence judging with verified quotes, a deterministic match score, strengths,
+  likely questions adapted from the rubric KB, and a 7-day plan limited to curated URLs.
+- Frontend: `/start` (dropzone, JD character counter, options, email opt-in, consent), a streamed
+  `/session/[id]/analysis` page (progress, score gauge + formula, gap cards with quotes, strengths,
+  questions, plan), and a "Try with a sample CV" button.
+- 96 backend tests, plus a browser test of the full demo flow (desktop and mobile).
+
+#### Changed vs. spec
+- LLM calls use httpx directly (not LangChain) in Phase 2; LangGraph arrives with the agent in Phase 3.
+- shadcn/ui is not added yet: plain Tailwind components for now, revisited in the Phase 6 polish.
+- Turnstile and rate limits are in Phase 7 (as planned); until then the public demo has no abuse limits.
+
+#### Verified live
+- Demo analysis end to end: first event in ~0.5 s, complete in ~17-22 s, all on Groq. Re-opening a
+  saved analysis takes under 1 s. No browser console errors.
+
 ### Phase 1: Database and knowledge base (2026-11-06)
 
 #### Added
