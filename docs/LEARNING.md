@@ -73,3 +73,84 @@ vulnerability audits (`pip-audit`, `npm audit`). A red CI means "don't merge."
 [backend/tests/](../backend/tests/) uses FastAPI's `TestClient`, which calls the app in-process.
 No server and no internet are needed. Later phases will **mock** LLM calls the same way, so tests are
 fast, free, and deterministic.
+
+---
+
+## Phase 1: Database and knowledge base
+
+### 1. What embeddings are
+An **embedding** is a list of numbers (here, 768 of them) that represents the *meaning* of a text.
+Texts with similar meaning get vectors that point in similar directions, even with no words in common:
+"explain overfitting" lands near "model memorizes the training data".
+We measure closeness with **cosine similarity** (the angle between two vectors).
+- We call Gemini's `batchEmbedContents` REST endpoint directly with httpx:
+  [backend/app/services/embeddings.py](../backend/app/services/embeddings.py).
+- **Task types:** documents are embedded with `RETRIEVAL_DOCUMENT` and questions with
+  `RETRIEVAL_QUERY`. The model is trained so a query vector lands near the documents that answer it.
+- **Normalization:** Gemini only normalizes full 3072-d vectors. We ask for 768-d (4x less storage) and
+  L2-normalize them ourselves, so every vector has length 1. For unit vectors, cosine similarity is just
+  a dot product.
+
+### 2. Chunking
+A whole knowledge file is too big and too mixed in topic to retrieve as one unit. We split it **by
+heading** ([backend/app/services/chunking.py](../backend/app/services/chunking.py)). Each chunk keeps
+its **heading path**, e.g. `Python > Question bank > Junior > What is a decorator?`. That path is put
+at the top of the chunk text, so the embedding and the keyword index both "know" the context. The
+path also gives us the **level** (junior/mid) for free.
+
+### 3. pgvector and HNSW indexes
+**pgvector** adds a `vector(768)` column type and distance operators to Postgres (`<=>` is cosine
+distance). Comparing a query to every row is slow at scale, so we build an **HNSW index** (a graph of
+"neighbour" links that lets search jump quickly toward the closest vectors). It is *approximate*: it
+trades a little accuracy for a lot of speed. See
+[supabase/migrations/20261106000001_init_schema.sql](../supabase/migrations/20261106000001_init_schema.sql).
+
+### 4. Why hybrid search, and Reciprocal Rank Fusion (RRF)
+- **Vector search** understands meaning but can miss exact terms like "GIL", "HAVING" or "STAR".
+- **Full-text search** (a Postgres `tsvector` column with a GIN index) nails exact words but misses
+  synonyms.
+- **Hybrid search** runs both and merges the results. Their scores live on different scales, so
+  instead of adding scores we fuse **ranks**:
+
+  `score = 1/(k + rank_in_vector_results) + 1/(k + rank_in_keyword_results)`, with k = 50.
+
+  A chunk that ranks well in *both* lists rises to the top, and a chunk found by only one list still
+  counts. That's **RRF**: [supabase/migrations/20261106000002_hybrid_search.sql](../supabase/migrations/20261106000002_hybrid_search.sql).
+  The same function searches the rubric knowledge base (filtered by competency/level) or **one
+  session's CV** (filtered by `session_id`, so one user can never retrieve another user's CV).
+  Phase 8 measures whether hybrid really beats vector-only (hit rate@5, MRR).
+
+### 5. Row Level Security (RLS) and "deny by default"
+Supabase exposes tables over a public REST API. RLS decides which rows each role can see. Our
+design: the browser never talks to the database, only our backend does, using the **service role**
+(which bypasses RLS). So we turn RLS **on** for every table with **no policies**, and also **revoke
+all grants** from `anon`/`authenticated`. If the public anon key ever leaked, it could read nothing.
+The new `sb_secret_...` keys are sent only in the `apikey` header; Supabase rejects them if they come
+from a browser.
+
+### 6. Idempotent ingestion
+"Idempotent" means running it twice has the same effect as running it once.
+[backend/app/services/knowledge.py](../backend/app/services/knowledge.py) identifies every chunk by
+the SHA-256 **hash of its content**. Each run:
+- skips chunks whose hash already exists (no embedding call, so no cost),
+- embeds and inserts only new or changed chunks (in batches of up to 100),
+- deletes chunks that disappeared from the file.
+
+Edit one paragraph and only that chunk gets re-embedded.
+
+### 7. Why no Supabase SDK
+The official Python SDK bundles realtime, storage and auth clients we don't need. Four small httpx
+calls ([backend/app/db/client.py](../backend/app/db/client.py)) keep the serverless bundle and cold
+starts small, and are easy to mock in tests with `httpx.MockTransport`.
+
+### 8. Retries with exponential backoff
+APIs fail temporarily (429 rate limit, 503). [backend/app/core/http.py](../backend/app/core/http.py)
+retries those with growing waits (0.5 s, 1 s, 2 s...) plus random **jitter**, so many clients don't
+retry in sync, and it honours `Retry-After`. It never retries 4xx client errors, because those
+won't fix themselves.
+
+### 9. Testing SQL without a cloud account
+[supabase/tests/test_migrations.py](../supabase/tests/test_migrations.py) starts a real embedded
+Postgres with pgvector (`pgserver`) and recreates Supabase's roles. It then applies our migrations
+and checks RRF ranking, filters, CV isolation between sessions, cascade deletes, RLS, and that
+`anon` is denied. CI runs it on every push.
