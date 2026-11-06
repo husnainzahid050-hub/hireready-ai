@@ -30,6 +30,8 @@ const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Frame-Options", value: "DENY" },
+  // Isolates our window from cross-origin popups/openers (Turnstile uses an iframe, not a popup).
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   {
     key: "Permissions-Policy",
     value: "microphone=(self), camera=(), geolocation=(), payment=(), usb=()",
