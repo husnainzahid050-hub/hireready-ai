@@ -1,5 +1,6 @@
 """End-to-end API tests with an in-memory fake database and a scripted fake LLM."""
 
+import fnmatch
 import json
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -31,6 +32,10 @@ def _match(row: dict[str, Any], key: str, cond: str) -> bool:
         return str(row.get(key)) == cond[3:]
     if cond == "not.is.null":
         return row.get(key) is not None
+    if cond.startswith("in.("):
+        return str(row.get(key)) in cond[4:-1].split(",")
+    if cond.startswith("like."):
+        return fnmatch.fnmatchcase(str(row.get(key)), cond[5:])
     raise NotImplementedError(cond)
 
 
@@ -44,7 +49,7 @@ class FakeDB:
     def _filter(self, table: str, params: dict[str, str]) -> list[dict[str, Any]]:
         out = self.rows(table)
         for k, v in params.items():
-            if k in ("select", "limit", "on_conflict"):
+            if k in ("select", "limit", "on_conflict", "order"):
                 continue
             out = [r for r in out if _match(r, k, v)]
         return out[: int(params["limit"])] if "limit" in params else out
