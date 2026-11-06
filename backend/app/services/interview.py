@@ -23,6 +23,7 @@ from app.schemas.interview import (
     Progress,
     QuestionOut,
 )
+from app.schemas.speech import SpeechMetrics
 from app.services.embeddings import Embedder
 from app.services.llm import LLMClient, LLMError
 from app.services.retrieval import Retriever
@@ -109,6 +110,11 @@ async def persist(
                 "question_id": a.question_id,
                 "transcript": a.transcript,
                 "duration_seconds": a.duration_seconds,
+                # Phase 4 voice metrics (null for text answers)
+                "words_per_minute": a.words_per_minute,
+                "filler_count": a.filler_count,
+                "filler_breakdown": a.filler_breakdown,
+                "long_pauses": a.long_pauses,
                 "scores": a.scores.model_dump(),
                 "feedback": a.feedback.model_dump(),
             }
@@ -254,8 +260,9 @@ async def submit_answer(
     session: dict[str, Any],
     question_id: UUID,
     transcript: str,
+    speech: SpeechMetrics | None = None,
 ) -> InterviewTurn:
-    """Text answers now; Phase 4 voice will transcribe audio and call this same function."""
+    """Text answers, and voice answers after transcription (`speech` = their metrics)."""
     sid = UUID(session["id"])
     transcript = transcript.strip()
     if not transcript:
@@ -274,8 +281,29 @@ async def submit_answer(
     assert state is not None  # noqa: S101 (checked above)
     turn_input = state.model_copy(update={"event": "answer", "answer_text": transcript})
     result = await _run(db, llm, embedder, turn_input, sid, inputs)
+    if speech is not None:
+        result = with_speech_metrics(result, speech)
     await persist(db, state, result)
-    return to_turn(result, history=False, last_answer=True)
+    turn = to_turn(result, history=False, last_answer=True)
+    if speech is not None and turn.last_answer is not None:
+        turn.last_answer.speech_metrics = speech
+    return turn
+
+
+def with_speech_metrics(state: "InterviewState", m: SpeechMetrics) -> "InterviewState":
+    """Attach a voice answer's metrics to the `answers` row this turn writes."""
+    if state.new_answer is None:
+        return state
+    row = state.new_answer.model_copy(
+        update={
+            "duration_seconds": m.duration_seconds,
+            "words_per_minute": m.words_per_minute,
+            "filler_count": m.filler_count,
+            "filler_breakdown": m.filler_breakdown,
+            "long_pauses": m.long_pauses,
+        }
+    )
+    return state.model_copy(update={"new_answer": row})
 
 
 def _check_answerable(state: "InterviewState | None", question_id: UUID) -> None:
