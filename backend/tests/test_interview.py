@@ -495,7 +495,21 @@ def test_follow_up_falls_back_to_plan_hint_when_llm_gives_none(env) -> None:  # 
     t = client.post(
         url(sid, "/answer"), json={"question_id": qid, "text": "it depends"}, headers=h
     ).json()
-    assert t["question"]["is_follow_up"] and t["question"]["text"].endswith("h")
+    fu = t["question"]
+    assert fu["is_follow_up"] and fu["text"].startswith("Could you go a bit deeper")
+    assert "h" != fu["text"][-1:]  # the interviewer-facing plan hint is never shown verbatim
+
+
+def test_eval_prompt_has_all_anchors_one_bank_chunk_and_probe_hint(env) -> None:  # type: ignore[no-untyped-def]
+    client, db, llm = env
+    sid, h = new_session(client, db)
+    qid = client.post(url(sid, "/start"), json={}, headers=h).json()["question"]["id"]
+    client.post(url(sid, "/answer"), json={"question_id": qid, "text": GOOD}, headers=h)
+    prompt = llm.prompts[-1]
+    for s in ("1/5", "3/5", "5/5"):
+        assert f"python > Scoring anchors > Score {s}" in prompt
+    assert prompt.count("Question bank") == 1 and "Resources" not in prompt
+    assert "IF SHALLOW, PROBE: h" in prompt
 
 
 def test_state_document_is_compact(env) -> None:  # type: ignore[no-untyped-def]

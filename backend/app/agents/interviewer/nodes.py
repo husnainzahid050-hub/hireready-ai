@@ -145,7 +145,15 @@ def choose_slots(
             else:
                 slots.append(behavioral() if interview_type == "behavioral" else technical())
         else:
-            slots.append(Slot("role_fit", "communication", job.title or "this role"))
+            slots.append(
+                Slot(
+                    "role_fit",
+                    "communication",
+                    job.title or "this role",
+                    "motivation for this role and how they would add value (not a technical or "
+                    "explain-it-simply question)",
+                )
+            )
     return slots
 
 
@@ -209,7 +217,7 @@ async def plan_interview(state: InterviewState, runtime: Ctx) -> dict[str, Any]:
             "competency": s.competency,
             "about": s.focus,
             "notes": s.detail,
-            "example_questions": _bank_titles(hits),
+            "example_questions": [] if s.type == "role_fit" else _bank_titles(hits),
         }
         for i, (s, hits) in enumerate(zip(slots, rubric_hits, strict=True))
     ]
@@ -306,6 +314,7 @@ async def evaluate_answer(state: InterviewState, runtime: Ctx) -> dict[str, Any]
         cv=ctx.cv,
         level=state.difficulty,
         parent=parent,
+        probe_hint=main.follow_up_hint,
     )
     answer = NewAnswer(
         id=str(uuid.uuid4()),
@@ -365,7 +374,10 @@ async def ask_follow_up(state: InterviewState) -> dict[str, Any]:
     asked = state.current
     assert asked is not None  # noqa: S101
     main = _main_question(state, asked)
-    text = state.follow_up_text or f"Could you go a bit deeper on that? {main.follow_up_hint}"
+    text = state.follow_up_text or (
+        # The plan's follow_up_hint is an interviewer-facing note: never shown verbatim.
+        "Could you go a bit deeper on that, with a specific example from your own experience?"
+    )
     follow = AskedQuestion(
         id=str(uuid.uuid4()),
         order=main.order,

@@ -135,9 +135,15 @@ async def score_answer(
     cv: CVProfile,
     level: str,
     parent: tuple[str, str] | None = None,
+    probe_hint: str | None = None,
 ) -> ScoredAnswer:
     """ONE fast-model call: score (SPEC 6.5) + follow-up decision signal + follow-up phrasing."""
-    rubric_text = "\n\n".join(f"[R{i + 1}] {r.content}" for i, r in enumerate(rubric[:4]))
+    # Calibration: ALL the 1/3/5 anchors + the single most relevant question-bank chunk.
+    anchors = [r for r in rubric if ANCHOR_MARKER in r.content.split("\n", 1)[0]]
+    bank = [r for r in rubric if r not in anchors][:1]
+    picked = bank + anchors[:4]
+    rubric_text = "\n\n".join(f"[R{i + 1}] {r.content}" for i, r in enumerate(picked))
+    hint = f"IF SHALLOW, PROBE: {probe_hint}\n" if probe_hint and not parent else ""
     context = ""
     if parent:
         context = (
@@ -149,7 +155,8 @@ async def score_answer(
         )
     user = (
         f"LEVEL: {level}\nQUESTION TYPE: {question.type}\nCOMPETENCY: {question.competency}\n"
-        f"QUESTION: {question.text}\n\nRUBRIC AND SCORING ANCHORS:\n{rubric_text or '(none)'}\n\n"
+        f"QUESTION: {question.text}\n{hint}\n"
+        f"RUBRIC AND SCORING ANCHORS:\n{rubric_text or '(none)'}\n\n"
         f"CANDIDATE CV FACTS:\n{wrap_untrusted('cv', cv_facts(cv))}\n\n{context}"
         f"ANSWER TO SCORE:\n{wrap_untrusted('transcript', answer[:MAX_TRANSCRIPT_CHARS_FOR_LLM])}"
     )

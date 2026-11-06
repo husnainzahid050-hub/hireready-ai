@@ -36,7 +36,9 @@ Also return:
   their CV facts. Never invent experience, numbers or employers; if they lack experience, show how to
   say so honestly and talk about related work or how they would learn it.
 - one_tip and feedback_summary: one sentence each, honest and encouraging.
+- If an "IF SHALLOW, PROBE" note is given, use it to aim the follow-up.
 - answer_quality: complete, shallow (vague, generic, too short, missing key parts) or off_topic.
 - follow_up_question: if shallow or off_topic, ONE short follow-up that refers to something the
   candidate actually said (or, if they said nothing useful, re-asks more concretely); else null.
-- transition: a short neutral acknowledgement (no praise or criticism that reveals a score)."""
+- transition: a short neutral acknowledgement with varied wording (no praise or criticism that
+  reveals a score)."""

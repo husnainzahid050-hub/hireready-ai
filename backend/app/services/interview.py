@@ -92,41 +92,46 @@ def _question_row(session_id: str, q: Any, parent_id: str | None) -> dict[str, A
 async def persist(
     db: SupabaseRest, before: "InterviewState | None", after: "InterviewState"
 ) -> None:
-    """Write the turn's rows, then the state. Order matters for foreign keys."""
+    """Write the turn's rows, then the state (the state is the commit point).
+
+    Writes run in parallel where foreign keys allow it: an answer always belongs to a question
+    inserted by an EARLIER request, so new questions and the answer can go together.
+    """
     sid = after.session_id
     rows = [_question_row(sid, q, None) for q in after.new_planned]
     rows += [_question_row(sid, q, q.parent_id) for q in after.new_questions]
-    await db.insert("questions", rows)
+    answer_rows = []
     if after.new_answer:
         a = after.new_answer
-        await db.insert(
-            "answers",
+        answer_rows.append(
+            {
+                "id": a.id,
+                "question_id": a.question_id,
+                "transcript": a.transcript,
+                "duration_seconds": a.duration_seconds,
+                "scores": a.scores.model_dump(),
+                "feedback": a.feedback.model_dump(),
+            }
+        )
+    await asyncio.gather(db.insert("questions", rows), db.insert("answers", answer_rows))
+    saved = after.clear_transient()
+    writes = [
+        db.insert(
+            "interview_state",
             [
                 {
-                    "id": a.id,
-                    "question_id": a.question_id,
-                    "transcript": a.transcript,
-                    "duration_seconds": a.duration_seconds,
-                    "scores": a.scores.model_dump(),
-                    "feedback": a.feedback.model_dump(),
+                    "session_id": sid,
+                    "state": saved.model_dump(mode="json"),
+                    "updated_at": datetime.now(UTC).isoformat(),
                 }
             ],
+            on_conflict="session_id",
         )
-    saved = after.clear_transient()
-    await db.insert(
-        "interview_state",
-        [
-            {
-                "session_id": sid,
-                "state": saved.model_dump(mode="json"),
-                "updated_at": datetime.now(UTC).isoformat(),
-            }
-        ],
-        on_conflict="session_id",
-    )
+    ]
     if before is None or before.status != after.status:
         status = "completed" if after.status == "completed" else "interviewing"
-        await db.update("sessions", {"id": f"eq.{sid}"}, {"status": status})
+        writes.append(db.update("sessions", {"id": f"eq.{sid}"}, {"status": status}))
+    await asyncio.gather(*writes)
 
 
 # ------------------------------------------------------------------ response
@@ -171,17 +176,21 @@ def to_turn(state: "InterviewState", *, history: bool, last_answer: bool) -> Int
 # ------------------------------------------------------------------ use cases
 
 
+Inputs = tuple[CVProfile, JobProfile, list[GapItem]]
+
+
 async def _run(
     db: SupabaseRest,
     llm: LLMClient,
     embedder: Embedder,
     state: "InterviewState",
     session_id: UUID,
+    inputs: Inputs,
 ) -> "InterviewState":
     from app.agents.interviewer.graph import run_turn
     from app.agents.interviewer.state import InterviewContext
 
-    cv, job, gaps = await load_inputs(db, session_id)
+    cv, job, gaps = inputs
     ctx = InterviewContext(
         llm=llm, retriever=Retriever(db, embedder), db=db, cv=cv, job=job, gaps=gaps
     )
@@ -226,7 +235,7 @@ async def start_interview(
         interview_type=session.get("interview_type") or "mixed",
         event="start",
     )
-    result = await _run(db, llm, embedder, state, sid)
+    result = await _run(db, llm, embedder, state, sid, await load_inputs(db, sid))
     await persist(db, None, result)
     return to_turn(result, history=False, last_answer=False)
 
@@ -251,7 +260,25 @@ async def submit_answer(
     transcript = transcript.strip()
     if not transcript:
         raise AppError("validation_error", "The answer cannot be empty.", status_code=422)
-    state = await load_state(db, sid)
+    # Load the profiles while we validate the state: saves a database round trip per answer.
+    inputs_task = asyncio.create_task(load_inputs(db, sid))
+    try:
+        state = await load_state(db, sid)
+        _check_answerable(state, question_id)
+        inputs = await inputs_task
+    finally:
+        if not inputs_task.done():
+            inputs_task.cancel()
+        elif not inputs_task.cancelled():
+            inputs_task.exception()  # mark a failure as retrieved (we raised our own error)
+    assert state is not None  # noqa: S101 (checked above)
+    turn_input = state.model_copy(update={"event": "answer", "answer_text": transcript})
+    result = await _run(db, llm, embedder, turn_input, sid, inputs)
+    await persist(db, state, result)
+    return to_turn(result, history=False, last_answer=True)
+
+
+def _check_answerable(state: "InterviewState | None", question_id: UUID) -> None:
     if state is None:
         raise AppError("not_started", "The interview has not been started yet.", status_code=409)
     if state.status == "completed" or state.current is None:
@@ -264,7 +291,3 @@ async def submit_answer(
             "That question is not the one waiting for an answer. Reload to continue.",
             status_code=400,
         )
-    turn_input = state.model_copy(update={"event": "answer", "answer_text": transcript})
-    result = await _run(db, llm, embedder, turn_input, sid)
-    await persist(db, state, result)
-    return to_turn(result, history=False, last_answer=True)
