@@ -10,8 +10,6 @@ import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 
-import app.routers.interview as interview_router
-import app.routers.sessions as sessions_router
 from app.agents.interviewer.graph import get_graph
 from app.agents.interviewer.nodes import choose_slots
 from app.agents.interviewer.tools import to_scores
@@ -32,7 +30,7 @@ from app.schemas.interview import (
     PlannedQuestionDraft,
 )
 from app.services.llm import LLMError, to_strict_schema
-from tests.test_sessions_api import FakeDB, FakeEmbedder
+from tests.fakes import FakeDB, install
 
 # ------------------------------------------------------------------ fixtures / fakes
 
@@ -178,10 +176,7 @@ def seed_knowledge(db: FakeDB) -> None:
 def env(monkeypatch: pytest.MonkeyPatch):  # type: ignore[no-untyped-def]
     db, llm = FakeDB(), InterviewLLM()
     seed_knowledge(db)
-    for mod in (sessions_router, interview_router):
-        monkeypatch.setattr(mod, "get_db", lambda: db)
-        monkeypatch.setattr(mod, "get_llm", lambda: llm)
-        monkeypatch.setattr(mod, "get_embedder", lambda: FakeEmbedder())
+    install(monkeypatch, db, llm)
     return TestClient(app), db, llm
 
 
@@ -363,9 +358,7 @@ def test_each_request_is_one_turn_from_persisted_state_only(env, monkeypatch) ->
         fresh_db = FakeDB()
         fresh_db.t = json.loads(json.dumps(db.t))  # state must be pure JSON
         fresh_llm = InterviewLLM()
-        for mod in (sessions_router, interview_router):
-            monkeypatch.setattr(mod, "get_db", lambda d=fresh_db: d)
-            monkeypatch.setattr(mod, "get_llm", lambda m=fresh_llm: m)
+        install(monkeypatch, fresh_db, fresh_llm)
         current = client.get(url(sid), headers=h).json()["question"]
         r = client.post(
             url(sid, "/answer"), json={"question_id": current["id"], "text": GOOD}, headers=h
