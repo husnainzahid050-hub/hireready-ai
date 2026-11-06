@@ -246,7 +246,7 @@ async def start_interview(
 async def get_interview(db: SupabaseRest, session: dict[str, Any]) -> InterviewTurn:
     state = await load_state(db, UUID(session["id"]))
     if state is None:
-        raise AppError("not_started", "The interview has not been started yet.", status_code=409)
+        raise _not_started()
     return to_turn(state, history=True, last_answer=True)
 
 
@@ -264,28 +264,30 @@ async def submit_answer(
     transcript = transcript.strip()
     if not transcript:
         raise AppError("validation_error", "The answer cannot be empty.", status_code=422)
-    # Load the profiles while we validate the state: saves a database round trip per answer.
-    inputs_task = asyncio.create_task(load_inputs(db, sid))
-    try:
-        state = await load_state(db, sid)
-        _check_answerable(state, question_id)
-        inputs = await inputs_task
-    finally:
-        if not inputs_task.done():
-            inputs_task.cancel()
-        elif not inputs_task.cancelled():
-            inputs_task.exception()  # mark a failure as retrieved (we raised our own error)
-    assert state is not None  # noqa: S101 (checked above)
+    # Load state and profiles together (one round trip less per answer). The state is checked
+    # first so a missing interview reports `not_started`, not `not_analyzed`.
+    loaded_state, loaded_inputs = await asyncio.gather(
+        load_state(db, sid), load_inputs(db, sid), return_exceptions=True
+    )
+    if isinstance(loaded_state, BaseException):
+        raise loaded_state
+    state = _check_answerable(loaded_state, question_id)
+    if isinstance(loaded_inputs, BaseException):
+        raise loaded_inputs
     await charge()
     turn_input = state.model_copy(update={"event": "answer", "answer_text": transcript})
-    result = await _run(db, llm, embedder, turn_input, sid, inputs)
+    result = await _run(db, llm, embedder, turn_input, sid, loaded_inputs)
     await persist(db, state, result)
     return to_turn(result, history=False, last_answer=True)
 
 
-def _check_answerable(state: "InterviewState | None", question_id: UUID) -> None:
+def _not_started() -> AppError:
+    return AppError("not_started", "The interview has not been started yet.", status_code=409)
+
+
+def _check_answerable(state: "InterviewState | None", question_id: UUID) -> "InterviewState":
     if state is None:
-        raise AppError("not_started", "The interview has not been started yet.", status_code=409)
+        raise _not_started()
     if state.status == "completed" or state.current is None:
         raise AppError(
             "interview_completed", "This interview is already finished.", status_code=409
@@ -296,3 +298,4 @@ def _check_answerable(state: "InterviewState | None", question_id: UUID) -> None
             "That question is not the one waiting for an answer. Reload to continue.",
             status_code=400,
         )
+    return state

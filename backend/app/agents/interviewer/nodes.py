@@ -36,6 +36,7 @@ from app.agents.interviewer.tools import (
 from app.schemas.analysis import CVProfile, GapItem, JobProfile
 from app.schemas.interview import InterviewPlanDraft, MainQuestionType
 from app.services.llm import wrap_untrusted
+from app.services.retrieval import rubric_level
 
 Ctx = Runtime[InterviewContext]
 
@@ -111,7 +112,7 @@ def choose_slots(
             distinct.append(g)
     tech_queue = distinct + [g for g in tech_pool if g not in distinct]
     project = _pick_project(cv, job)
-    themes = list(BEHAVIORAL_THEMES["mid" if difficulty == "mid" else "junior"])
+    themes = list(BEHAVIORAL_THEMES[rubric_level(difficulty)])
 
     def technical() -> Slot:
         if tech_queue:
@@ -190,14 +191,14 @@ def _bank_titles(chunks: list[Any]) -> list[str]:
 async def plan_interview(state: InterviewState, runtime: Ctx) -> dict[str, Any]:
     """ONE LLM call phrases all questions; rubric chunks are fetched once and kept in the state."""
     ctx = runtime.context
-    level = "mid" if state.difficulty == "mid" else "junior"
+    level = rubric_level(state.difficulty)
     slots = choose_slots(state.interview_type, level, ctx.job, ctx.cv, ctx.gaps)
 
     rubric_hits, anchors, cv_hits = await asyncio.gather(
         search_rubric(
             ctx.retriever,
             [(f"{s.focus} {s.competency or ''} interview question", s.competency) for s in slots],
-            level,  # type: ignore[arg-type]
+            level,
             k=2,
         ),
         scoring_anchors(ctx.db, {s.competency for s in slots if s.competency}),

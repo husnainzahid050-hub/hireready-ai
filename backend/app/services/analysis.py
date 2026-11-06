@@ -40,7 +40,7 @@ from app.services.evidence import normalize, quote_in_text, validate_judgement
 from app.services.llm import LLMClient, wrap_untrusted
 from app.services.parsing import chunk_cv
 from app.services.prompts import CV_SYSTEM, INSIGHTS_SYSTEM, JD_SYSTEM, JUDGE_SYSTEM
-from app.services.retrieval import Retriever
+from app.services.retrieval import Retriever, rubric_level
 from app.services.scoring import compute_match
 
 log = get_logger(__name__)
@@ -239,10 +239,6 @@ async def judge_skills(
     return gaps
 
 
-def _level(difficulty: str) -> str:
-    return "mid" if difficulty == "mid" else "junior"
-
-
 async def build_insights(
     llm: LLMClient,
     retriever: Retriever,
@@ -256,7 +252,7 @@ async def build_insights(
     rubric = await retriever.search_rubric_many(
         [(f"{job.title} interview questions {c}", c) for c in competencies]
         + [("behavioral interview teamwork conflict STAR", "behavioral")],
-        level=_level(difficulty),  # type: ignore[arg-type]
+        level=rubric_level(difficulty),
         k=3,
     )
     bank = sorted(
