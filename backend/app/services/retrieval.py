@@ -16,6 +16,13 @@ from app.db.client import SupabaseRest
 from app.services.embeddings import Embedder, to_pgvector
 
 Level = Literal["junior", "mid"]
+
+
+def rubric_level(difficulty: str | None) -> Level:
+    """The knowledge base has junior and mid content; anything else maps to junior."""
+    return "mid" if difficulty == "mid" else "junior"
+
+
 MAX_QUERY_CHARS = 1000
 
 

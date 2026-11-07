@@ -5,7 +5,7 @@ the Phase 3 interview contract (InterviewTurn, error envelope, 409/400/429/503 c
 
 Usage (with the production build running):
     npm run build && npx next start -p 3001
-    python e2e/interview.mock.py [screenshot_dir]
+    python e2e/interview.mock.py [screenshot_dir]   (E2E_BASE=... for another port)
 
 Requires the `playwright` Python package and Google Chrome (channel="chrome").
 """
@@ -13,13 +13,14 @@ Requires the `playwright` Python package and Google Chrome (channel="chrome").
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from pathlib import Path
 
 from playwright.sync_api import Page, Route, expect, sync_playwright
 
-BASE = "http://localhost:3001"
+BASE = os.environ.get("E2E_BASE", "http://localhost:3001")
 SID = "11111111-2222-3333-4444-555555555555"
 SHOTS = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("e2e-screenshots")
 SHOTS.mkdir(parents=True, exist_ok=True)

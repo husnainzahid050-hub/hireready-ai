@@ -10,8 +10,11 @@ it with Pydantic. The model can't "return whatever": invalid output is a failure
   (which count against the free-tier 8K tokens/minute) small.
 - On a 429/5xx/network error or invalid JSON from Groq, we retry once quickly, then fall back
   to Gemini (`generateContent` with `responseMimeType: application/json` + `responseJsonSchema`).
+- Each provider gets at most PROVIDER_TIMEOUT_S in total (all its retries included), so one
+  `structured()` call is bounded at about 2 x PROVIDER_TIMEOUT_S, inside Vercel's 60 s limit.
 """
 
+import asyncio
 import json
 import re
 import time
@@ -32,6 +35,7 @@ Tier = Literal["fast", "strong"]
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta"
+PROVIDER_TIMEOUT_S = 25.0
 
 # JSON-schema keywords both providers' structured-output modes accept.
 _KEEP = {
@@ -115,10 +119,22 @@ def describe_error(exc: Exception) -> str:
     return type(exc).__name__
 
 
+_PROVIDER_ERRORS = (LLMError, ValidationError, json.JSONDecodeError, httpx.HTTPError, TimeoutError)
+
+
 class LLMClient:
-    def __init__(self, settings: Settings, client: httpx.AsyncClient) -> None:
+    def __init__(
+        self,
+        settings: Settings,
+        client: httpx.AsyncClient,
+        provider_timeout_s: float = PROVIDER_TIMEOUT_S,
+    ) -> None:
         self._s = settings
         self._client = client
+        self._timeout_s = provider_timeout_s
+        # How often this client fell back to Gemini. The analysis stream reads it to tell the
+        # user that things are slower than usual.
+        self.fallbacks = 0
 
     def _groq_model(self, tier: Tier) -> str | None:
         return self._s.groq_fast_model if tier == "fast" else self._s.groq_strong_model
@@ -251,15 +267,19 @@ class LLMClient:
         model = self._groq_model(tier)
         if self._s.groq_api_key and model:
             try:
-                return await self._groq(model, system, user, schema, temperature, max_tokens)
-            except (LLMError, ValidationError, json.JSONDecodeError, httpx.HTTPError) as exc:
+                async with asyncio.timeout(self._timeout_s):
+                    return await self._groq(model, system, user, schema, temperature, max_tokens)
+            except _PROVIDER_ERRORS as exc:
                 errors.append(f"groq: {describe_error(exc)}")
                 log.warning("llm_fallback", extra={"extra_fields": {"reason": errors[-1]}})
 
         if self._s.gemini_api_key and self._s.gemini_text_model:
+            if errors:
+                self.fallbacks += 1
             try:
-                return await self._gemini(system, user, schema, temperature, max_tokens)
-            except (LLMError, ValidationError, json.JSONDecodeError, httpx.HTTPError) as exc:
+                async with asyncio.timeout(self._timeout_s):
+                    return await self._gemini(system, user, schema, temperature, max_tokens)
+            except _PROVIDER_ERRORS as exc:
                 errors.append(f"gemini: {describe_error(exc)}")
 
         elapsed = round(time.perf_counter() - started, 2)

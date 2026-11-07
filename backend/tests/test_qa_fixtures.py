@@ -12,7 +12,6 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-import app.routers.sessions as sessions_router
 from app.core.errors import AppError
 from app.main import app
 from app.schemas.analysis import (
@@ -29,8 +28,8 @@ from app.services.evidence import normalize, quote_in_text
 from app.services.llm import wrap_untrusted
 from app.services.parsing import MAX_CV_CHARS, clean_text, extract_cv_text, validate_jd
 from app.services.scoring import compute_match
+from tests.fakes import FakeDB, FakeLLM, install, sse_events
 from tests.fixtures.build_fixtures import LONG_MARKER_END, LONG_MARKER_MID
-from tests.test_sessions_api import FakeDB, FakeEmbedder, FakeLLM, sse_events
 
 FX = Path(__file__).parent / "fixtures"
 FILES = FX / "files"
@@ -222,9 +221,7 @@ def test_jd_without_skills_is_an_error_not_a_perfect_score(
 ) -> None:
     # Live: a careers "about us" blurb extracted 0 skills and scored 100/100.
     db, llm = FakeDB(), NoSkillsLLM()
-    monkeypatch.setattr(sessions_router, "get_db", lambda: db)
-    monkeypatch.setattr(sessions_router, "get_llm", lambda: llm)
-    monkeypatch.setattr(sessions_router, "get_embedder", lambda: FakeEmbedder())
+    install(monkeypatch, db, llm)
     client = TestClient(app)
     s = client.post("/api/v1/sessions", json={"consent": True}).json()
     h = {"X-Guest-Token": s["guest_token"]}

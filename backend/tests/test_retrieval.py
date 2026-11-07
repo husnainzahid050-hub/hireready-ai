@@ -5,17 +5,7 @@ import httpx
 
 from app.db.client import SupabaseRest
 from app.services.retrieval import Retriever
-
-
-class FakeEmbedder:
-    dim = 3
-
-    def __init__(self) -> None:
-        self.calls: list[tuple[list[str], str]] = []
-
-    async def embed(self, texts: list[str], task: str) -> list[list[float]]:
-        self.calls.append((texts, task))
-        return [[1.0, 0.0, 0.0] for _ in texts]
+from tests.fakes import FakeEmbedder
 
 
 def make(rows: list[dict]):  # type: ignore[no-untyped-def,type-arg]

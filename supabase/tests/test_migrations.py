@@ -11,6 +11,8 @@ import random
 import shutil
 import sys
 import tempfile
+import threading
+import time
 
 import pgserver
 import psycopg
@@ -127,6 +129,48 @@ with psycopg.connect(uri, autocommit=True) as conn:
     ).fetchone()[0]
     ok &= used == 2
     ok &= conn.execute("select consume_quota(%s, 'upload', 0)", (other,)).fetchone()[0] is False
+
+    # Analysis claim (20261106000005_analysis_claim.sql): once per session, stale claims expire,
+    # and a session that already has a saved analysis can't be claimed.
+    claim = "select claim_analysis(%s, %s)"
+    claims = [conn.execute(claim, (other, 120)).fetchone()[0] for _ in range(2)]
+    print("claim_analysis twice:", claims)
+    ok &= claims == [True, False]
+    conn.execute(
+        "update sessions set analysis_started_at = now() - interval '10 minutes' where id = %s",
+        (other,),
+    )
+    # Two connections racing: B blocks on A's row lock, re-checks after A commits, and loses.
+    conn.execute("update sessions set analysis_started_at = null where id = %s", (other,))
+    with psycopg.connect(uri) as a, psycopg.connect(uri) as b:
+        won_a = a.execute(claim, (other, 120)).fetchone()[0]  # A's transaction stays open
+        result_b: list[bool] = []
+        t = threading.Thread(target=lambda: result_b.append(b.execute(claim, (other, 120)).fetchone()[0]))
+        t.start()
+        time.sleep(0.5)
+        blocked = t.is_alive()
+        a.commit()
+        t.join(10)
+        b.commit()
+    print("concurrent claims (A, B blocked, B):", won_a, blocked, result_b)
+    ok &= won_a is True and blocked and result_b == [False]
+    conn.execute(
+        "update sessions set analysis_started_at = now() - interval '10 minutes' where id = %s",
+        (other,),
+    )
+    stale = conn.execute(claim, (other, 120)).fetchone()[0]
+    print("stale claim taken over:", stale)
+    ok &= stale is True
+    conn.execute("update sessions set analysis_started_at = null where id = %s", (other,))
+    conn.execute(
+        "insert into gap_analyses (session_id, match_score, breakdown, gaps, strengths,"
+        " likely_questions, prep_plan) values (%s, 50, '{}', '[]', '[]', '[]', '[]')",
+        (other,),
+    )
+    analyzed = conn.execute(claim, (other, 120)).fetchone()[0]
+    unknown = conn.execute(claim, ("00000000-0000-0000-0000-000000000000", 120)).fetchone()[0]
+    print("claim when analyzed / unknown session:", analyzed, unknown)
+    ok &= analyzed is False and unknown is False
     conn.execute("delete from sessions where id = %s", (other,))
     usage_left = conn.execute("select count(*) from session_usage").fetchone()[0]
     print("session_usage rows after deleting the session:", usage_left)
@@ -139,6 +183,7 @@ with psycopg.connect(uri, autocommit=True) as conn:
         "select * from session_usage",
         f"select * from hybrid_search('{vec(1)}'::extensions.vector,'x')",
         "select consume_quota(gen_random_uuid(), 'x', 5)",
+        "select claim_analysis(gen_random_uuid(), 60)",
     ):
         try:
             conn.execute(stmt)
