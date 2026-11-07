@@ -7,11 +7,12 @@ Phase 5 report). LangGraph is imported lazily so other endpoints don't pay its i
 
 import asyncio
 import time
+from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from app.core.errors import AppError
+from app.core.errors import AppError, ai_unavailable
 from app.core.logging import get_logger
 from app.db.client import SupabaseRest
 from app.schemas.analysis import CVProfile, GapItem, JobProfile
@@ -32,14 +33,6 @@ if TYPE_CHECKING:
     from app.agents.interviewer.state import AskedQuestion, InterviewState
 
 log = get_logger(__name__)
-
-
-def ai_unavailable() -> AppError:
-    return AppError(
-        "ai_unavailable",
-        "Our AI providers are busy right now. Please try again in a minute.",
-        status_code=503,
-    )
 
 
 # ------------------------------------------------------------------ loading
@@ -183,6 +176,13 @@ def to_turn(state: "InterviewState", *, history: bool, last_answer: bool) -> Int
 
 
 Inputs = tuple[CVProfile, JobProfile, list[GapItem]]
+# Called once the request is known to need an LLM turn (after validation, before the LLM call):
+# the router uses it for rate limits and per-session quotas, so rejected requests cost nothing.
+Charge = Callable[[], Awaitable[None]]
+
+
+async def _free() -> None:
+    return None
 
 
 async def _run(
@@ -227,13 +227,16 @@ async def start_interview(
     embedder: Embedder,
     session: dict[str, Any],
     practice_mode: bool,
+    charge: Charge = _free,
 ) -> InterviewTurn:
     from app.agents.interviewer.state import InterviewState
 
     sid = UUID(session["id"])
     existing = await load_state(db, sid)
-    if existing is not None:  # idempotent: never re-plan
+    if existing is not None:  # idempotent: never re-plan (and never charged twice)
         return to_turn(existing, history=False, last_answer=False)
+    inputs = await load_inputs(db, sid)
+    await charge()
     state = InterviewState(
         session_id=str(sid),
         practice_mode=practice_mode,
@@ -241,7 +244,7 @@ async def start_interview(
         interview_type=session.get("interview_type") or "mixed",
         event="start",
     )
-    result = await _run(db, llm, embedder, state, sid, await load_inputs(db, sid))
+    result = await _run(db, llm, embedder, state, sid, inputs)
     await persist(db, None, result)
     return to_turn(result, history=False, last_answer=False)
 
@@ -249,7 +252,7 @@ async def start_interview(
 async def get_interview(db: SupabaseRest, session: dict[str, Any]) -> InterviewTurn:
     state = await load_state(db, UUID(session["id"]))
     if state is None:
-        raise AppError("not_started", "The interview has not been started yet.", status_code=409)
+        raise _not_started()
     return to_turn(state, history=True, last_answer=True)
 
 
@@ -260,6 +263,7 @@ async def submit_answer(
     session: dict[str, Any],
     question_id: UUID,
     transcript: str,
+    charge: Charge = _free,
     speech: SpeechMetrics | None = None,
 ) -> InterviewTurn:
     """Text answers, and voice answers after transcription (`speech` = their metrics)."""
@@ -267,20 +271,19 @@ async def submit_answer(
     transcript = transcript.strip()
     if not transcript:
         raise AppError("validation_error", "The answer cannot be empty.", status_code=422)
-    # Load the profiles while we validate the state: saves a database round trip per answer.
-    inputs_task = asyncio.create_task(load_inputs(db, sid))
-    try:
-        state = await load_state(db, sid)
-        _check_answerable(state, question_id)
-        inputs = await inputs_task
-    finally:
-        if not inputs_task.done():
-            inputs_task.cancel()
-        elif not inputs_task.cancelled():
-            inputs_task.exception()  # mark a failure as retrieved (we raised our own error)
-    assert state is not None  # noqa: S101 (checked above)
+    # Load state and profiles together (one round trip less per answer). The state is checked
+    # first so a missing interview reports `not_started`, not `not_analyzed`.
+    loaded_state, loaded_inputs = await asyncio.gather(
+        load_state(db, sid), load_inputs(db, sid), return_exceptions=True
+    )
+    if isinstance(loaded_state, BaseException):
+        raise loaded_state
+    state = _check_answerable(loaded_state, question_id)
+    if isinstance(loaded_inputs, BaseException):
+        raise loaded_inputs
+    await charge()
     turn_input = state.model_copy(update={"event": "answer", "answer_text": transcript})
-    result = await _run(db, llm, embedder, turn_input, sid, inputs)
+    result = await _run(db, llm, embedder, turn_input, sid, loaded_inputs)
     if speech is not None:
         result = with_speech_metrics(result, speech)
     await persist(db, state, result)
@@ -306,9 +309,13 @@ def with_speech_metrics(state: "InterviewState", m: SpeechMetrics) -> "Interview
     return state.model_copy(update={"new_answer": row})
 
 
-def _check_answerable(state: "InterviewState | None", question_id: UUID) -> None:
+def _not_started() -> AppError:
+    return AppError("not_started", "The interview has not been started yet.", status_code=409)
+
+
+def _check_answerable(state: "InterviewState | None", question_id: UUID) -> "InterviewState":
     if state is None:
-        raise AppError("not_started", "The interview has not been started yet.", status_code=409)
+        raise _not_started()
     if state.status == "completed" or state.current is None:
         raise AppError(
             "interview_completed", "This interview is already finished.", status_code=409
@@ -319,3 +326,4 @@ def _check_answerable(state: "InterviewState | None", question_id: UUID) -> None
             "That question is not the one waiting for an answer. Reload to continue.",
             status_code=400,
         )
+    return state

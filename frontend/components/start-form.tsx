@@ -78,6 +78,9 @@ export function StartForm() {
   });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // The session created by a failed attempt (e.g. a scanned PDF) is reused on retry instead of
+  // leaving an orphan session behind each time. A change of options needs a new session.
+  const created = useRef<{ id: string; options: string } | null>(null);
 
   const jdLen = jd.trim().length;
   const fileError = file ? validateFile(file) : null;
@@ -96,10 +99,19 @@ export function StartForm() {
     setBusy(true);
     setError(null);
     try {
-      const { session_id } = await createSession({ ...opts, email: opts.email?.trim() || null });
+      const options = { ...opts, email: opts.email?.trim() || null };
+      const key = JSON.stringify(options);
+      if (created.current?.options !== key) {
+        created.current = { id: (await createSession(options)).session_id, options: key };
+      }
+      const session_id = created.current.id;
       await uploadDocuments(session_id, file, jd);
       router.push(`/session/${session_id}/analysis`);
     } catch (err) {
+      // Out of uploads for this session, or it is gone: the next attempt starts a fresh one.
+      if (err instanceof ApiError && (err.code === "quota_exceeded" || err.status === 404)) {
+        created.current = null;
+      }
       setError(err instanceof ApiError ? err.message : "Something went wrong. Please try again.");
       setBusy(false);
     }

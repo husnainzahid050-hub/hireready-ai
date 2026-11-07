@@ -453,3 +453,53 @@ net the log formatter masks emails and truncates long strings.
 ### 7. Defence in depth for HTTP
 The backend has its own public URL, so it can't rely on the frontend's headers. Every API response
 says `no-store` (don't cache personal data), `nosniff`, and "never frame me".
+
+## Integration pass: concurrency, timeouts and simplification (2026-11-06)
+
+Four agents built the backend, frontend, security and QA work in parallel. Merging it showed
+problems that none of them saw alone.
+
+### 1. "Check, then act" is a race; make the check and the act one step
+The analyze endpoint asked "is there a saved analysis?" and then started the pipeline. Two tabs
+asking at the same moment both got "no" and both ran it, which doubled the LLM spend. The fix is a
+**claim**: one SQL `UPDATE sessions SET analysis_started_at = now() WHERE id = $1 AND
+analysis_started_at IS NULL ... RETURNING id`. Postgres locks the row, so if two requests run it at
+once, the second one waits, re-checks the `WHERE` after the first commits, and matches nothing.
+Whoever gets a row back owns the run. The loser does not fail: it waits for the winner's result and
+shows the same analysis.
+
+### 2. Every lock needs an expiry
+A serverless function can be killed mid-run (timeout, crash, deploy) and never release its claim.
+A claim older than 120 s counts as abandoned. A live run can't be that old, because Vercel stops the
+function at 60 s. Rule of thumb: the expiry must be longer than the longest real run and short
+enough that a user retrying isn't stuck.
+
+### 3. Budgets beat per-call timeouts
+Each LLM call had a 60 s HTTP timeout, but with retries and a fallback provider one call could take
+minutes, and the platform would kill the function without telling the browser anything. Now there
+are layered budgets: 25 s per provider (retries included), 50 s for the whole analysis, inside
+Vercel's 60 s. When the budget runs out, the user gets a clear error instead of an endless spinner.
+The page also treats "the stream ended without a final event" as an error, because proxies can cut
+a connection at any time.
+
+### 4. Tell the user when things are slow
+When nothing has arrived for 15 s, or the LLM switched to the backup provider, the stream sends a
+`slow` status ("taking longer than usual"). It costs nothing, and it also keeps the connection from
+looking idle to proxies.
+
+### 5. Charge only for real work
+Quotas and rate limits are checked only when a request will really call the LLM. A request that
+only returns cached data, re-starts an interview that already exists, or answers the wrong question
+is free. The interview service takes a small `charge()` callback for this, so the router decides
+*what* to charge and the service decides *when*.
+
+### 6. Simplify by deleting copies
+Several agents had each written their own fake database for tests, and some test files imported
+fakes from other test files. One shared `tests/fakes.py` removed about 240 lines and made
+`claim_analysis` testable everywhere at once. The same went for error helpers that existed twice
+with copy-pasted messages. Each refactor kept the full test suite green; behaviour didn't change.
+
+### 7. Not every bug has a safe small fix
+pypdf's layout mode looked like an easy fix for two-column PDFs (B6). Running it on all fixtures
+showed it reversed Urdu text and made a different two-column PDF worse. A fix that helps one input
+and breaks two others isn't a fix, so the bug stays documented with its failing test.

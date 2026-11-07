@@ -1,5 +1,7 @@
 """Deterministic, explainable scoring. No LLM here: the user can verify every number."""
 
+import re
+
 from app.schemas.analysis import (
     CVProfile,
     GapItem,
@@ -27,14 +29,28 @@ def _coverage(items: list[GapItem]) -> float:
     return sum(VERDICT_POINTS[i.verdict] for i in items) / len(items)
 
 
+# Student jobs don't count towards "years of experience" for mid / senior roles (QA B9: an
+# internship plus a TA job made a fresh graduate a 100% fit for a "3+ years" role).
+_ENTRY_ROLE = re.compile(
+    r"(?i:\b(intern(ship)?|trainee|apprentice|teaching assistant|student|volunteer)\b)|\bTA\b"
+)
+
+
+def professional_roles(cv: CVProfile) -> int:
+    return sum(1 for e in cv.experience if not _ENTRY_ROLE.search(e.role))
+
+
 def seniority_fit(job_seniority: Seniority, cv: CVProfile) -> tuple[float, str]:
-    roles = len(cv.experience)
+    roles = professional_roles(cv)
     if job_seniority in ("intern", "junior", "unknown"):
         return 1.0, f"Role is {job_seniority}; entry-level candidates fit."
     if job_seniority == "mid":
         if roles >= 2:
             return 1.0, f"Mid-level role; CV lists {roles} roles."
-        return 0.5, f"Mid-level role; CV lists {roles} role(s), so experience may be light."
+        return 0.5, (
+            f"Mid-level role; CV lists {roles} role(s) beyond internships, so experience may be "
+            "light."
+        )
     # Senior: previously a flat 0.25 even for a CV with many roles (an experienced senior
     # candidate was scored as a poor fit for a senior job).
     if roles >= 3:

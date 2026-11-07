@@ -21,6 +21,7 @@ Rules:
 - If the JD does not distinguish, treat the core technical requirements as must-have.
 - Skills must be concrete and short (e.g. "Python", "FastAPI", "Docker", "SQL", "RAG pipelines",
   "Teamwork"). Merge duplicates. At most 12 must-have and 8 nice-to-have skills.
+- Alternatives are ONE skill: "Power BI or Tableau", "AWS/GCP" -> "Power BI or Tableau", "AWS or GCP".
 - competency: map each skill to exactly one of: {COMPETENCY_LIST}.
 - seniority: intern, junior, mid, senior, or unknown, based on title and years required."""
 
@@ -31,6 +32,7 @@ Verdicts:
 - strong_evidence: the candidate clearly USED the skill (in a project, job, or achievement).
 - weak_evidence: the skill is only listed, mentioned in passing, or only a closely related skill is shown.
 - no_evidence: nothing in the excerpts supports the skill.
+A skill written as alternatives ("Power BI or Tableau") is met by evidence for either option.
 Rules:
 - evidence_quote MUST be copied character-for-character from the excerpts (one short sentence or
   bullet, under 200 characters). Do not paraphrase, fix typos, or combine sentences.
@@ -49,4 +51,7 @@ Using the analysis provided, produce:
 3. prep_plan: exactly 7 days (day 1 to 7). Focus on the biggest must-have gaps first, then weak areas,
    then a mock-interview rehearsal day. Each day has 2 to 4 concrete tasks.
    resource_urls may ONLY contain URLs from the ALLOWED RESOURCES list (use [] if none fit).
+Write every text field to the candidate directly as "you" / "your" (e.g. "Rehearse explaining your RAG
+assistant"), never "the candidate". Describe skills by their verdict: no_evidence = a gap,
+weak_evidence = needs stronger evidence, strong_evidence = a strength; never call a weak skill a gap.
 Be specific, encouraging and honest. Never invent experience the candidate does not have."""

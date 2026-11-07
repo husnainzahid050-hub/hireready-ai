@@ -94,8 +94,18 @@ async def submit_voice_answer(
     question_id: UUID,
     audio: bytes,
     content_type: str | None,
+    *,
+    charge: interview_service.Charge,
 ) -> InterviewTurn:
+    """Validate -> check the question is the pending one -> charge -> transcribe -> answer.
+
+    The quota/rate limit is charged before Whisper (the costly call), but after the cheap checks,
+    so an invalid file or a stale/duplicate upload costs nothing.
+    """
     fmt = validate_audio(audio, content_type)
+    state = await interview_service.load_state(db, UUID(session["id"]))
+    interview_service._check_answerable(state, question_id)  # noqa: SLF001 (same feature)
+    await charge()
     result = await stt.transcribe(audio, fmt)
     del audio  # nothing keeps the bytes after this point
     if result.duration is not None and result.duration > MAX_AUDIO_SECONDS + DURATION_TOLERANCE_S:

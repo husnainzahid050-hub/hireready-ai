@@ -8,6 +8,9 @@ Steps:
  5. Deterministic match score.
  6. LLM writes strengths, likely questions (adapted from the rubric KB) and a 7-day plan that may
     only use curated resource URLs.
+
+Only one run per session at a time: the router claims the session first (`claim_run`, an atomic
+SQL function), and a second caller waits for the first run's result instead (`wait_for_run`).
 """
 
 import asyncio
@@ -37,7 +40,7 @@ from app.services.evidence import normalize, quote_in_text, validate_judgement
 from app.services.llm import LLMClient, wrap_untrusted
 from app.services.parsing import chunk_cv
 from app.services.prompts import CV_SYSTEM, INSIGHTS_SYSTEM, JD_SYSTEM, JUDGE_SYSTEM
-from app.services.retrieval import Retriever
+from app.services.retrieval import Retriever, rubric_level
 from app.services.scoring import compute_match
 
 log = get_logger(__name__)
@@ -45,7 +48,72 @@ log = get_logger(__name__)
 MAX_CV_CHARS_FOR_LLM = 12_000  # ~3k tokens: stays inside free-tier per-minute token budgets
 MAX_MUST, MAX_NICE = 12, 8
 
+# A claim older than this is treated as abandoned (crashed or killed function). Vercel stops the
+# function after 60 s (backend/vercel.json), so a live run can never be this old.
+CLAIM_TTL_S = 120
+# A second caller polls for the first run's result for at most this long (inside the 60 s limit).
+WAIT_POLL_S = 2.0
+WAIT_TIMEOUT_S = 45.0
+
 Event = tuple[str, dict[str, Any]]
+
+
+# ------------------------------------------------------------------ one run per session
+
+
+async def saved_analysis(db: SupabaseRest, session_id: UUID) -> "Analysis | None":
+    rows = await db.select("gap_analyses", {"select": "*", "session_id": f"eq.{session_id}"})
+    return analysis_from_row(rows[0]) if rows else None
+
+
+async def claim_run(db: SupabaseRest, session_id: UUID) -> bool:
+    """True if this request now owns the session's analysis run (see migration 05)."""
+    claimed = await db.rpc(
+        "claim_analysis", {"p_session_id": str(session_id), "p_stale_seconds": CLAIM_TTL_S}
+    )
+    return claimed is True
+
+
+async def release_run(db: SupabaseRest, session_id: UUID) -> None:
+    await db.update("sessions", {"id": f"eq.{session_id}"}, {"analysis_started_at": None})
+
+
+async def wait_for_run(db: SupabaseRest, session_id: UUID) -> AsyncIterator[Event]:
+    """Another request is analyzing this session: stream its result once it is saved."""
+    yield (
+        "status",
+        {
+            "step": "waiting",
+            "message": "This analysis is already running (maybe in another tab). "
+            "Waiting for it to finish…",
+        },
+    )
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + WAIT_TIMEOUT_S
+    while True:
+        # Claim first, then result: a run saves its result BEFORE it releases the claim.
+        rows = await db.select(
+            "sessions", {"select": "analysis_started_at", "id": f"eq.{session_id}"}
+        )
+        running = bool(rows and rows[0].get("analysis_started_at"))
+        saved = await saved_analysis(db, session_id)
+        if saved:
+            yield "done", saved.model_dump()
+            return
+        if not running:
+            raise AppError(
+                "analysis_interrupted",
+                "The other analysis run stopped before finishing. Please try again.",
+            )
+        if loop.time() >= deadline:
+            raise AppError(
+                "analysis_in_progress",
+                "Your analysis is still running. Reload this page in a moment to see it.",
+            )
+        await asyncio.sleep(WAIT_POLL_S)
+
+
+# ------------------------------------------------------------------ pipeline steps
 
 
 async def extract_profiles(
@@ -171,10 +239,6 @@ async def judge_skills(
     return gaps
 
 
-def _level(difficulty: str) -> str:
-    return "mid" if difficulty == "mid" else "junior"
-
-
 async def build_insights(
     llm: LLMClient,
     retriever: Retriever,
@@ -188,7 +252,7 @@ async def build_insights(
     rubric = await retriever.search_rubric_many(
         [(f"{job.title} interview questions {c}", c) for c in competencies]
         + [("behavioral interview teamwork conflict STAR", "behavioral")],
-        level=_level(difficulty),  # type: ignore[arg-type]
+        level=rubric_level(difficulty),
         k=3,
     )
     bank = sorted(

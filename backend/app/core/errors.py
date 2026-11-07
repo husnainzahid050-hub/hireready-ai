@@ -20,6 +20,20 @@ class AppError(Exception):
         self.status_code = status_code
 
 
+def session_not_found() -> AppError:
+    # Same error for "doesn't exist", "not yours", "expired" and "malformed id", so attackers
+    # can't probe session ids.
+    return AppError("session_not_found", "Session not found or expired.", status_code=404)
+
+
+AI_UNAVAILABLE_MESSAGE = "Our AI providers are busy right now. Please try again in a minute."
+
+
+def ai_unavailable() -> AppError:
+    # 503: nothing was written, so the client can safely retry the same request.
+    return AppError("ai_unavailable", AI_UNAVAILABLE_MESSAGE, status_code=503)
+
+
 def error_body(code: str, message: str) -> dict[str, dict[str, str]]:
     return {"error": {"code": code, "message": message}}
 
@@ -41,7 +55,10 @@ def register_error_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(RequestValidationError)
-    async def _validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
+    async def _validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+        # A malformed session id is just an unknown session: same 404 as everywhere (QA B12).
+        if any(tuple(e["loc"]) == ("path", "session_id") for e in exc.errors()):
+            return await _app_error(request, session_not_found())
         # Only expose field locations, not the submitted values (may contain PII).
         fields = ", ".join(".".join(str(p) for p in e["loc"]) for e in exc.errors())
         return JSONResponse(

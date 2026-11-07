@@ -1,9 +1,9 @@
 from pathlib import Path
-from typing import Any
 
 import pytest
 
 from app.services.knowledge import ingest, load_knowledge_dir, load_knowledge_file
+from tests.fakes import FakeDB, FakeEmbedder
 
 KNOWLEDGE_DIR = Path(__file__).resolve().parent.parent / "knowledge"
 
@@ -81,42 +81,9 @@ def test_duplicate_competency_rejected(tmp_path: Path) -> None:
 # ---------- idempotent ingestion with an in-memory fake DB ----------
 
 
-class FakeDB:
-    def __init__(self) -> None:
-        self.rows: dict[str, dict[str, Any]] = {}
-        self._next = 0
-
-    async def select(self, table: str, params: dict[str, str]) -> list[dict[str, Any]]:
-        source = params["source_file"].removeprefix("eq.")
-        return [
-            {"id": rid, "content_hash": r["content_hash"]}
-            for rid, r in self.rows.items()
-            if r["source_file"] == source
-        ]
-
-    async def insert(
-        self, table: str, rows: list[dict[str, Any]], *, on_conflict: str | None = None
-    ) -> None:
-        for r in rows:
-            self._next += 1
-            self.rows[f"id{self._next}"] = r
-
-    async def delete(self, table: str, params: dict[str, str]) -> None:
-        ids = params["id"].removeprefix("in.(").removesuffix(")").split(",")
-        for i in ids:
-            self.rows.pop(i)
-
-
-class CountingEmbedder:
-    dim = 2
-
-    def __init__(self) -> None:
-        self.embedded = 0
-
-    async def embed(self, texts: list[str], task: str) -> list[list[float]]:
-        assert task == "RETRIEVAL_DOCUMENT"
-        self.embedded += len(texts)
-        return [[1.0, 0.0] for _ in texts]
+def embedded(emb: FakeEmbedder) -> int:
+    assert all(task == "RETRIEVAL_DOCUMENT" for _, task in emb.calls)
+    return sum(len(texts) for texts, _ in emb.calls)
 
 
 def write_kb(directory: Path, extra: str = "") -> None:
@@ -128,18 +95,18 @@ def write_kb(directory: Path, extra: str = "") -> None:
 
 
 async def test_ingest_is_idempotent_and_handles_changes(tmp_path: Path) -> None:
-    db, emb = FakeDB(), CountingEmbedder()
+    db, emb = FakeDB(), FakeEmbedder()
 
     write_kb(tmp_path)
     s1 = await ingest(load_knowledge_dir(tmp_path), db, emb)  # type: ignore[arg-type]
     assert (s1.inserted, s1.unchanged, s1.deleted) == (2, 0, 0)
-    assert {r["level"] for r in db.rows.values()} == {"all", "junior"}
-    assert all(r["embedding"].startswith("[") for r in db.rows.values())
+    assert {r["level"] for r in db.rows("knowledge_chunks")} == {"all", "junior"}
+    assert all(r["embedding"].startswith("[") for r in db.rows("knowledge_chunks"))
 
     # Second run: nothing to do, no embedding calls.
     s2 = await ingest(load_knowledge_dir(tmp_path), db, emb)  # type: ignore[arg-type]
     assert (s2.inserted, s2.unchanged, s2.deleted) == (0, 2, 0)
-    assert emb.embedded == 2
+    assert embedded(emb) == 2
 
     # Edit one section and add another: only changed/new chunks are embedded; stale one deleted.
     (tmp_path / "x.md").write_text(
@@ -149,5 +116,5 @@ async def test_ingest_is_idempotent_and_handles_changes(tmp_path: Path) -> None:
     )
     s3 = await ingest(load_knowledge_dir(tmp_path), db, emb)  # type: ignore[arg-type]
     assert (s3.inserted, s3.unchanged, s3.deleted) == (2, 1, 1)
-    assert len(db.rows) == 3
-    assert emb.embedded == 4
+    assert len(db.rows("knowledge_chunks")) == 3
+    assert embedded(emb) == 4
