@@ -3,9 +3,19 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { buttonClasses, type ButtonSize, type ButtonVariant } from "@/components/ui/button";
+import { cn } from "@/components/ui/cn";
 import { ApiError, createSession } from "@/lib/api";
 
-export function DemoButton({ className = "" }: { className?: string }) {
+export function DemoButton({
+  className = "",
+  variant = "secondary",
+  size = "lg",
+}: {
+  className?: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,12 +48,19 @@ export function DemoButton({ className = "" }: { className?: string }) {
         type="button"
         onClick={start}
         disabled={busy}
-        className={`rounded-lg border border-zinc-300 px-5 py-3 font-medium transition-colors hover:bg-zinc-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-900 ${className}`}
+        aria-busy={busy}
+        className={buttonClasses({ variant, size, className })}
       >
+        {busy && (
+          <span
+            aria-hidden
+            className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent"
+          />
+        )}
         {busy ? "Starting demo…" : "Try with a sample CV"}
       </button>
       {error && (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className={cn("max-w-xs text-sm text-danger-fg")}>
           {error}
         </p>
       )}
