@@ -10,9 +10,12 @@ COMPETENCY_LIST = (
 CV_SYSTEM = """You extract structured data from a candidate's CV.
 Rules:
 - Only include information that is explicitly present in the CV. Never invent or infer.
-- For each skill, `evidence_sentence` must be copied exactly from the CV (the sentence or bullet
-  where the skill appears). If a skill only appears in a skills list, copy that list line.
-- Keep project outcomes and bullets short and factual. Use null when something is not stated."""
+- skills: distinct skill/tool/technology NAMES only (e.g. "Python", "FastAPI", "Docker"), at most
+  30, most important first. No sentences.
+- projects: at most 6. outcome: one short sentence (under 160 characters) or null.
+- experience: bullets: at most 4 per role, each under 160 characters, copied or lightly trimmed
+  from the CV.
+- Keep everything short and factual. Use null when something is not stated."""
 
 JD_SYSTEM = f"""You extract structured requirements from a job description.
 Rules:

@@ -78,7 +78,7 @@ def snippet(chunk: RetrievedChunk) -> RubricSnippet:
 def cv_facts(cv: CVProfile) -> str:
     """A compact CV summary (~100-300 tokens) so the improved answer stays honest."""
     facts = {
-        "skills": [s.name for s in cv.skills[:15]],
+        "skills": cv.skills[:15],
         "projects": [
             {"title": p.title, "stack": p.stack[:6], "outcome": p.outcome} for p in cv.projects[:4]
         ],
