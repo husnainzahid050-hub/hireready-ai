@@ -4,6 +4,51 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Phase 6: UI/UX, landing, engineering and privacy pages (2026-11-08)
+
+#### Added
+- Design system: semantic colour tokens with automatic dark mode (`prefers-color-scheme`), AA-checked
+  text/background pairs, Geist via `next/font` (self-hosted), and hand-written primitives in
+  `frontend/components/ui/` (`Button`/`ButtonLink`, `Card`, `Badge`, `Input`/`Textarea`/`Checkbox`/
+  `Label`, `Container`/`SectionHeading`, inline SVG icons, one shared `focusRing`).
+- Shared site header and footer on every page, a "Skip to content" link, and a 404 page.
+- Landing page (`/`, statically generated and enforced with `ensureStatic`): hero with both CTAs, an
+  HTML/CSS product preview of an analysis card, measured numbers, "How it works", feature cards with
+  honest Live / In progress / Coming soon labels, "Built with", privacy note, FAQ (`<details>`) and a
+  closing CTA.
+- `/engineering` (static): HTML/CSS architecture diagram (no Mermaid: the CSP blocks CDN scripts and
+  the library would outweigh the page), analysis data flow, the interview graph, 8 design decisions
+  with trade-offs, measured latency table, eval table placeholder (Phase 8) and a security summary.
+- `/privacy` (static): what is collected, AI/infra processors (Groq, Google Gemini, Supabase, Vercel)
+  with links to their terms, a note on free-tier terms, retention (7-day expiry; the deletion cron
+  is still pending), logging, and a contact section.
+- Metadata: title template, description, Open Graph + Twitter card with a build-time generated OG
+  image, `icon.svg`, `favicon.ico`, `apple-icon.png`, `robots.txt` and `sitemap.xml` (exclude
+  `/session/*`, `/r/*`, `/api/*`). Owner placeholders in `frontend/components/site/config.ts`:
+  `LINKEDIN_URL`, `CONTACT_EMAIL` (hidden while null).
+- `docs/UX_REVIEW.md`: prioritized recommendations for the analysis and interview pages, with
+  screenshots in `docs/ux-review/`.
+
+#### Changed
+- `/start`: numbered sections, dropzone states (idle, drag-over, file chosen, error, remove file),
+  JD counter with "N more characters needed", options in one panel, consent text linking `/privacy`,
+  inline validation on submit and a line that says what is still missing (`aria-disabled` instead
+  of a silently disabled button). Session reuse on retry (B14) kept.
+- `DemoButton` uses the shared button styles and shows a spinner while starting.
+
+#### Verified
+- `next build`: `/`, `/start`, `/engineering`, `/privacy`, `/opengraph-image`, `/robots.txt`,
+  `/sitemap.xml`, `/icon.svg` are static (○). First-load JS (gzip, excluding the `nomodule`
+  polyfill): ~141 KB on `/`, ~139 KB on `/engineering` and `/privacy`, ~146 KB on `/start`; CSS 11 KB.
+- Lighthouse on `/` (local `next start`): desktop 99–100 / 100 / 100 / 100, LCP 0.7 s, CLS 0. Mobile
+  (simulated slow 4G + 4× CPU on a busy machine) 77–92 performance, 100 accessibility (also on `/start`, `/engineering`, `/privacy`), 100 best
+  practices, 100 SEO, LCP 2.5–3.0 s, CLS 0. The mobile LCP target (< 2.0 s) is not met locally;
+  the minimal `/privacy` page scores the same range, so it is mostly framework hydration under CPU
+  throttling. Re-measure on Vercel.
+- Screenshots at 1280 and 390 px in light and dark for all public pages, no console errors, no
+  horizontal overflow; keyboard-only pass (skip link, tab order, visible focus, FAQ with Enter).
+- `e2e/interview.mock.py` and `e2e/analysis.mock.py` still pass with the new layout.
+
 ### Integration & fixes (2026-11-06)
 
 Merged the backend, frontend, security and QA work and fixed the open QA bugs. **Apply
