@@ -38,16 +38,8 @@ export function buttonClasses({
 
 type ButtonProps = ComponentProps<"button"> & { variant?: ButtonVariant; size?: ButtonSize };
 
-export function Button({
-  variant,
-  size,
-  className,
-  type = "button",
-  ...props
-}: ButtonProps) {
-  return (
-    <button type={type} className={buttonClasses({ variant, size, className })} {...props} />
-  );
+export function Button({ variant, size, className, type = "button", ...props }: ButtonProps) {
+  return <button type={type} className={buttonClasses({ variant, size, className })} {...props} />;
 }
 
 type ButtonLinkProps = ComponentProps<typeof Link> & {

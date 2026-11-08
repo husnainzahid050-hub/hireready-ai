@@ -20,7 +20,7 @@ export function Card<T extends ElementType = "div">({
   return (
     <Tag
       className={cn(
-        "rounded-2xl border border-border",
+        "border-border rounded-2xl border",
         tone === "default" && "bg-surface shadow-card",
         tone === "raised" && "bg-surface shadow-raised",
         tone === "muted" && "bg-surface-muted",

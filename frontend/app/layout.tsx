@@ -11,7 +11,8 @@ import "./globals.css";
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  display: "swap",
+  // "optional": no late font swap, so the hero text paints once (better LCP, zero CLS).
+  display: "optional",
 });
 
 const geistMono = Geist_Mono({
@@ -57,7 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col">
         <a
           href="#main-content"
-          className="sr-only rounded-lg bg-accent px-4 py-2 font-medium text-accent-fg focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:outline-2 focus:outline-offset-2 focus:outline-ring"
+          className="bg-accent text-accent-fg focus:outline-ring sr-only rounded-lg px-4 py-2 font-medium focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:outline-2 focus:outline-offset-2"
         >
           Skip to content
         </a>

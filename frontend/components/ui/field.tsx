@@ -12,12 +12,12 @@ export const controlClasses = cn(
 );
 
 export function Label({ className, ...props }: ComponentProps<"label">) {
-  return <label className={cn("block text-sm font-medium text-fg", className)} {...props} />;
+  return <label className={cn("text-fg block text-sm font-medium", className)} {...props} />;
 }
 
 /** Secondary text next to a label, e.g. "(optional)". */
 export function Hint({ className, ...props }: ComponentProps<"span">) {
-  return <span className={cn("font-normal text-fg-subtle", className)} {...props} />;
+  return <span className={cn("text-fg-subtle font-normal", className)} {...props} />;
 }
 
 export function Input({ className, ...props }: ComponentProps<"input">) {
@@ -34,7 +34,7 @@ export function Checkbox({ className, ...props }: Omit<ComponentProps<"input">, 
     <input
       type="checkbox"
       className={cn(
-        "size-5 shrink-0 cursor-pointer rounded accent-accent disabled:cursor-not-allowed disabled:opacity-50",
+        "accent-accent size-5 shrink-0 cursor-pointer rounded disabled:cursor-not-allowed disabled:opacity-50",
         focusRing,
         className,
       )}
@@ -44,5 +44,5 @@ export function Checkbox({ className, ...props }: Omit<ComponentProps<"input">, 
 }
 
 export function FieldError({ className, ...props }: ComponentProps<"p">) {
-  return <p role="alert" className={cn("text-sm text-danger-fg", className)} {...props} />;
+  return <p role="alert" className={cn("text-danger-fg text-sm", className)} {...props} />;
 }

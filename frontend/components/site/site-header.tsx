@@ -22,7 +22,7 @@ export function Logo({ className }: { className?: string }) {
       )}
     >
       <LogoMark className="size-8" />
-      <span>{SITE_NAME}</span>
+      <span className="whitespace-nowrap">{SITE_NAME}</span>
     </Link>
   );
 }
@@ -30,7 +30,7 @@ export function Logo({ className }: { className?: string }) {
 /** Shared header. Server component: no client JS. */
 export function SiteHeader() {
   return (
-    <header className="border-b border-border bg-bg/80">
+    <header className="border-border bg-bg/80 border-b">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-5 sm:px-6">
         <Logo />
         <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">
@@ -39,7 +39,7 @@ export function SiteHeader() {
               key={n.href}
               href={n.href}
               className={cn(
-                "rounded-lg px-2.5 py-2 text-sm font-medium text-fg-muted transition-colors hover:bg-surface-sunken hover:text-fg",
+                "text-fg-muted hover:bg-surface-sunken hover:text-fg rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
                 n.hideOnMobile && "hidden md:inline-flex",
                 focusRing,
               )}

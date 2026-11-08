@@ -39,12 +39,12 @@ export function SectionHeading({
   return (
     <div className={cn("max-w-2xl space-y-3", align === "center" && "mx-auto text-center")}>
       {eyebrow && (
-        <p className="text-sm font-semibold tracking-wide text-link uppercase">{eyebrow}</p>
+        <p className="text-link text-sm font-semibold tracking-wide uppercase">{eyebrow}</p>
       )}
       <h2 id={id} className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
         {title}
       </h2>
-      {children && <p className="text-base text-pretty text-fg-muted sm:text-lg">{children}</p>}
+      {children && <p className="text-fg-muted text-base text-pretty sm:text-lg">{children}</p>}
     </div>
   );
 }

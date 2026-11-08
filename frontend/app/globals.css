@@ -36,8 +36,7 @@
   --danger-solid: #dc2626;
 
   --shadow-card-v: 0 1px 2px rgb(24 24 27 / 0.04), 0 1px 3px rgb(24 24 27 / 0.06);
-  --shadow-raised-v:
-    0 18px 40px -18px rgb(49 46 129 / 0.3), 0 4px 12px -6px rgb(24 24 27 / 0.08);
+  --shadow-raised-v: 0 18px 40px -18px rgb(49 46 129 / 0.3), 0 4px 12px -6px rgb(24 24 27 / 0.08);
 
   color-scheme: light;
 }
