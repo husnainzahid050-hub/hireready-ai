@@ -52,10 +52,10 @@ function Gauge({ value }: { value: number }) {
 export function ProductPreview() {
   return (
     <figure className="relative isolate">
-      {/* soft glow behind the card; decorative */}
+      {/* soft glow behind the card; decorative. A plain gradient, no blur filter (costly paint on phones). */}
       <div
         aria-hidden
-        className="absolute -inset-4 -z-10 rounded-[2rem] bg-[radial-gradient(60%_60%_at_60%_30%,color-mix(in_srgb,var(--accent)_22%,transparent),transparent)] blur-2xl"
+        className="absolute -inset-8 -z-10 bg-[radial-gradient(closest-side,color-mix(in_srgb,var(--accent)_18%,transparent),transparent)]"
       />
       <Card tone="raised" padded={false} className="overflow-hidden">
         <div className="border-border bg-surface-muted flex items-center gap-1.5 border-b px-4 py-2.5">
