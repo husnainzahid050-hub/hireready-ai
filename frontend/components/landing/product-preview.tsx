@@ -19,7 +19,12 @@ const SKILLS: { skill: string; tone: BadgeTone; verdict: string; quote: string |
     verdict: "Strong evidence",
     quote: "Built a RAG assistant in Python and FastAPI that answers support tickets",
   },
-  { skill: "Docker", tone: "warning", verdict: "Weak evidence", quote: "Skills: Docker, Git, Linux" },
+  {
+    skill: "Docker",
+    tone: "warning",
+    verdict: "Weak evidence",
+    quote: "Skills: Docker, Git, Linux",
+  },
   { skill: "AWS", tone: "danger", verdict: "Gap", quote: null },
 ];
 
@@ -53,11 +58,11 @@ export function ProductPreview() {
         className="absolute -inset-4 -z-10 rounded-[2rem] bg-[radial-gradient(60%_60%_at_60%_30%,color-mix(in_srgb,var(--accent)_22%,transparent),transparent)] blur-2xl"
       />
       <Card tone="raised" padded={false} className="overflow-hidden">
-        <div className="flex items-center gap-1.5 border-b border-border bg-surface-muted px-4 py-2.5">
-          <span aria-hidden className="size-2.5 rounded-full bg-border-strong" />
-          <span aria-hidden className="size-2.5 rounded-full bg-border-strong" />
-          <span aria-hidden className="size-2.5 rounded-full bg-border-strong" />
-          <span className="ml-2 truncate text-xs text-fg-subtle">
+        <div className="border-border bg-surface-muted flex items-center gap-1.5 border-b px-4 py-2.5">
+          <span aria-hidden className="bg-border-strong size-2.5 rounded-full" />
+          <span aria-hidden className="bg-border-strong size-2.5 rounded-full" />
+          <span aria-hidden className="bg-border-strong size-2.5 rounded-full" />
+          <span className="text-fg-subtle ml-2 truncate text-xs">
             Your match for Junior AI Engineer
           </span>
         </div>
@@ -68,52 +73,52 @@ export function ProductPreview() {
               <Gauge value={SCORE} />
               <span className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-semibold tabular-nums">{SCORE}</span>
-                <span className="text-[0.65rem] text-fg-subtle">/ 100</span>
+                <span className="text-fg-subtle text-[0.65rem]">/ 100</span>
               </span>
             </div>
-            <dl className="flex-1 space-y-2.5 text-xs">
+            <ul className="flex-1 space-y-2.5 text-xs">
               {BREAKDOWN.map((b, i) => (
-                <div key={b.label}>
+                <li key={b.label}>
                   <div className="flex justify-between gap-2">
-                    <dt className="text-fg-muted">
+                    <span className="text-fg-muted">
                       {b.label} <span className="text-fg-subtle">({b.weight}%)</span>
-                    </dt>
-                    <dd className="font-medium tabular-nums">{b.value}%</dd>
+                    </span>
+                    <span className="font-medium tabular-nums">{b.value}%</span>
                   </div>
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-sunken">
+                  <div className="bg-surface-sunken mt-1 h-1.5 overflow-hidden rounded-full">
                     <div
-                      className="animate-grow-x h-full origin-left rounded-full bg-accent"
+                      className="animate-grow-x bg-accent h-full origin-left rounded-full"
                       style={{ width: `${b.value}%`, animationDelay: `${150 + i * 120}ms` }}
                     />
                   </div>
-                </div>
+                </li>
               ))}
-            </dl>
+            </ul>
           </div>
 
           <ul className="space-y-2.5">
             {SKILLS.map((s) => (
-              <li key={s.skill} className="rounded-xl border border-border bg-surface p-3">
+              <li key={s.skill} className="border-border bg-surface rounded-xl border p-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-medium">{s.skill}</span>
                   <Badge tone={s.tone}>{s.verdict}</Badge>
                 </div>
                 {s.quote ? (
-                  <p className="mt-2 border-l-2 border-border-strong pl-2.5 text-xs text-fg-muted">
+                  <p className="border-border-strong text-fg-muted mt-2 border-l-2 pl-2.5 text-xs">
                     “{s.quote}”
-                    <span className="mt-1 flex items-center gap-1 text-[0.7rem] text-success-fg">
+                    <span className="text-success-fg mt-1 flex items-center gap-1 text-[0.7rem]">
                       <Check className="size-3.5" /> verified in your CV
                     </span>
                   </p>
                 ) : (
-                  <p className="mt-2 text-xs text-fg-subtle">No evidence found in your CV.</p>
+                  <p className="text-fg-subtle mt-2 text-xs">No evidence found in your CV.</p>
                 )}
               </li>
             ))}
           </ul>
         </div>
       </Card>
-      <figcaption className="mt-3 text-center text-xs text-fg-subtle">
+      <figcaption className="text-fg-subtle mt-3 text-center text-xs">
         Example output for a fictional candidate. Every quote is checked against the CV in code.
       </figcaption>
     </figure>

@@ -60,7 +60,7 @@ export function DemoButton({
         {busy ? "Starting demo…" : "Try with a sample CV"}
       </button>
       {error && (
-        <p role="alert" className={cn("max-w-xs text-sm text-danger-fg")}>
+        <p role="alert" className={cn("text-danger-fg max-w-xs text-sm")}>
           {error}
         </p>
       )}

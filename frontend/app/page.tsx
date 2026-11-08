@@ -134,9 +134,9 @@ const FAQ: { q: string; a: ReactNode }[] = [
     q: "What happens to my CV?",
     a: (
       <>
-        Only the extracted text is kept, never the file. It is linked to a guest session that
-        only your browser can open, and the session expires after 7 days. Details are on the{" "}
-        <Link href="/privacy" className="font-medium text-link underline underline-offset-2">
+        Only the extracted text is kept, never the file. It is linked to a guest session that only
+        your browser can open, and the session expires after 7 days. Details are on the{" "}
+        <Link href="/privacy" className="text-link font-medium underline underline-offset-2">
           privacy page
         </Link>
         .
@@ -172,7 +172,7 @@ export default function Home() {
       {/* ------------------------------------------------------------ hero */}
       <section
         aria-labelledby="hero-title"
-        className="relative isolate overflow-hidden border-b border-border"
+        className="border-border relative isolate overflow-hidden border-b"
       >
         <div
           aria-hidden
@@ -189,7 +189,7 @@ export default function Home() {
             >
               {TAGLINE}
             </h1>
-            <p className="max-w-xl text-lg text-pretty text-fg-muted">
+            <p className="text-fg-muted max-w-xl text-lg text-pretty">
               HireReady compares your CV with one specific job, shows which required skills you can
               prove (with quotes from your CV), and then interviews you on exactly those.
             </p>
@@ -199,15 +199,17 @@ export default function Home() {
               </ButtonLink>
               <DemoButton />
             </div>
-            <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-fg-muted">
-              {["Results in about 20 seconds", "Audio is never stored", "Data expires in 7 days"].map(
-                (t) => (
-                  <li key={t} className="flex items-center gap-1.5">
-                    <Check className="size-4 text-success-fg" />
-                    {t}
-                  </li>
-                ),
-              )}
+            <ul className="text-fg-muted flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              {[
+                "Results in about 20 seconds",
+                "Audio is never stored",
+                "Data expires in 7 days",
+              ].map((t) => (
+                <li key={t} className="flex items-center gap-1.5">
+                  <Check className="text-success-fg size-4" />
+                  {t}
+                </li>
+              ))}
             </ul>
           </div>
           <ProductPreview />
@@ -215,16 +217,15 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------ proof */}
-      <section aria-label="Measured results" className="border-b border-border bg-surface-muted">
+      <section aria-label="Measured results" className="border-border bg-surface-muted border-b">
         <Container>
           <dl className="grid grid-cols-2 gap-x-6 gap-y-8 py-10 lg:grid-cols-4">
             {PROOF.map((p) => (
-              <div key={p.value} className="space-y-1">
-                <dt className="sr-only">{p.label}</dt>
+              <div key={p.value} className="flex flex-col-reverse gap-1">
+                <dt className="text-fg-muted text-sm">{p.label}</dt>
                 <dd className="text-2xl font-semibold tracking-tight tabular-nums sm:text-3xl">
                   {p.value}
                 </dd>
-                <dd className="text-sm text-fg-muted">{p.label}</dd>
               </div>
             ))}
           </dl>
@@ -242,10 +243,10 @@ export default function Home() {
               <li key={s.title}>
                 <Card className="h-full space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent-soft-fg">
+                    <span className="bg-accent-soft text-accent-soft-fg flex size-10 items-center justify-center rounded-xl">
                       {s.icon}
                     </span>
-                    <span className="text-sm font-medium text-fg-subtle tabular-nums">
+                    <span className="text-fg-subtle text-sm font-medium tabular-nums">
                       Step {i + 1}
                     </span>
                   </div>
@@ -253,7 +254,7 @@ export default function Home() {
                     {s.title}
                     {s.soon && <StatusBadge status="soon" />}
                   </h3>
-                  <p className="text-sm text-fg-muted">{s.body}</p>
+                  <p className="text-fg-muted text-sm">{s.body}</p>
                 </Card>
               </li>
             ))}
@@ -264,7 +265,7 @@ export default function Home() {
       {/* ------------------------------------------------------------ features */}
       <section
         aria-labelledby="features"
-        className="border-y border-border bg-surface-muted py-16 sm:py-24"
+        className="border-border bg-surface-muted border-y py-16 sm:py-24"
       >
         <Container className="space-y-12">
           <SectionHeading id="features" eyebrow="Features" title="Feedback you can check">
@@ -276,13 +277,13 @@ export default function Home() {
               <li key={f.title}>
                 <Card className="h-full space-y-3">
                   <div className="flex items-start justify-between gap-3">
-                    <span className="flex size-10 items-center justify-center rounded-xl bg-accent-soft text-accent-soft-fg">
+                    <span className="bg-accent-soft text-accent-soft-fg flex size-10 items-center justify-center rounded-xl">
                       {f.icon}
                     </span>
                     <StatusBadge status={f.status} />
                   </div>
                   <h3 className="text-base font-semibold">{f.title}</h3>
-                  <p className="text-sm text-fg-muted">{f.body}</p>
+                  <p className="text-fg-muted text-sm">{f.body}</p>
                 </Card>
               </li>
             ))}
@@ -301,20 +302,20 @@ export default function Home() {
               {STACK.map((s) => (
                 <li
                   key={s}
-                  className="rounded-lg border border-border bg-surface-muted px-3 py-1.5 text-sm text-fg-muted"
+                  className="border-border bg-surface-muted text-fg-muted rounded-lg border px-3 py-1.5 text-sm"
                 >
                   {s}
                 </li>
               ))}
             </ul>
-            <p className="text-sm text-fg-muted">
+            <p className="text-fg-muted text-sm">
               Hybrid search with rank fusion, a stateless LangGraph interviewer, and quotes and
               scores checked in code rather than trusted from the model.
             </p>
             <Link
               href="/engineering"
               className={cn(
-                "inline-flex items-center gap-1.5 rounded text-sm font-medium text-link hover:underline",
+                "text-link inline-flex items-center gap-1.5 rounded text-sm font-medium hover:underline",
                 focusRing,
               )}
             >
@@ -324,7 +325,7 @@ export default function Home() {
 
           <Card className="space-y-5">
             <div className="flex items-center gap-3">
-              <span className="flex size-10 items-center justify-center rounded-xl bg-success-soft text-success-fg">
+              <span className="bg-success-soft text-success-fg flex size-10 items-center justify-center rounded-xl">
                 <Shield />
               </span>
               <h2 className="text-xl font-semibold tracking-tight">Private by default</h2>
@@ -332,14 +333,14 @@ export default function Home() {
             <p className="text-lg font-medium text-pretty">
               Audio is never stored. Guest data auto-deletes in 7 days.
             </p>
-            <ul className="space-y-2 text-sm text-fg-muted">
+            <ul className="text-fg-muted space-y-2 text-sm">
               {[
                 "No account: a random guest key in your browser is the only way into your session.",
                 "Only the text of your CV is kept, never the file, and it never appears in our logs.",
                 "Shared with AI providers only to generate your feedback; the privacy page lists them.",
               ].map((t) => (
                 <li key={t} className="flex gap-2">
-                  <Check className="mt-0.5 size-4 shrink-0 text-success-fg" />
+                  <Check className="text-success-fg mt-0.5 size-4 shrink-0" />
                   {t}
                 </li>
               ))}
@@ -347,7 +348,7 @@ export default function Home() {
             <Link
               href="/privacy"
               className={cn(
-                "inline-flex items-center gap-1.5 rounded text-sm font-medium text-link hover:underline",
+                "text-link inline-flex items-center gap-1.5 rounded text-sm font-medium hover:underline",
                 focusRing,
               )}
             >
@@ -358,10 +359,10 @@ export default function Home() {
       </section>
 
       {/* ------------------------------------------------------------ FAQ */}
-      <section aria-labelledby="faq" className="border-t border-border py-16 sm:py-24">
+      <section aria-labelledby="faq" className="border-border border-t py-16 sm:py-24">
         <Container size="narrow" className="space-y-10">
           <SectionHeading id="faq" eyebrow="FAQ" title="Questions, answered" align="center" />
-          <div className="divide-y divide-border rounded-2xl border border-border bg-surface">
+          <div className="divide-border border-border bg-surface divide-y rounded-2xl border">
             {FAQ.map((f) => (
               <details key={f.q} className="group px-5 sm:px-6">
                 <summary
@@ -373,12 +374,12 @@ export default function Home() {
                   {f.q}
                   <span
                     aria-hidden
-                    className="flex size-6 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-fg-muted transition-transform group-open:rotate-45"
+                    className="bg-surface-sunken text-fg-muted flex size-6 shrink-0 items-center justify-center rounded-full transition-transform group-open:rotate-45"
                   >
                     +
                   </span>
                 </summary>
-                <p className="pb-5 text-fg-muted">{f.a}</p>
+                <p className="text-fg-muted pb-5">{f.a}</p>
               </details>
             ))}
           </div>
@@ -388,7 +389,7 @@ export default function Home() {
       {/* ------------------------------------------------------------ final CTA */}
       <section aria-labelledby="cta" className="pb-20">
         <Container>
-          <div className="relative isolate overflow-hidden rounded-3xl bg-accent px-6 py-12 text-center text-accent-fg sm:px-12">
+          <div className="bg-accent text-accent-fg relative isolate overflow-hidden rounded-3xl px-6 py-12 text-center sm:px-12">
             <div
               aria-hidden
               className="absolute inset-0 -z-10 bg-[radial-gradient(50%_80%_at_50%_0%,rgb(255_255_255/0.18),transparent)]"
