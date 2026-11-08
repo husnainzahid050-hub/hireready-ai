@@ -1,29 +1,43 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { DemoButton } from "@/components/demo-button";
 import { StartForm } from "@/components/start-form";
+import { Container } from "@/components/ui/section";
 
-export const metadata: Metadata = { title: "Start · HireReady AI" };
+export const metadata: Metadata = {
+  title: "Start your mock interview",
+  description:
+    "Upload your CV and paste a job description to get skill gaps with evidence, likely questions and a 7-day plan.",
+  alternates: { canonical: "/start" },
+};
 
 export default function StartPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-12">
-      <Link href="/" className="text-sm text-zinc-500 hover:underline">
-        ← HireReady AI
-      </Link>
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight">Set up your mock interview</h1>
-      <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-        Upload your CV and paste the job you&apos;re applying for. We&apos;ll show your skill gaps
-        with evidence, likely questions, and a 7-day plan.
-      </p>
-      <div className="mt-6 flex items-center gap-3 rounded-xl bg-zinc-100 p-4 text-sm dark:bg-zinc-900">
-        <span className="flex-1">Just exploring? Try it with a fictional sample CV.</span>
-        <DemoButton className="py-2 text-sm" />
-      </div>
-      <div className="mt-10">
+    <main className="py-10 sm:py-14">
+      <Container size="narrow" className="space-y-10">
+        <header className="space-y-3">
+          <p className="text-link text-sm font-semibold tracking-wide uppercase">New session</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+            Set up your mock interview
+          </h1>
+          <p className="text-fg-muted max-w-2xl sm:text-lg">
+            Upload your CV and paste the job you&apos;re applying for. You&apos;ll get your skill
+            gaps with evidence, likely questions and a 7-day plan, then the interview itself.
+          </p>
+        </header>
+
+        <div className="border-border bg-surface-muted flex flex-col gap-4 rounded-2xl border p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <p className="font-medium">Just exploring?</p>
+            <p className="text-fg-muted text-sm">
+              Skip the upload and see the full flow with a fictional sample CV.
+            </p>
+          </div>
+          <DemoButton size="md" />
+        </div>
+
         <StartForm />
-      </div>
+      </Container>
     </main>
   );
 }

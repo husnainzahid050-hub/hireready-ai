@@ -503,3 +503,70 @@ with copy-pasted messages. Each refactor kept the full test suite green; behavio
 pypdf's layout mode looked like an easy fix for two-column PDFs (B6). Running it on all fixtures
 showed it reversed Urdu text and made a different two-column PDF worse. A fix that helps one input
 and breaks two others isn't a fix, so the bug stays documented with its failing test.
+
+---
+
+## Phase 6 (UI/UX): design system, static pages, accessibility (2026-11-08)
+
+### 1. A design system is a small set of decisions, written down once
+Instead of picking `zinc-500` or `indigo-600` in every component, the colours live as **semantic
+tokens** in [frontend/app/globals.css](../frontend/app/globals.css): `--fg-muted` means "secondary
+text", `--surface-sunken` means "a recessed panel". Tailwind v4's `@theme inline` turns each token
+into utilities (`text-fg-muted`, `bg-surface-sunken`). Dark mode is then one block that redefines the
+tokens under `@media (prefers-color-scheme: dark)`; components don't need `dark:` classes at all.
+Every text/background pair was checked for **WCAG AA** (4.5:1 for normal text). One example of why
+this matters: white text on indigo-500 is only 4.47:1, so the button colour stays indigo-600 in
+dark mode too. The components are small hand-written primitives in
+[frontend/components/ui/](../frontend/components/ui/) (`Button`, `ButtonLink`, `Card`, `Badge`,
+`Input`, `Textarea`, `Checkbox`, `Container`, icons): the shadcn/ui idea (copy the code, own it)
+without a dependency.
+
+### 2. Static generation, and making it a rule instead of a hope
+The landing, engineering and privacy pages contain no per-user data, so Next.js renders them to
+HTML **at build time** and a CDN can serve them instantly (`○` in the `next build` output). With
+Cache Components it is easy to make a page dynamic by accident (read a cookie, a header, the
+time). `export const ensureStatic = "navigation"` in those pages turns that accident into a build
+error. Interactive bits still work on a static page: `DemoButton` is a small client component that
+hydrates inside the static HTML.
+
+### 3. Fonts, icons and the OG image without breaking the CSP
+Our Content-Security-Policy only allows fonts, images and scripts from our own origin. `next/font`
+downloads Geist at build time and serves it from `/_next/static`, so `font-src 'self'` is enough.
+`display: "optional"` means the browser uses the web font only if it is ready almost immediately,
+so the hero text paints once and never jumps (CLS 0). Icons are inline SVG components (no icon
+font, no requests). The Open Graph image (`app/opengraph-image.tsx`) is drawn with JSX by
+`next/og` **at build time** and served as a static PNG; a "✓" character in it made the renderer try
+to download a font over the network during the build, so the check mark is an SVG path instead.
+
+### 4. A diagram without a diagram library
+SPEC asked for Mermaid, but Mermaid renders in the browser from a large script, and a CDN copy is
+blocked by our CSP. The architecture diagram on `/engineering` is plain HTML and CSS
+([components/engineering/architecture-diagram.tsx](../frontend/components/engineering/architecture-diagram.tsx)):
+zero JavaScript, selectable text, screen readers read it as nested lists, it reflows on phones and
+follows the theme. The trade-off: it is edited as JSX, not Mermaid syntax. (Lesson from the
+ASCII graph on the same page: box-drawing arrows like `▶` are not in most monospace fonts and
+break alignment; plain `-->` always lines up.)
+
+### 5. Accessibility basics we applied
+- **Skip link** as the first tab stop ("Skip to content"), targeting a focusable wrapper around
+  every page ([app/layout.tsx](../frontend/app/layout.tsx)).
+- **One focus style everywhere** (`focusRing`): a 2px outline shown only for keyboard focus
+  (`:focus-visible`).
+- **Landmarks and headings:** one `<h1>` per page, sections labelled by their headings, named
+  `<nav>`s ("Main", "Product", "Project", "On this page").
+- **Native elements first:** the FAQ uses `<details>/<summary>` (keyboard and screen-reader support
+  for free); the CV dropzone is a `<label>` for a real file input, so Tab + Enter opens the picker.
+- **Don't silently disable buttons:** the start form's submit button uses `aria-disabled` and a
+  line that says what is missing ("To continue, add your CV and your consent"), instead of a
+  greyed-out button with no explanation.
+- **Motion:** animations only move `transform`/`opacity`, and `prefers-reduced-motion` turns them
+  off globally.
+- **Measured:** Lighthouse Accessibility 100 on `/`, `/start`, `/engineering` and `/privacy`.
+
+### 6. Measuring performance honestly
+Lighthouse "mobile" simulates a slow phone (4× slower CPU, throttled network) from a trace of an
+unthrottled load. On a busy laptop the same page scored anywhere from 77 to 92 between runs, so
+one number means little: run it several times, look at the metrics (LCP, CLS, TBT) rather than the
+score, and confirm on the deployed site. A blurred glow (`filter: blur`) behind the hero card was a
+measurable paint cost on a throttled phone, so it became a plain radial gradient that looks the
+same.

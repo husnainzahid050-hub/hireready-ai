@@ -1,15 +1,119 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens (Phase 6). Semantic names, so components say what a colour is for
+ * ("muted text", "card surface") instead of which shade it is. Dark mode follows the OS
+ * (prefers-color-scheme), matching the `dark:` variant used by the session pages.
+ * Text/background pairs were checked for WCAG AA (4.5:1 for body text).
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-muted: #fafafa;
+  --surface-sunken: #f4f4f5;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
+  --fg: #18181b;
+  --fg-muted: #52525b; /* 7.7:1 on white */
+  --fg-subtle: #63636b; /* 5.9:1 on white, 5.4:1 on surface-sunken */
+
+  --accent: #4f46e5; /* white text on it: 6.3:1 */
+  --accent-hover: #4338ca;
+  --accent-fg: #ffffff;
+  --accent-soft: #eef2ff;
+  --accent-soft-fg: #3730a3;
+  --link: #4338ca; /* 7.9:1 on white */
+  --ring: #4f46e5;
+
+  --success-soft: #ecfdf5;
+  --success-fg: #065f46;
+  --success-solid: #059669;
+  --warning-soft: #fffbeb;
+  --warning-fg: #92400e;
+  --warning-solid: #d97706;
+  --danger-soft: #fef2f2;
+  --danger-fg: #991b1b;
+  --danger-solid: #dc2626;
+
+  --shadow-card-v: 0 1px 2px rgb(24 24 27 / 0.04), 0 1px 3px rgb(24 24 27 / 0.06);
+  --shadow-raised-v: 0 18px 40px -18px rgb(49 46 129 / 0.3), 0 4px 12px -6px rgb(24 24 27 / 0.08);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #09090b;
+    --surface: #111114;
+    --surface-muted: #141417;
+    --surface-sunken: #1c1c20;
+    --border: #27272a;
+    --border-strong: #3f3f46;
+    --fg: #f4f4f5;
+    --fg-muted: #a1a1aa; /* 6.4:1 on surface-sunken */
+    --fg-subtle: #94949e; /* 5.4:1 on surface-sunken */
+
+    --accent: #4f46e5; /* kept: white text needs the darker indigo for AA */
+    --accent-hover: #5850ec;
+    --accent-fg: #ffffff;
+    --accent-soft: #1e1b4b;
+    --accent-soft-fg: #c7d2fe;
+    --link: #a5b4fc;
+    --ring: #818cf8;
+
+    --success-soft: #052e25;
+    --success-fg: #6ee7b7;
+    --success-solid: #10b981;
+    --warning-soft: #2b1a05;
+    --warning-fg: #fcd34d;
+    --warning-solid: #f59e0b;
+    --danger-soft: #2a0b0b;
+    --danger-fg: #fca5a5;
+    --danger-solid: #ef4444;
+
+    --shadow-card-v: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-raised-v: 0 18px 40px -18px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.03);
+
+    color-scheme: dark;
+  }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Kept for older components. */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-fg: var(--accent-soft-fg);
+  --color-link: var(--link);
+  --color-ring: var(--ring);
+  --color-success-soft: var(--success-soft);
+  --color-success-fg: var(--success-fg);
+  --color-success-solid: var(--success-solid);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-fg: var(--warning-fg);
+  --color-warning-solid: var(--warning-solid);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-solid: var(--danger-solid);
+
+  --shadow-card: var(--shadow-card-v);
+  --shadow-raised: var(--shadow-raised-v);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   /* Interviewer "speaking/thinking" bars: transform-only, so it stays on the compositor. */
   --animate-bars: bars 0.9s ease-in-out infinite;
@@ -22,17 +126,46 @@
       transform: scaleY(1);
     }
   }
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Landing preview: bars grow once on load (transform only). */
+  --animate-grow-x: grow-x 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  @keyframes grow-x {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
   }
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+}
+
+:target {
+  scroll-margin-top: 1.5rem;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

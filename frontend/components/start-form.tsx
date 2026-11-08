@@ -1,8 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
+import { Button, buttonClasses } from "@/components/ui/button";
+import { cn, focusRing } from "@/components/ui/cn";
+import { Checkbox, FieldError, Hint, Input, Label, Textarea } from "@/components/ui/field";
+import { Alert, Check, FileText, Upload, X } from "@/components/ui/icons";
 import { ApiError, createSession, uploadDocuments } from "@/lib/api";
 import type { SessionOptions } from "@/lib/types";
 
@@ -20,15 +25,23 @@ function validateFile(f: File): string | null {
   return null;
 }
 
-type Option<T extends string> = { value: T; label: string };
+function formatSize(bytes: number): string {
+  return bytes >= 1024 * 1024
+    ? `${(bytes / 1024 / 1024).toFixed(1)} MB`
+    : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+type Option<T extends string> = { value: T; label: string; hint?: string };
 
 function Segmented<T extends string>({
   label,
+  name,
   value,
   options,
   onChange,
 }: {
   label: string;
+  name: string;
   value: T;
   options: Option<T>[];
   onChange: (v: T) => void;
@@ -37,28 +50,69 @@ function Segmented<T extends string>({
     <fieldset className="space-y-2">
       <legend className="text-sm font-medium">{label}</legend>
       <div className="flex flex-wrap gap-2">
-        {options.map((o) => (
-          <label
-            key={o.value}
-            className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-500 ${
-              value === o.value
-                ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                : "border-zinc-300 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-900"
-            }`}
-          >
-            <input
-              type="radio"
-              className="sr-only"
-              name={label}
-              value={o.value}
-              checked={value === o.value}
-              onChange={() => onChange(o.value)}
-            />
-            {o.label}
-          </label>
-        ))}
+        {options.map((o) => {
+          const active = value === o.value;
+          return (
+            <label
+              key={o.value}
+              className={cn(
+                "flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg border px-3.5 text-sm font-medium transition-colors",
+                "has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
+                active
+                  ? "border-accent bg-accent-soft text-accent-soft-fg"
+                  : "border-border-strong bg-surface text-fg-muted hover:bg-surface-sunken hover:text-fg",
+              )}
+            >
+              <input
+                type="radio"
+                className="sr-only"
+                name={name}
+                value={o.value}
+                checked={active}
+                onChange={() => onChange(o.value)}
+              />
+              {active && <Check className="size-4" />}
+              {o.label}
+            </label>
+          );
+        })}
       </div>
     </fieldset>
+  );
+}
+
+/** A numbered form section: keeps the long form scannable. */
+function Step({
+  n,
+  title,
+  description,
+  children,
+}: {
+  n: number;
+  title: string;
+  description?: ReactNode;
+  children: ReactNode;
+}) {
+  const id = `step-${n}`;
+  return (
+    <section aria-labelledby={id} className="grid gap-4 sm:grid-cols-[2.25rem_1fr]">
+      <span
+        aria-hidden
+        className="bg-accent-soft text-accent-soft-fg hidden size-9 items-center justify-center rounded-full text-sm font-semibold sm:flex"
+      >
+        {n}
+      </span>
+      <div className="min-w-0 space-y-4">
+        <div className="space-y-1">
+          <h2 id={id} className="text-lg font-semibold tracking-tight">
+            <span className="text-fg-subtle sm:hidden">{n}. </span>
+            {title}
+          </h2>
+          {description && <p className="text-fg-muted text-sm">{description}</p>}
+        </div>
+        {children}
+      </div>
+    </section>
   );
 }
 
@@ -78,23 +132,40 @@ export function StartForm() {
   });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [attempted, setAttempted] = useState(false);
   // The session created by a failed attempt (e.g. a scanned PDF) is reused on retry instead of
   // leaving an orphan session behind each time. A change of options needs a new session.
   const created = useRef<{ id: string; options: string } | null>(null);
 
   const jdLen = jd.trim().length;
   const fileError = file ? validateFile(file) : null;
+  const jdTooShort = jdLen > 0 && jdLen < JD_MIN;
+  const jdTooLong = jdLen > JD_MAX;
   const canSubmit =
     !!file && !fileError && jdLen >= JD_MIN && jdLen <= JD_MAX && opts.consent && !busy;
+
+  // What is still missing, shown under the submit button instead of a silently disabled button.
+  const missing = [
+    !file || fileError ? "your CV" : null,
+    jdLen < JD_MIN || jdTooLong ? "the job description" : null,
+    !opts.consent ? "your consent" : null,
+  ].filter(Boolean) as string[];
 
   function pick(f: File | undefined | null) {
     if (!f) return;
     setFile(f);
-    setError(validateFile(f));
+    setError(null); // validation errors for the file are shown by the dropzone itself
+  }
+
+  function clearFile() {
+    setFile(null);
+    if (inputRef.current) inputRef.current.value = "";
+    inputRef.current?.focus();
   }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    setAttempted(true);
     if (!canSubmit || !file) return;
     setBusy(true);
     setError(null);
@@ -117,169 +188,320 @@ export function StartForm() {
     }
   }
 
+  const dropState = fileError ? "error" : dragging ? "drag" : file ? "chosen" : "idle";
+
   return (
-    <form onSubmit={submit} className="space-y-8" noValidate>
-      {/* CV dropzone */}
-      <div className="space-y-2">
-        <label htmlFor="cv" className="text-sm font-medium">
-          Your CV <span className="text-zinc-500">(PDF or DOCX, max 2 MB, 5 pages)</span>
-        </label>
-        <div
+    <form onSubmit={submit} className="space-y-10" noValidate aria-busy={busy}>
+      {/* ------------------------------------------------------------ 1. CV */}
+      <Step
+        n={1}
+        title="Your CV"
+        description="PDF or DOCX, up to 2 MB and 5 pages. Text-based files work best (not scans)."
+      >
+        <input
+          ref={inputRef}
+          id="cv"
+          type="file"
+          accept={ACCEPT}
+          className="peer sr-only"
+          aria-describedby="cv-help"
+          aria-invalid={!!fileError || undefined}
+          onChange={(e) => pick(e.target.files?.[0])}
+        />
+        <label
+          htmlFor="cv"
+          onDragEnter={(e) => {
+            e.preventDefault();
+            setDragging(true);
+          }}
           onDragOver={(e) => {
             e.preventDefault();
             setDragging(true);
           }}
-          onDragLeave={() => setDragging(false)}
+          onDragLeave={(e) => {
+            // Ignore leave events fired when moving over child elements.
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragging(false);
+          }}
           onDrop={(e) => {
             e.preventDefault();
             setDragging(false);
             pick(e.dataTransfer.files[0]);
           }}
-          onClick={() => inputRef.current?.click()}
-          className={`flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors ${
-            dragging
-              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950"
-              : "border-zinc-300 hover:border-zinc-400 dark:border-zinc-700"
-          }`}
+          className={cn(
+            "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-9 text-center transition-colors",
+            "peer-focus-visible:outline-ring peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2",
+            dropState === "idle" &&
+              "border-border-strong bg-surface-muted hover:border-fg-subtle hover:bg-surface-sunken",
+            dropState === "drag" && "border-accent bg-accent-soft",
+            dropState === "chosen" && "border-success-solid/60 bg-success-soft",
+            dropState === "error" && "border-danger-solid/70 bg-danger-soft",
+          )}
         >
-          <input
-            ref={inputRef}
-            id="cv"
-            type="file"
-            accept={ACCEPT}
-            className="sr-only"
-            onChange={(e) => pick(e.target.files?.[0])}
-          />
           {file ? (
             <>
-              <p className="font-medium">{file.name}</p>
-              <p className="text-sm text-zinc-500">
-                {(file.size / 1024).toFixed(0)} KB · click to change
-              </p>
+              <span
+                className={cn(
+                  "flex size-12 items-center justify-center rounded-xl",
+                  fileError ? "bg-surface text-danger-fg" : "bg-surface text-success-fg",
+                )}
+              >
+                {fileError ? <Alert className="size-6" /> : <FileText className="size-6" />}
+              </span>
+              <span className="max-w-full space-y-0.5">
+                <span className="block truncate font-medium">
+                  {dragging ? "Drop to replace your file" : file.name}
+                </span>
+                <span className="text-fg-muted block text-sm">
+                  {formatSize(file.size)} · {fileError ? "not accepted" : "ready"} ·{" "}
+                  <span className="text-link font-medium underline underline-offset-2">
+                    {fileError ? "choose another file" : "click to replace"}
+                  </span>
+                </span>
+              </span>
             </>
           ) : (
             <>
-              <p className="font-medium">Drop your CV here, or click to browse</p>
-              <p className="text-sm text-zinc-500">Text-based PDFs work best (not scans)</p>
+              <span
+                className={cn(
+                  "bg-surface shadow-card flex size-12 items-center justify-center rounded-xl",
+                  dragging ? "text-accent-soft-fg" : "text-fg-muted",
+                )}
+              >
+                <Upload className="size-6" />
+              </span>
+              <span className="space-y-0.5">
+                <span className="block font-medium">
+                  {dragging ? "Drop it here" : "Drop your CV here, or click to browse"}
+                </span>
+                <span className="text-fg-muted block text-sm">PDF or DOCX · max 2 MB</span>
+              </span>
             </>
           )}
-        </div>
-        {fileError && (
-          <p role="alert" className="text-sm text-red-600 dark:text-red-400">
-            {fileError}
-          </p>
+        </label>
+        <p id="cv-help" className="sr-only">
+          PDF or DOCX, up to 2 megabytes and 5 pages.
+        </p>
+        {file && (
+          <div className="flex justify-end">
+            <Button variant="ghost" size="sm" onClick={clearFile}>
+              <X className="size-4" /> Remove file
+            </Button>
+          </div>
         )}
-      </div>
+        {fileError ? (
+          <FieldError>{fileError}</FieldError>
+        ) : (
+          attempted && !file && <FieldError>Add your CV to continue.</FieldError>
+        )}
+      </Step>
 
-      {/* Job description */}
-      <div className="space-y-2">
-        <label htmlFor="jd" className="text-sm font-medium">
-          Job description <span className="text-zinc-500">(paste the full posting)</span>
-        </label>
-        <textarea
-          id="jd"
-          value={jd}
-          onChange={(e) => setJd(e.target.value)}
-          rows={10}
-          maxLength={JD_MAX + 500}
-          placeholder="Paste the job title, responsibilities and requirements…"
-          aria-describedby="jd-count"
-          className="w-full rounded-xl border border-zinc-300 bg-transparent p-3 text-sm focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-zinc-700"
-        />
-        <p
-          id="jd-count"
-          className={`text-right text-xs ${jdLen > JD_MAX || (jdLen > 0 && jdLen < JD_MIN) ? "text-red-600 dark:text-red-400" : "text-zinc-500"}`}
-        >
-          {jdLen.toLocaleString()} / {JD_MAX.toLocaleString()} characters
-          {jdLen > 0 && jdLen < JD_MIN ? ` (at least ${JD_MIN})` : ""}
-        </p>
-      </div>
-
-      {/* Options */}
-      <div className="grid gap-6 sm:grid-cols-3">
-        <Segmented
-          label="Interview mode"
-          value={opts.mode}
-          onChange={(mode) => setOpts({ ...opts, mode })}
-          options={[
-            { value: "voice", label: "Voice" },
-            { value: "text", label: "Text" },
-          ]}
-        />
-        <Segmented
-          label="Level"
-          value={opts.difficulty}
-          onChange={(difficulty) => setOpts({ ...opts, difficulty })}
-          options={[
-            { value: "junior", label: "Junior" },
-            { value: "mid", label: "Mid" },
-          ]}
-        />
-        <Segmented
-          label="Interview type"
-          value={opts.interview_type}
-          onChange={(interview_type) => setOpts({ ...opts, interview_type })}
-          options={[
-            { value: "mixed", label: "Mixed" },
-            { value: "technical", label: "Technical" },
-            { value: "behavioral", label: "Behavioral" },
-          ]}
-        />
-      </div>
-
-      {/* Email (optional) */}
-      <div className="space-y-2">
-        <label htmlFor="email" className="text-sm font-medium">
-          Email <span className="text-zinc-500">(optional: to receive your report)</span>
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          value={opts.email ?? ""}
-          onChange={(e) => setOpts({ ...opts, email: e.target.value })}
-          className="w-full rounded-lg border border-zinc-300 bg-transparent px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:outline-none dark:border-zinc-700"
-        />
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={opts.email_opt_in}
-            disabled={!opts.email}
-            onChange={(e) => setOpts({ ...opts, email_opt_in: e.target.checked })}
-          />
-          Send me daily prep-plan reminders (unsubscribe anytime)
-        </label>
-      </div>
-
-      <label className="flex items-start gap-2 text-sm">
-        <input
-          type="checkbox"
-          className="mt-1"
-          checked={opts.consent}
-          onChange={(e) => setOpts({ ...opts, consent: e.target.checked })}
-        />
-        <span>
-          I agree that my CV and answers are processed by AI services to generate feedback. Guest
-          data is deleted automatically after 7 days, and audio is never stored.
-        </span>
-      </label>
-
-      {error && (
-        <p
-          role="alert"
-          className="rounded-lg bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300"
-        >
-          {error}
-        </p>
-      )}
-
-      <button
-        type="submit"
-        disabled={!canSubmit}
-        className="w-full rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white transition-colors hover:bg-indigo-700 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+      {/* ------------------------------------------------------------ 2. JD */}
+      <Step
+        n={2}
+        title="The job description"
+        description="Paste the full posting: title, responsibilities and requirements. More detail gives better questions."
       >
-        {busy ? "Uploading…" : "Analyze my CV"}
-      </button>
+        <div className="space-y-2">
+          <Label htmlFor="jd" className="sr-only">
+            Job description
+          </Label>
+          <Textarea
+            id="jd"
+            value={jd}
+            onChange={(e) => setJd(e.target.value)}
+            rows={10}
+            maxLength={JD_MAX + 500}
+            placeholder={
+              "Junior AI Engineer at …\n\nResponsibilities\n• …\n\nRequirements\n• Python, SQL …"
+            }
+            aria-describedby="jd-count"
+            aria-invalid={jdTooLong || (attempted && jdLen < JD_MIN) || undefined}
+            className="min-h-56 resize-y"
+          />
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span
+              className={cn(
+                jdTooShort || jdTooLong || (attempted && jdLen === 0)
+                  ? "text-danger-fg"
+                  : "text-fg-subtle",
+              )}
+            >
+              {jdTooLong
+                ? `Too long by ${(jdLen - JD_MAX).toLocaleString()} characters. Trim the "about us" part.`
+                : jdTooShort
+                  ? `${(JD_MIN - jdLen).toLocaleString()} more characters needed`
+                  : jdLen === 0
+                    ? `At least ${JD_MIN} characters`
+                    : "Looks good"}
+            </span>
+            <span
+              id="jd-count"
+              className={cn(
+                "tabular-nums",
+                jdTooShort || jdTooLong ? "text-danger-fg" : "text-fg-subtle",
+              )}
+            >
+              {jdLen.toLocaleString()} / {JD_MAX.toLocaleString()} characters
+              {jdTooShort ? ` (at least ${JD_MIN})` : ""}
+            </span>
+          </div>
+        </div>
+      </Step>
+
+      {/* ------------------------------------------------------------ 3. options */}
+      <Step
+        n={3}
+        title="Interview settings"
+        description="You can always run another session with different settings."
+      >
+        <div className="border-border bg-surface grid gap-6 rounded-2xl border p-5 sm:grid-cols-2">
+          <Segmented
+            label="Interview mode"
+            name="mode"
+            value={opts.mode}
+            onChange={(mode) => setOpts({ ...opts, mode })}
+            options={[
+              { value: "voice", label: "Voice" },
+              { value: "text", label: "Text" },
+            ]}
+          />
+          <Segmented
+            label="Level"
+            name="difficulty"
+            value={opts.difficulty}
+            onChange={(difficulty) => setOpts({ ...opts, difficulty })}
+            options={[
+              { value: "junior", label: "Junior" },
+              { value: "mid", label: "Mid" },
+            ]}
+          />
+          <div className="sm:col-span-2">
+            <Segmented
+              label="Interview type"
+              name="interview_type"
+              value={opts.interview_type}
+              onChange={(interview_type) => setOpts({ ...opts, interview_type })}
+              options={[
+                { value: "mixed", label: "Mixed" },
+                { value: "technical", label: "Technical" },
+                { value: "behavioral", label: "Behavioral" },
+              ]}
+            />
+          </div>
+        </div>
+      </Step>
+
+      {/* ------------------------------------------------------------ 4. email + consent */}
+      <Step n={4} title="Report and consent">
+        <div className="space-y-3">
+          <Label htmlFor="email">
+            Email <Hint>(optional, to receive your report)</Hint>
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            placeholder="you@example.com"
+            value={opts.email ?? ""}
+            onChange={(e) =>
+              setOpts({
+                ...opts,
+                email: e.target.value,
+                email_opt_in: e.target.value ? opts.email_opt_in : false,
+              })
+            }
+            className="sm:max-w-sm"
+          />
+          <label
+            className={cn(
+              "flex items-center gap-3 text-sm",
+              opts.email ? "cursor-pointer" : "text-fg-subtle",
+            )}
+          >
+            <Checkbox
+              checked={opts.email_opt_in}
+              disabled={!opts.email}
+              onChange={(e) => setOpts({ ...opts, email_opt_in: e.target.checked })}
+            />
+            Send me daily prep-plan reminders (unsubscribe anytime)
+          </label>
+        </div>
+
+        <label
+          className={cn(
+            "flex cursor-pointer items-start gap-3 rounded-2xl border p-4 text-sm transition-colors",
+            opts.consent
+              ? "border-accent/40 bg-accent-soft/60"
+              : attempted
+                ? "border-danger-solid/60 bg-surface"
+                : "border-border bg-surface hover:bg-surface-muted",
+          )}
+        >
+          <Checkbox
+            className="mt-0.5"
+            checked={opts.consent}
+            aria-describedby="consent-privacy"
+            onChange={(e) => setOpts({ ...opts, consent: e.target.checked })}
+          />
+          <span className="space-y-1">
+            <span className="text-fg block font-medium">
+              I agree that my CV and answers are processed by AI services to generate feedback.
+            </span>
+            <span id="consent-privacy" className="text-fg-muted block">
+              Audio is never stored, and guest sessions expire after 7 days.{" "}
+              <Link
+                href="/privacy"
+                target="_blank"
+                className={cn(
+                  "text-link rounded font-medium underline underline-offset-2",
+                  focusRing,
+                )}
+              >
+                Read the privacy page
+                <span className="sr-only"> (opens in a new tab)</span>
+              </Link>
+            </span>
+          </span>
+        </label>
+      </Step>
+
+      {/* ------------------------------------------------------------ submit */}
+      <div className="border-border space-y-3 border-t pt-8 sm:pl-[3.25rem]">
+        {error && (
+          <div
+            role="alert"
+            className="border-danger-solid/30 bg-danger-soft text-danger-fg flex gap-3 rounded-xl border p-4 text-sm"
+          >
+            <Alert className="mt-0.5 size-5 shrink-0" />
+            <p>{error}</p>
+          </div>
+        )}
+        <button
+          type="submit"
+          aria-disabled={!canSubmit}
+          disabled={busy}
+          className={buttonClasses({
+            size: "lg",
+            className: cn("w-full sm:w-auto", !canSubmit && !busy && "opacity-60"),
+          })}
+        >
+          {busy && (
+            <span
+              aria-hidden
+              className="size-4 animate-spin rounded-full border-2 border-current border-r-transparent"
+            />
+          )}
+          {busy ? "Uploading…" : "Analyze my CV"}
+        </button>
+        <p className="text-fg-muted text-sm" aria-live="polite">
+          {busy
+            ? "Checking your file. The analysis starts on the next page."
+            : missing.length
+              ? `To continue, add ${missing.join(", ").replace(/, ([^,]*)$/, " and $1")}.`
+              : "Takes about 20 seconds. Results appear as they are ready."}
+        </p>
+      </div>
     </form>
   );
 }
