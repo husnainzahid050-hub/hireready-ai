@@ -10,6 +10,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from app.schemas.speech import SpeechMetrics
+
 QuestionType = Literal["technical", "project", "gap_probe", "behavioral", "role_fit", "follow_up"]
 MainQuestionType = Literal["technical", "project", "gap_probe", "behavioral", "role_fit"]
 ScoreLabel = Literal["1", "2", "3", "4", "5"]
@@ -126,6 +128,8 @@ class LastAnswer(BaseModel):
     question_id: str
     transcript: str
     feedback: FeedbackOut | None
+    # Phase 4 (voice): only present for audio answers (optional, so the text contract holds).
+    speech_metrics: SpeechMetrics | None = None
 
 
 class HistoryItem(BaseModel):

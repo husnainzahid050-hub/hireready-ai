@@ -63,14 +63,14 @@ const FEATURES: { icon: ReactNode; title: string; body: string; status: Status }
   {
     icon: <FileText />,
     title: "Mock interview with follow-ups",
-    body: "About 6 questions tailored to your CV and the job. If an answer is shallow, the interviewer digs deeper, like a real one. Text mode is live.",
+    body: "About 6 questions tailored to your CV and the job. If an answer is shallow, the interviewer digs deeper, like a real one. Answer by voice or by typing.",
     status: "live",
   },
   {
     icon: <Mic />,
     title: "Voice answers and speech metrics",
-    body: "Answer out loud and see your speaking pace, filler words and long pauses. Audio is transcribed, then discarded.",
-    status: "progress",
+    body: "Answer out loud; questions are read aloud with captions. Practice mode shows your speaking pace, filler words and long pauses. Audio is transcribed, then discarded.",
+    status: "live",
   },
   {
     icon: <Share />,
@@ -153,7 +153,7 @@ const FAQ: { q: string; a: ReactNode }[] = [
   },
   {
     q: "Do I need a microphone?",
-    a: "No. You can do the whole interview in text mode. Voice mode, when it is available, uses your microphone only while you are answering.",
+    a: "No. You can do the whole interview in text mode. Voice mode uses your microphone only while you are recording an answer, and the recording is discarded after transcription.",
   },
   {
     q: "Which jobs does it work for?",

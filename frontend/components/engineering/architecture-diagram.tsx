@@ -16,7 +16,10 @@ const TIERS: Tier[] = [
       { name: "Landing & engineering pages", detail: "Prerendered HTML, no data fetching" },
       { name: "/start", detail: "CV dropzone and job description form" },
       { name: "Analysis page", detail: "Reads the SSE stream with fetch, renders each section" },
-      { name: "Interview page", detail: "One turn per request; draft kept on reload" },
+      {
+        name: "Interview page",
+        detail: "Voice recorder or text; questions read aloud with captions",
+      },
     ],
   },
   {
@@ -51,7 +54,7 @@ const TIERS: Tier[] = [
       { name: "Supabase Postgres + pgvector", detail: "RLS on every table; hybrid_search (RRF)" },
       {
         name: "Groq",
-        detail: "gpt-oss-20b (fast), gpt-oss-120b (strong); Whisper for voice (in progress)",
+        detail: "gpt-oss-20b (fast), gpt-oss-120b (strong); Whisper speech-to-text",
       },
       { name: "Google Gemini", detail: "768-d embeddings; fallback text model" },
     ],

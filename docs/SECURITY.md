@@ -94,7 +94,6 @@ injections. Even if it had obeyed, the first line is rejected by the quote check
 | Cleanup cron (delete expired sessions) and reminder cron with `CRON_SECRET` | 7 | `CRON_SECRET` env var; expired sessions are already unreadable, but data stays until the cron runs. |
 | HMAC-signed outbound webhook | 7 | `OUTBOUND_WEBHOOK_URL`, `OUTBOUND_WEBHOOK_SECRET` |
 | Delete-my-data endpoint, share tokens without raw CV / email, `/privacy` page | 5-6 | code only |
-| Audio never stored; audio size/duration limits (text answers are already capped, fenced and on quota) | 4 | code only |
 | Cache the demo analysis across sessions (each demo session costs ~4 LLM calls) | 7 | code only; rate limits cover it meanwhile |
 | Stricter CSP (nonces instead of `'unsafe-inline'` scripts) and moving the guest token from `localStorage` to an HttpOnly cookie | 7 | Nonces force dynamic rendering of every page; the trade-off with the static landing page needs a decision. Today XSS risk is low (React escaping, no `dangerouslySetInnerHTML`, URL allowlist). |
 | Pin GitHub Actions by commit SHA, add Dependabot; pin `pip-audit` | 7 | repo settings |
@@ -117,7 +116,7 @@ injections. Even if it had obeyed, the first line is rejected by the quote check
 | Input limits: cap all text lengths; cap total LLM calls per session | Done | Per-session quotas on every LLM endpoint incl. the interview; one analysis run at a time |
 | HTTP security headers in `next.config` (CSP, HSTS, nosniff, Referrer-Policy, Permissions-Policy, frame-ancestors) | Done | CSP still allows inline scripts (see pending) |
 | CORS explicit allowlist | Done | Wildcard refused |
-| Audio never stored | Pending (Phase 4) | |
+| Audio never stored | Done | Phase 4: parsed in memory only (multipart parser never spools to disk), sent to Groq, dropped; only the transcript + metrics are saved. Limits: 3 MB, MIME + magic bytes, 120 s (client auto-stop + Whisper duration check), same quota/rate limit as text answers, charged before transcription. Transcripts fenced as `<transcript>` like typed answers |
 | Guest data auto-deleted after 7 days | Partial | `expires_at` enforced on read; cleanup cron pending |
 | "Delete my data" button | Pending (Phase 5) | |
 | Shared reports exclude raw CV text and email | Pending (Phase 5) | |

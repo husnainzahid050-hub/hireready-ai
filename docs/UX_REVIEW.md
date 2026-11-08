@@ -18,7 +18,9 @@ they should move to now exists:
 | Icons | `components/ui/icons.tsx` (inline SVG: `Check`, `Alert`, `Mic`, `ArrowRight`, ...) |
 | Layout | `Container` (`size="narrow"` = `max-w-3xl`) in `components/ui/section.tsx` |
 
-Screenshots: `docs/ux-review/`.
+Screenshots: `docs/ux-review/`. They were taken just before the Phase 4 voice UI was merged, so the
+voice recorder, mode switch and speech feedback card are not covered here; review them with
+`frontend/e2e/voice.mock.py` screenshots after merging.
 
 ## Priority 1 (do first: visible in the 30-second recruiter path)
 

@@ -132,6 +132,7 @@ const NUMBERS: ReactNode[][] = [
   ["Re-opening a saved analysis", "< 1 s", "—", "Served from the database, 0 LLM calls"],
   ["LLM calls per analysis", "3–4", "—", "JD profile cached by content hash"],
   ["Interview answer → next question", "1.9–3.7 s", "< 4 s p50", "Groq; ~1.8K prompt tokens"],
+  ["Whisper transcription per voice answer", "~0.66 s", "—", "Live smoke test; audio never stored"],
   ["Answer turn on Gemini fallback", "11–15 s", "—", "When Groq's per-minute limit is hit"],
   ["Evidence quotes found verbatim in the CV", "100%", "100%", "6 live QA analyses"],
   ["Rubric knowledge base", "14 competencies, 157 chunks", "—", "Curated markdown, hybrid-indexed"],

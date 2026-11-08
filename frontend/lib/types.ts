@@ -88,6 +88,21 @@ export type InterviewTurn = {
     question_id: string;
     transcript: string;
     feedback: AnswerFeedback | null;
+    /** Phase 4: only on voice answers. */
+    speech_metrics?: SpeechMetrics | null;
   } | null;
   history: { question: Question; answer_text: string }[];
+};
+
+// ------------------------------------------------------------------ voice (Phase 4)
+
+export type SpeechMetrics = {
+  duration_seconds: number | null;
+  speaking_seconds: number | null;
+  word_count: number;
+  words_per_minute: number | null;
+  filler_count: number;
+  filler_breakdown: Record<string, number>;
+  long_pauses: number;
+  longest_pause_seconds: number;
 };
