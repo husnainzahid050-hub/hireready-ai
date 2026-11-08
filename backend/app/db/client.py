@@ -94,6 +94,22 @@ class SupabaseRest:
             raise ValueError("Refusing to update without a filter")
         await self._request("PATCH", table, params=params, json=values, prefer="return=minimal")
 
+    async def update_returning(
+        self, table: str, params: dict[str, str], values: dict[str, Any], *, select: str
+    ) -> list[dict[str, Any]]:
+        """PATCH and return the changed rows (only `select` columns). [] = no row matched the
+        filter, which callers use as a compare-and-swap ("someone else changed it first")."""
+        if not params:
+            raise ValueError("Refusing to update without a filter")
+        result = await self._request(
+            "PATCH",
+            table,
+            params={**params, "select": select},
+            json=values,
+            prefer="return=representation",
+        )
+        return list(result or [])
+
     async def delete(self, table: str, params: dict[str, str]) -> None:
         if not params:
             raise ValueError("Refusing to delete without a filter")

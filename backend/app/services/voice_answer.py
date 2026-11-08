@@ -8,6 +8,7 @@ default spools parts larger than 1 MB to a temp file on disk), and the bytes are
 the request ends.
 """
 
+import asyncio
 from typing import Any, Final
 from uuid import UUID
 
@@ -18,6 +19,7 @@ from starlette.formparsers import MultiPartException, MultiPartParser
 from app.core.body_limit import DEFAULT_MAX_BODY_BYTES
 from app.core.errors import AppError
 from app.core.logging import get_logger
+from app.core.quotas import SESSION_QUOTAS, QuotaExceededError, consume_quota
 from app.db.client import SupabaseRest
 from app.schemas.interview import InterviewTurn
 from app.services import interview as interview_service
@@ -29,6 +31,7 @@ from app.services.stt import (
     MAX_AUDIO_BYTES,
     MAX_AUDIO_SECONDS,
     STTClient,
+    audio_too_long,
     validate_audio,
 )
 
@@ -36,6 +39,13 @@ log = get_logger(__name__)
 
 MAX_TRANSCRIPT_CHARS: Final = 5000  # same cap as typed answers (AnswerRequest.text)
 _MULTIPART_OVERHEAD: Final = 64 * 1024  # boundaries, headers and the question_id field
+
+# Whisper is billed per audio second, and a crafted file can hide its real length from the
+# header check in `validate_audio` (Chrome's WebM has no duration header at all). Each upload
+# that Whisper reports as over the limit is a strike; after OVERLONG_STRIKES the session can only
+# type its answers. Bounds what one session can burn to a couple of oversized transcriptions.
+OVERLONG_ACTION: Final = "audio_overlong"
+OVERLONG_STRIKES: Final = SESSION_QUOTAS[OVERLONG_ACTION]
 
 
 class _InMemoryMultiPartParser(MultiPartParser):
@@ -103,17 +113,27 @@ async def submit_voice_answer(
     so an invalid file or a stale/duplicate upload costs nothing.
     """
     fmt = validate_audio(audio, content_type)
-    state = await interview_service.load_state(db, UUID(session["id"]))
+    sid = UUID(session["id"])
+    state, strikes = await asyncio.gather(
+        interview_service.load_state(db, sid), _overlong_strikes(db, sid)
+    )
     interview_service._check_answerable(state, question_id)  # noqa: SLF001 (same feature)
+    if strikes >= OVERLONG_STRIKES:
+        raise AppError(
+            "voice_disabled",
+            "Voice answers are turned off for this session because several recordings were "
+            "longer than 2 minutes. Please type your answer.",
+            status_code=429,
+        )
     await charge()
     result = await stt.transcribe(audio, fmt)
     del audio  # nothing keeps the bytes after this point
     if result.duration is not None and result.duration > MAX_AUDIO_SECONDS + DURATION_TOLERANCE_S:
-        raise AppError(
-            "audio_too_long",
-            "That recording is longer than 2 minutes. Please give a shorter answer.",
-            status_code=422,
-        )
+        try:
+            await consume_quota(db, sid, OVERLONG_ACTION)
+        except QuotaExceededError:
+            pass  # already at the limit; the next upload is refused before Whisper
+        raise audio_too_long()
     text = result.text.strip()
     if not text:
         raise AppError(
@@ -149,3 +169,16 @@ async def submit_voice_answer(
         text[:MAX_TRANSCRIPT_CHARS],
         speech=metrics,
     )
+
+
+async def _overlong_strikes(db: SupabaseRest, session_id: UUID) -> int:
+    rows = await db.select(
+        "session_usage",
+        {
+            "select": "count",
+            "session_id": f"eq.{session_id}",
+            "action": f"eq.{OVERLONG_ACTION}",
+            "limit": "1",
+        },
+    )
+    return int(rows[0]["count"]) if rows else 0

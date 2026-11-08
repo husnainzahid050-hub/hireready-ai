@@ -68,7 +68,7 @@ async def request_context(
 
 
 # Added last = outermost: oversized bodies are rejected before any other work happens.
-app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(SecurityHeadersMiddleware, docs_enabled=not settings.is_production)
 app.add_middleware(BodySizeLimitMiddleware)
 
 register_error_handlers(app)

@@ -20,18 +20,23 @@ API_SECURITY_HEADERS: Final[dict[bytes, bytes]] = {
 }
 DEFAULT_CACHE_CONTROL: Final = b"no-store"
 # Swagger UI (dev only; disabled in production) loads scripts from a CDN.
-DOCS_PATHS: Final = ("/api/v1/docs", "/api/v1/openapi.json")
+DOCS_PATHS: Final = frozenset(
+    {"/api/v1/docs", "/api/v1/docs/oauth2-redirect", "/api/v1/openapi.json"}
+)
 
 
 class SecurityHeadersMiddleware:
-    def __init__(self, app: ASGIApp) -> None:
+    def __init__(self, app: ASGIApp, *, docs_enabled: bool = True) -> None:
         self.app = app
+        # In production the docs routes don't exist, so they keep the strict CSP like any 404
+        # (the live 404 for /api/v1/docs had no CSP at all: security re-audit S2-6).
+        self.docs_enabled = docs_enabled
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        is_docs = str(scope.get("path", "")).startswith(DOCS_PATHS)
+        is_docs = self.docs_enabled and str(scope.get("path", "")) in DOCS_PATHS
 
         async def send_with_headers(message: Message) -> None:
             if message["type"] == "http.response.start":

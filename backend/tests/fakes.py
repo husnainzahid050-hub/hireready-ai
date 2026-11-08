@@ -15,6 +15,7 @@ import pytest
 
 import app.routers.interview as interview_router
 import app.routers.sessions as sessions_router
+from app.db.client import DatabaseError
 from app.schemas.analysis import (
     CVProfile,
     EvidenceJudgements,
@@ -28,7 +29,20 @@ from app.schemas.analysis import (
 )
 
 
+def _get(row: dict[str, Any], key: str) -> Any:
+    """Column value, or a PostgREST JSON path like `state->current->>id`."""
+    if "->" not in key:
+        return row.get(key)
+    head, *path = key.replace("->>", "->").split("->")
+    value: Any = row.get(head)
+    for part in path:
+        value = value.get(part) if isinstance(value, dict) else None
+    return value
+
+
 def _match(row: dict[str, Any], key: str, cond: str) -> bool:
+    if "->" in key:
+        return cond.startswith("eq.") and str(_get(row, key)) == cond[3:]
     if cond.startswith("eq."):
         return str(row.get(key)) == cond[3:]
     if cond == "not.is.null":
@@ -38,6 +52,11 @@ def _match(row: dict[str, Any], key: str, cond: str) -> bool:
     if cond.startswith("like."):
         return fnmatch.fnmatchcase(str(row.get(key)), cond[5:])
     raise NotImplementedError(cond)
+
+
+# Tables whose primary key isn't `id` (a plain INSERT of a duplicate fails with 409, as in
+# PostgREST).
+PRIMARY_KEYS = {"interview_state": "session_id"}
 
 
 class FakeDB:
@@ -58,6 +77,10 @@ class FakeDB:
         return out[: int(params["limit"])] if "limit" in params else out
 
     async def select(self, table: str, params: dict[str, str]) -> list[dict[str, Any]]:
+        if table == "session_usage":  # quota counters live in self.usage
+            self.t["session_usage"] = [
+                {"session_id": s, "action": a, "count": c} for (s, a), c in self.usage.items()
+            ]
         return [dict(r) for r in self._filter(table, params)]
 
     async def insert(
@@ -71,6 +94,10 @@ class FakeDB:
                 self.t[table] = [
                     x for x in self.rows(table) if x.get(on_conflict) != r[on_conflict]
                 ]
+            elif table in PRIMARY_KEYS:
+                pk = PRIMARY_KEYS[table]
+                if any(x.get(pk) == r[pk] for x in self.rows(table)):
+                    raise DatabaseError(409, "duplicate key value violates unique constraint")
             self.rows(table).append(r)
 
     async def insert_returning(self, table: str, row: dict[str, Any]) -> dict[str, Any]:
@@ -89,6 +116,14 @@ class FakeDB:
     async def update(self, table: str, params: dict[str, str], values: dict[str, Any]) -> None:
         for r in self._filter(table, params):
             r.update(values)
+
+    async def update_returning(
+        self, table: str, params: dict[str, str], values: dict[str, Any], *, select: str
+    ) -> list[dict[str, Any]]:
+        changed = self._filter(table, params)
+        for r in changed:
+            r.update(values)
+        return [{k: r.get(k) for k in select.split(",")} for r in changed]
 
     async def delete(self, table: str, params: dict[str, str]) -> None:
         doomed = {id(r) for r in self._filter(table, params)}
