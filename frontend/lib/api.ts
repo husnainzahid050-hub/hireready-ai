@@ -1,4 +1,5 @@
 import type { Analysis, AnalysisEvent, InterviewTurn, SessionOptions } from "./types";
+import { saveSessionMode } from "./prefs";
 
 const BASE = "/api/v1";
 const TOKEN_KEY = (id: string) => `hireready:token:${id}`;
@@ -33,7 +34,7 @@ function retryAfterSeconds(res: Response): number | null {
   return Number.isNaN(date) ? null : Math.max(0, Math.ceil((date - Date.now()) / 1000));
 }
 
-async function parseError(res: Response): Promise<ApiError> {
+export async function parseError(res: Response): Promise<ApiError> {
   const retryAfter = res.status === 429 ? retryAfterSeconds(res) : null;
   try {
     const body = (await res.json()) as { error?: { code: string; message: string } };
@@ -48,7 +49,7 @@ async function parseError(res: Response): Promise<ApiError> {
   return new ApiError("http_error", "Something went wrong. Please try again.", res.status);
 }
 
-function authHeaders(sessionId: string): HeadersInit {
+export function authHeaders(sessionId: string): HeadersInit {
   const token = getToken(sessionId);
   return token ? { "X-Guest-Token": token } : {};
 }
@@ -65,6 +66,7 @@ export async function createSession(
   if (!res.ok) throw await parseError(res);
   const data = (await res.json()) as { session_id: string; guest_token: string };
   saveToken(data.session_id, data.guest_token);
+  saveSessionMode(data.session_id, options.mode); // the interview page's default answer mode
   return { session_id: data.session_id };
 }
 

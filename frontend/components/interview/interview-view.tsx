@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -15,8 +16,37 @@ import {
   ProgressHeader,
 } from "@/components/interview/parts";
 import { Transcript } from "@/components/interview/transcript";
+import { ModeSwitch } from "@/components/interview/voice/mode-switch";
+import { SpeechFeedback } from "@/components/interview/voice/speech-feedback";
+import { VoiceControls } from "@/components/interview/voice/voice-controls";
 import { ApiError, getInterview, getToken, startInterview, submitAnswer } from "@/lib/api";
-import type { InterviewTurn, Question } from "@/lib/types";
+import { type AnswerMode, getSessionMode, saveSessionMode } from "@/lib/prefs";
+import type { InterviewTurn, Question, SpeechMetrics } from "@/lib/types";
+import { type Recording, RECORDER_ERROR_TEXT, recordingSupport } from "@/lib/use-recorder";
+import { useSpeech } from "@/lib/use-speech";
+import { submitVoiceAnswer } from "@/lib/voice";
+
+// The recorder (MediaRecorder + Web Audio) is only needed in voice mode: load it on demand.
+const VoiceRecorder = dynamic(
+  () => import("@/components/interview/voice/voice-recorder").then((m) => m.VoiceRecorder),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        aria-hidden
+        className="h-72 animate-pulse rounded-2xl bg-zinc-100 motion-reduce:animate-none dark:bg-zinc-900"
+      />
+    ),
+  },
+);
+
+/** Voice when the session was created in voice mode and this browser can record; else text. */
+function defaultMode(sessionId: string): AnswerMode {
+  const chosen = getSessionMode(sessionId);
+  return chosen === "voice" && recordingSupport() === null ? "voice" : "text";
+}
+
+const VOICE_RETRY_CODES = new Set(["stt_unavailable", "ai_unavailable"]);
 
 type Phase = "loading" | "no_session" | "not_started" | "not_analyzed" | "load_error" | "ready";
 
@@ -85,7 +115,17 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<SendError | null>(null);
 
+  // Voice (Phase 4)
+  const [mode, setMode] = useState<AnswerMode>("text");
+  const [voiceUnavailable, setVoiceUnavailable] = useState<string | null>(null);
+  const [failedRecording, setFailedRecording] = useState<Recording | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const [lastMetrics, setLastMetrics] = useState<SpeechMetrics | null>(null);
+  const speech = useSpeech();
+  const spokenFor = useRef<string | null>(null);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recordButtonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
   /** Show a new turn: restore its draft, announce the question, move focus to the answer box. */
@@ -108,7 +148,7 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
             block: "start",
             behavior: reduce ? "auto" : "smooth",
           });
-          textareaRef.current?.focus({ preventScroll: true });
+          (textareaRef.current ?? recordButtonRef.current)?.focus({ preventScroll: true });
         });
       }
     },
@@ -135,6 +175,9 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
         setPhase("no_session");
         return;
       }
+      const unsupported = recordingSupport();
+      setVoiceUnavailable(unsupported ? RECORDER_ERROR_TEXT[unsupported] : null);
+      setMode(defaultMode(sessionId));
       try {
         const t = await getInterview(sessionId);
         if (!cancelled) applyTurn(t, { announce: false });
@@ -166,6 +209,25 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
     }, 1000);
     return () => window.clearInterval(id);
   }, [waitUntil]);
+
+  // Read each new question aloud in voice mode (captions are always on screen).
+  const currentQuestion = phase === "ready" ? (turn?.question ?? null) : null;
+  const { speak } = speech;
+  useEffect(() => {
+    if (mode !== "voice" || !currentQuestion || spokenFor.current === currentQuestion.id) return;
+    spokenFor.current = currentQuestion.id;
+    speak(currentQuestion.text);
+  }, [mode, currentQuestion, speak]);
+
+  function changeMode(m: AnswerMode) {
+    setMode(m);
+    saveSessionMode(sessionId, m);
+    setFailedRecording(null);
+    if (m === "text") speech.cancel();
+    requestAnimationFrame(() =>
+      (m === "text" ? textareaRef.current : recordButtonRef.current)?.focus(),
+    );
+  }
 
   function rateLimited(e: ApiError): SendError {
     const t = Date.now();
@@ -238,6 +300,7 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
       const next = await submitAnswer(sessionId, q.id, text);
       saveDraft(sessionId, q.id, "");
       setPending(null);
+      setLastMetrics(null);
       // The answer endpoint returns `history: []` (only GET sends the full list), so keep the
       // transcript client-side by appending the answer the server just accepted.
       const history = next.history.length
@@ -267,6 +330,73 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
       textareaRef.current?.focus({ preventScroll: true });
     } finally {
       setSending(false);
+    }
+  }
+
+  /** Upload a recorded answer. On failure the recording is kept for "Retry upload". */
+  async function sendVoice(rec: Recording) {
+    const q = turn?.question;
+    if (!q || sending) return;
+    speech.cancel();
+    setSending(true);
+    setSendError(null);
+    setNotice(null);
+    setFailedRecording(null);
+    setUploadProgress(0);
+    setPending({ question: q, answer_text: "(voice answer, transcribing…)" });
+    setAnnouncement("Uploading your answer…");
+    try {
+      const next = await submitVoiceAnswer(sessionId, q.id, rec, (p) => {
+        setUploadProgress(p);
+        if (p >= 1) setAnnouncement("Transcribing your answer…");
+      });
+      setPending(null);
+      setLastMetrics(next.last_answer?.speech_metrics ?? null);
+      const history = next.history.length
+        ? next.history
+        : [
+            ...(turn?.history ?? []),
+            { question: q, answer_text: next.last_answer?.transcript ?? "" },
+          ];
+      applyTurn({ ...next, history }, { announce: true });
+    } catch (e) {
+      setPending(null);
+      setAnnouncement("");
+      if (handleFatal(e)) return;
+      if (
+        e instanceof ApiError &&
+        (e.code === "wrong_question" || e.code === "interview_completed")
+      ) {
+        try {
+          applyTurn(await getInterview(sessionId), { announce: true });
+          setNotice(
+            "The interview had moved on (perhaps in another tab), so we loaded the latest question.",
+          );
+        } catch (err) {
+          if (!handleFatal(err)) setSendError({ kind: "retry", message: NETWORK_MESSAGE });
+        }
+        return;
+      }
+      setFailedRecording(rec);
+      if (e instanceof ApiError && e.status === 429) setSendError(rateLimited(e));
+      else if (e instanceof ApiError && (VOICE_RETRY_CODES.has(e.code) || e.status >= 500))
+        setSendError({
+          kind: "retry",
+          message:
+            e.code === "stt_unavailable"
+              ? e.message
+              : "The AI interviewer is temporarily unavailable. Your recording is kept here; try uploading it again in a moment.",
+        });
+      else if (e instanceof ApiError) setSendError({ kind: "generic", message: e.message });
+      else
+        setSendError({
+          kind: "retry",
+          message: NETWORK_MESSAGE + " Your recording is kept here.",
+        });
+      requestAnimationFrame(() => recordButtonRef.current?.focus({ preventScroll: true }));
+    } finally {
+      setSending(false);
+      setUploadProgress(null);
     }
   }
 
@@ -467,7 +597,23 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
               completed={false}
             />
             {feedback && !sending && <FeedbackCard feedback={feedback} />}
-            <InterviewerPanel question={question} status={sending ? "thinking" : "listening"} />
+            {turn.practice_mode && lastMetrics && !sending && (
+              <SpeechFeedback metrics={lastMetrics} />
+            )}
+            <InterviewerPanel
+              question={question}
+              status={speech.speaking ? "speaking" : sending ? "thinking" : "listening"}
+              controls={
+                speech.supported ? (
+                  <VoiceControls
+                    muted={speech.muted}
+                    speaking={speech.speaking}
+                    onToggleMute={() => speech.setMuted(!speech.muted)}
+                    onReplay={() => speech.speak(question.text, { force: true })}
+                  />
+                ) : undefined
+              }
+            />
           </div>
 
           {notice && <Notice tone="info">{notice}</Notice>}
@@ -481,24 +627,55 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
               {sendError.kind === "retry" && (
                 <button
                   type="button"
-                  onClick={send}
+                  onClick={() => {
+                    if (mode === "voice" && failedRecording) void sendVoice(failedRecording);
+                    else void send();
+                  }}
                   disabled={sending}
                   className={`${BUTTON_SECONDARY} mt-3 bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
                 >
-                  Retry sending answer
+                  {mode === "voice" && failedRecording ? "Retry upload" : "Retry sending answer"}
                 </button>
               )}
             </Notice>
           )}
 
-          <AnswerComposer
-            value={draft}
-            onChange={onDraftChange}
-            onSubmit={send}
-            sending={sending}
-            blockedReason={waitSeconds !== null ? `Wait ${waitSeconds}s` : null}
-            textareaRef={textareaRef}
+          <ModeSwitch
+            mode={mode}
+            onChange={changeMode}
+            voiceUnavailable={voiceUnavailable}
+            disabled={sending}
           />
+          {mode === "voice" ? (
+            <VoiceRecorder
+              key={question.id}
+              onRecorded={(r) => void sendVoice(r)}
+              onRecordStart={speech.cancel}
+              onRetry={() => {
+                if (failedRecording) void sendVoice(failedRecording);
+              }}
+              onDiscardFailed={() => {
+                setFailedRecording(null);
+                setSendError(null);
+              }}
+              onSwitchToText={() => changeMode("text")}
+              onAnnounce={setAnnouncement}
+              sending={sending}
+              uploadProgress={uploadProgress}
+              failedRecording={failedRecording}
+              blockedReason={waitSeconds !== null ? `Wait ${waitSeconds}s` : null}
+              buttonRef={recordButtonRef}
+            />
+          ) : (
+            <AnswerComposer
+              value={draft}
+              onChange={onDraftChange}
+              onSubmit={send}
+              sending={sending}
+              blockedReason={waitSeconds !== null ? `Wait ${waitSeconds}s` : null}
+              textareaRef={textareaRef}
+            />
+          )}
         </div>
 
         <aside className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto">

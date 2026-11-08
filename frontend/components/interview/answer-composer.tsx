@@ -4,8 +4,8 @@ import { BUTTON_PRIMARY, FOCUS_RING } from "@/components/interview/parts";
 import { ANSWER_MAX } from "@/lib/api";
 
 /**
- * Text answer input. Phase 4 adds a voice recorder as a sibling input method that produces
- * the same `onSubmit(text)` call (from the transcript), so the parent logic stays the same.
+ * Text answer input. The voice recorder (components/interview/voice) is the sibling input; the
+ * page switches between them with the Voice / Text mode switch.
  */
 export function AnswerComposer({
   value,
@@ -40,15 +40,6 @@ export function AnswerComposer({
         <label htmlFor="answer" className="font-medium">
           Your answer
         </label>
-        <span
-          className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-zinc-300 px-3 py-1 text-xs text-zinc-600 dark:border-zinc-700 dark:text-zinc-400"
-          title="Voice answers arrive in the next update"
-        >
-          <svg aria-hidden viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor">
-            <path d="M10 13a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a1 1 0 1 1 2 0 7 7 0 0 1-6 6.93V19a1 1 0 1 1-2 0v-2.07A7 7 0 0 1 3 10a1 1 0 1 1 2 0 5 5 0 0 0 10 0Z" />
-          </svg>
-          Voice mode coming soon
-        </span>
       </div>
       <textarea
         id="answer"

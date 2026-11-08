@@ -82,8 +82,12 @@ class NewAnswer(BaseModel):
     transcript: str
     scores: AnswerScores
     feedback: AnswerFeedback
-    # Phase 4 (voice) will add speech metrics here; text mode leaves them null.
+    # Phase 4 (voice): speech metrics, set by the service after the run; null for text answers.
     duration_seconds: float | None = None
+    words_per_minute: float | None = None
+    filler_count: int | None = None
+    filler_breakdown: dict[str, int] | None = None
+    long_pauses: int | None = None
 
 
 class InterviewState(BaseModel):
