@@ -132,6 +132,18 @@ def new_page(browser, *, viewport, dark=False, mode="voice", extra_init="") -> P
     return page
 
 
+def audio_bytes(body: bytes) -> bytes:
+    """The audio part of a multipart body (boundaries differ between uploads)."""
+    start = body.index(b'name="audio"')
+    start = body.index(b"\r\n\r\n", start) + 4
+    return body[start : body.index(b"\r\n--", start)]
+
+
+def expect_current(page: Page, fake: "FakeVoiceInterview") -> None:
+    """The page shows the question the fake server is waiting for (follow-ups included)."""
+    im.expect_question(page, fake.queue[0]["text"])
+
+
 def record_button(page: Page):
     return page.get_by_role("button", name="Start recording your answer")
 
@@ -207,7 +219,7 @@ def desktop_voice(browser) -> None:
     page.screenshot(path=str(SHOTS / "voice-desktop-2-transcribing.png"), full_page=True)
     fake.release_voice()
 
-    im.expect_question(page, PLAN[1][2])
+    expect_current(page, fake)
     assert WEBM_MAGIC in fake.uploads[0], "upload is not webm"
     expect(page.locator("#transcript-list").get_by_text(
         "Um, so basically this is my spoken answer number 1.")).to_be_visible()
@@ -216,7 +228,7 @@ def desktop_voice(browser) -> None:
     expect(page.get_by_text("Ideal pace is roughly 120–160 WPM", exact=False)).to_be_visible()
     expect(page.get_by_text("“um” ×2", exact=False)).to_be_visible()
     page.wait_for_function("window.__spoken.length >= 2")
-    assert spoken(page)[-1] == PLAN[1][2]
+    assert spoken(page)[-1] == fake.queue[0]["text"]
     page.screenshot(path=str(SHOTS / "voice-desktop-3-metrics.png"), full_page=True)
 
     # Transcription outage: the recording is kept; "Retry upload" sends the same bytes again.
@@ -226,8 +238,8 @@ def desktop_voice(browser) -> None:
     expect(page.get_by_text("Your recording is saved on this page.")).to_be_visible()
     page.screenshot(path=str(SHOTS / "voice-desktop-4-stt-503.png"), full_page=True)
     page.get_by_role("button", name="Retry upload").first.click()
-    im.expect_question(page, PLAN[2][2])
-    assert fake.uploads[-1].split(b"\r\n\r\n", 2)[-1] == fake.uploads[-2].split(b"\r\n\r\n", 2)[-1]
+    expect_current(page, fake)
+    assert audio_bytes(fake.uploads[-1]) == audio_bytes(fake.uploads[-2]), "retry re-recorded"
 
     # Mute: persisted, so the next question (and a reload) stays silent; Replay still speaks.
     before = len(spoken(page))
@@ -235,11 +247,11 @@ def desktop_voice(browser) -> None:
     mute.click()
     expect(mute).to_have_attribute("aria-pressed", "true")
     record_for(page, 1.2, keyboard=True)
-    im.expect_question(page, PLAN[3][2])
+    expect_current(page, fake)
     page.wait_for_timeout(300)
     assert len(spoken(page)) == before, "spoke while muted"
     page.reload()
-    im.expect_question(page, PLAN[3][2])
+    expect_current(page, fake)
     expect(page.get_by_role("button", name="Mute voice")).to_have_attribute("aria-pressed", "true")
     page.wait_for_timeout(300)
     assert spoken(page) == [], "spoke after reload while muted"
@@ -252,7 +264,7 @@ def desktop_voice(browser) -> None:
     expect(page.get_by_role("radio", name="Text")).to_be_checked()
     expect(im.answer_box(page)).to_be_focused()
     im.send(page, "A typed answer after switching modes.")
-    im.expect_question(page, PLAN[4][2])
+    expect_current(page, fake)
     expect(page.get_by_role("heading", name="How you sounded")).to_have_count(0)
     assert page.evaluate("window.__liveTracks()") == 0
     page.context.close()
@@ -264,14 +276,14 @@ def mic_denied(browser) -> None:
                     extra_init="window.__denyMic = true;")
     started(page, fake, practice=False)
     record_button(page).click()
-    alert = page.get_by_role("alert")
+    alert = page.locator("main").get_by_role("alert")
     expect(alert).to_contain_text("Microphone access is blocked")
     im.no_horizontal_scroll(page)
     page.screenshot(path=str(SHOTS / "voice-mic-denied.png"), full_page=True)
     page.get_by_role("button", name="Type your answer instead").click()
     expect(im.answer_box(page)).to_be_focused()
     im.send(page, "Typed because the microphone is blocked.")
-    im.expect_question(page, PLAN[1][2])
+    expect_current(page, fake)
     assert fake.uploads == []
     page.context.close()
 
@@ -300,7 +312,7 @@ def mobile_voice(browser, *, dark: bool) -> None:
     page.screenshot(path=str(SHOTS / f"{tag}-1-ready.png"), full_page=True)
     for i in range(2):
         record_for(page, 1.3)
-        im.expect_question(page, PLAN[i + 1][2])
+        expect_current(page, fake)
     expect(page.get_by_role("heading", name="How you sounded")).to_be_visible()
     im.no_horizontal_scroll(page)
     page.screenshot(path=str(SHOTS / f"{tag}-2-metrics.png"), full_page=True)
