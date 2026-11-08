@@ -71,7 +71,7 @@ export function speechGuidance(m: SpeechMetrics): Guidance[] {
     out.push({
       label: "Pace",
       value: `${rounded} words per minute`,
-      tone: ok || (wpm >= 110 && wpm <= 170) ? "good" : "warn",
+      tone: ok ? "good" : "warn",
       advice: ok
         ? "Great pace. Ideal pace is roughly 120–160 WPM."
         : wpm < 120

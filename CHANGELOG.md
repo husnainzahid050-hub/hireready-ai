@@ -4,6 +4,29 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Phase 4: Voice (2026-11-08)
+
+#### Added
+- `POST /sessions/{id}/interview/answer` also accepts multipart `{question_id, audio}` (JSON text
+  answers unchanged). Audio is validated (MIME + magic bytes, 3 MB, 120 s), transcribed with Groq
+  Whisper (`GROQ_STT_MODEL`, `verbose_json` with segment + word timestamps) and never stored.
+  Same quota/rate limit as text answers, charged after the cheap checks and before Whisper.
+  503 `stt_unavailable` on provider failure; 422 `no_speech` / `audio_too_long` / `audio_unreadable`.
+- `app/services/speech_metrics.py`: words per minute over speaking time, filler words (English +
+  Urdu/Hinglish, context rules for "like", "you know", "kind of"/"sort of"), long pauses > 2 s.
+  Stored in the `answers` columns; returned as optional `last_answer.speech_metrics`.
+- Interview page: Voice / Text switch (default from the session's mode), lazy-loaded recorder
+  (tap to start/stop, timer, 120 s auto-stop, level meter, mic released on stop/unmount), upload
+  progress and "Transcribing..." state, retry upload without re-recording, mic denied/unsupported
+  fallback to typing, questions read aloud with `speechSynthesis` + persisted mute + replay,
+  practice-mode "How you sounded" card.
+
+#### Tests
+- Backend: +49 tests (`test_voice.py`, `test_speech_metrics.py`); 282 passed + 1 xfail in total.
+- `frontend/e2e/voice.mock.py`: fake mic + mocked API (record -> upload -> next question, 503 retry,
+  mute, mic denied, no MediaRecorder, 390x844 light/dark). Live smoke test: Whisper ~0.66 s per
+  answer, stop -> next question 3.7 s / 8.8 s, 0% WER on a scripted answer with fillers kept.
+
 ### Integration & fixes (2026-11-06)
 
 Merged the backend, frontend, security and QA work and fixed the open QA bugs. **Apply
