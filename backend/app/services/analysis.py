@@ -129,7 +129,7 @@ async def extract_profiles(
             user=wrap_untrusted("cv", cv_doc["raw_text"][:MAX_CV_CHARS_FOR_LLM]),
             schema=CVProfile,
             tier="fast",
-            max_tokens=3000,
+            max_tokens=6000,
         )
 
     async def jd_task() -> JobProfile:
@@ -216,7 +216,7 @@ async def judge_skills(
         schema=EvidenceJudgements,
         tier="strong",
         temperature=0.0,  # judging should be as repeatable as possible
-        max_tokens=3000,
+        max_tokens=5000,
     )
     by_name = {normalize(j.skill): j for j in result.judgements}
     normalized_cv = normalize(cv_text)

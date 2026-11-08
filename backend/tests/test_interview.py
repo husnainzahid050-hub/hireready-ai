@@ -19,7 +19,6 @@ from app.core.rate_limit import Policy, RateLimitResult
 from app.main import app
 from app.schemas.analysis import (
     CVProfile,
-    CVSkill,
     Experience,
     GapItem,
     JobProfile,
@@ -40,7 +39,7 @@ from tests.fakes import FakeDB, install
 CV = CVProfile(
     name="Ali",
     education=[],
-    skills=[CVSkill(name="Python", evidence_sentence="Python, PyTorch")],
+    skills=["Python", "PyTorch"],
     projects=[
         Project(title="Plant Disease Classifier", stack=["PyTorch"], outcome="91% accuracy"),
         Project(title="Course Helper RAG Chatbot", stack=["LangChain", "FastAPI"], outcome=None),

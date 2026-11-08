@@ -4,9 +4,9 @@ Models used as LLM output schemas have NO defaults (strict structured output nee
 field present). Optional values are expressed as `X | None`.
 """
 
-from typing import Literal
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 Competency = Literal[
     "python", "sql", "machine_learning", "deep_learning", "nlp_llms", "data_handling",
@@ -27,9 +27,7 @@ class Education(BaseModel):
     year: str | None
 
 
-class CVSkill(BaseModel):
-    name: str
-    evidence_sentence: str = Field(description="The exact sentence from the CV where it appears")
+MAX_CV_SKILLS = 30
 
 
 class Project(BaseModel):
@@ -48,10 +46,30 @@ class Experience(BaseModel):
 class CVProfile(BaseModel):
     name: str | None
     education: list[Education]
-    skills: list[CVSkill]
+    # Skill NAMES only. Evidence for each job skill comes from hybrid search over the CV text, so
+    # asking the LLM for a quote per skill only bloated the output: a real 4.4K-char CV produced
+    # 72 skills x ~250-char quotes, ran past the output limit on both providers, and failed.
+    skills: list[str] = Field(
+        description=f"Distinct skill names, most relevant first, max {MAX_CV_SKILLS}"
+    )
     projects: list[Project]
     experience: list[Experience]
     certifications: list[str]
+
+    @field_validator("skills", mode="before")
+    @classmethod
+    def _skill_names(cls, v: Any) -> Any:
+        # Accept the old stored shape [{"name", "evidence_sentence"}] and cap the list.
+        if isinstance(v, list):
+            names = [s.get("name", "") if isinstance(s, dict) else s for s in v]
+            seen: set[str] = set()
+            out: list[str] = []
+            for n in names:
+                if isinstance(n, str) and n.strip() and n.strip().lower() not in seen:
+                    seen.add(n.strip().lower())
+                    out.append(n.strip())
+            return out[:MAX_CV_SKILLS]
+        return v
 
 
 class JobSkill(BaseModel):
