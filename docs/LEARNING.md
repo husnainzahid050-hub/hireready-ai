@@ -713,3 +713,65 @@ Every table references `sessions(id) ON DELETE CASCADE`, so "Delete my data" is 
 `DELETE FROM sessions WHERE id = …` and Postgres removes documents, chunks, analysis, questions,
 answers, interview state, the report (and with it the share link), reminders and quota counters.
 The migration smoke test checks the cascade on a real Postgres.
+
+## Phase 7: Security hardening and automation (2026-11-12)
+
+### 1. Defence in layers, cheapest first
+No single control stops abuse of a free AI app. HireReady stacks them: Turnstile on session
+creation (stops scripts), per-IP limits (slow a single source), per-session quotas (cap one guest
+token), a per-recipient email limit (stops flooding one inbox), and a **global daily LLM budget**
+(`backend/app/core/budget.py`) as the circuit breaker when everything else is beaten by a proxy
+pool. The budget is checked per *action* before any work starts, so a refused request costs
+nothing, and the demo is the first thing to pause because it is the cheapest to give up.
+
+### 2. Fail open or fail closed is a per-endpoint decision
+When Redis is down, should the app stop? For LLM endpoints we fall back to an in-process counter:
+availability first, and the database quotas still cap spending. For email we fail closed, because
+a form that emails any address is a spam relay and email is never essential. Cron endpoints fail
+closed when `CRON_SECRET` is missing. The full table is in `docs/SECURITY.md`; the code is the
+`on_outage` field of each `Policy` in `backend/app/core/rate_limit.py`.
+
+### 3. "Which IP am I seeing?" behind a proxy
+The browser talks to the frontend; the Next.js rewrite then calls the backend from Vercel's
+network, so the backend's `x-forwarded-for` may describe that hop and every user would share one
+bucket. `frontend/proxy.ts` (Next.js 16's new name for middleware) copies the real browser IP into
+a custom header plus a shared secret; the backend trusts the header only when the secret matches
+(compared in constant time). Always verify on the real deployment: `/api/v1/health/client-ip`.
+
+### 4. Cron jobs must be safe to run twice
+Vercel Hobby runs a cron once a day with about an hour of jitter and may retry. So both jobs are
+idempotent. Cleanup (`cleanup_expired()` in migration 07) deletes in bounded batches and records
+counts in `cron_runs`. The reminder job moves the day counter with a **compare-and-swap** (update
+only `where day_index = n`) *before* sending, so a second run finds nothing to do, and Resend's
+`Idempotency-Key` backs that up.
+
+### 5. Data with two lifetimes
+The 7-day prep plan starts after the interview, so it runs past the 7-day guest expiry. Instead of
+keeping the whole session longer, the reminder is a separate, minimal row (email, job title, plan,
+token hash) with its own `expires_at`. The cleanup job *detaches* it from the session before the
+cascade; "Delete my data" still deletes it. Keep only what each purpose needs, for only as long
+as it needs it.
+
+### 6. Email consent that protects other people
+Two unticked boxes (one email vs a 7-day series), then **double opt-in**: the first email only
+asks to confirm, so nobody can sign someone else up. Each reminder carries RFC 8058 headers
+(`List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click`) so Gmail shows an
+"Unsubscribe" button that POSTs to us. A GET of any link never changes anything, because mail
+security scanners open links automatically. The link token is an HMAC of a random nonce, stored
+only as a hash: it can unsubscribe or mark a day done, never open the session.
+
+### 7. Signing webhooks the standard way
+Instead of inventing headers, the outbound webhook follows Standard Webhooks: the receiver
+recomputes `HMAC-SHA256(secret, "{id}.{timestamp}.{body}")`, compares it in constant time, rejects
+timestamps older than 5 minutes (replay) and dedupes on `webhook-id`. The payload is minimal (no
+CV text, transcripts or email), and delivery runs after the report is saved so a slow receiver can
+never break it (`backend/app/services/webhook.py`, `automation.py`).
+
+### 8. Testing injection with a model that obeys
+Testing prompt-injection defences with a well-behaved model proves little. The tests in
+`backend/tests/test_prompt_injection.py` use a fake model that does exactly what each attack asks
+(mark every skill strong, score 5/5, quote the injected sentence) and check that the code still
+wins: fences survive forged tags, instruction-like quotes don't count as evidence, scores without
+real evidence are capped, the match score is arithmetic, and out-of-schema output is rejected. The
+attack list is shared with the Phase 8 evals (`evals/datasets/adversarial.json`), which run the
+same cases against the real model.

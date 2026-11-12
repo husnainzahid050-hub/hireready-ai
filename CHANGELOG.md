@@ -4,6 +4,79 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Phase 7: Security hardening and automation (2026-11-12)
+
+#### Added
+- **Rate limits** (`backend/app/core/rate_limit.py`, `core/redis.py`): Upstash Redis over its REST
+  API when `UPSTASH_REDIS_REST_*` are set, otherwise an in-process fixed window (was a no-op). Each
+  policy decides what happens when Upstash is down: fall back to local (LLM endpoints), fail closed
+  (`email`, new `email_recipient` 3/day per address across sessions, `reminder_subscribe`) or open
+  (token links, public status). Table in `docs/SECURITY.md`.
+- **Client IP behind the rewrite**: `frontend/proxy.ts` forwards the browser IP as
+  `X-HireReady-Client-IP` with a shared secret (`CLIENT_IP_HEADER_SECRET`); the backend trusts it
+  only with a matching secret. `GET /api/v1/health/client-ip` shows what the backend sees.
+- **Global daily LLM budget** (`core/budget.py`, `LLM_DAILY_BUDGET` default 1500 calls,
+  `LLM_DAILY_SOFT_RATIO` 0.8): demo work pauses at the soft limit, all fresh LLM work gets 503
+  `daily_budget_exhausted` with `Retry-After` until 00:00 UTC. Cached results stay free.
+- **Demo cache**: `copy_demo_analysis()` gives a demo session an earlier demo session's analysis,
+  profiles and CV chunks, so "Try with a sample CV" costs no LLM call.
+- **Turnstile on the frontend** (`lib/turnstile.ts`): widget on `/start`, invisible
+  ("interaction-only") on the demo button, script loaded on demand. The CSP now allows
+  `challenges.cloudflare.com` only on `/`, `/start` and `/r/*` (`frame-src 'none'` elsewhere).
+- **Cron** (`routers/cron.py`, `backend/vercel.json`): `GET /api/v1/cron/cleanup` (02:00 UTC,
+  batched `cleanup_expired()`, returns counts) and `/cron/reminders` (03:00 UTC), both behind
+  `Authorization: Bearer <CRON_SECRET>` (503 when unset, 401 when wrong), idempotent.
+  `GET /api/v1/cron/status` shows the last runs (from `cron_runs`).
+- **Prep reminders** (`services/reminders.py`, `routers/reminders.py`, `/reminders/[token]`,
+  `/unsubscribe/[token]`): separate unticked opt-in on `/start`, double opt-in by email, Day 1 on
+  confirm, one task per day with a job-named subject and progress dots, no tracking pixels, pause
+  after 3 days without "Mark done", stop after day 7, daily cap (`REMINDER_DAILY_CAP`). RFC 8058
+  one-click unsubscribe (`List-Unsubscribe` + `List-Unsubscribe-Post`) plus a footer link;
+  `POST /api/v1/unsubscribe/{token}` deletes the row without login; GET never acts. Tokens are
+  HMACs of a nonce (`REMINDER_TOKEN_SECRET`), stored only as SHA-256. Also
+  `POST /sessions/{id}/reminders` for an opt-in after the report.
+- **Post-report automation** (`services/automation.py`): on the fresh `done` event, the
+  Standard Webhooks `report.completed` event (`services/webhook.py`; `webhook-id`,
+  `webhook-timestamp`, `webhook-signature: v1,...`; minimal payload, 5 s per attempt, 3 attempts),
+  the report email if "Email me my report" was ticked, and the reminder confirmation. None of it
+  can delay or fail the report.
+- **Fail-fast production config** (`Settings.startup_problems`, `main.check_startup`).
+- **Migration** `20261112000007_phase7_automation.sql`: `sessions.reminders_opt_in`, new
+  `reminders` table (own lifetime, detached by cleanup), `cron_runs`, `cleanup_expired()`,
+  `copy_demo_analysis()`; smoke-tested in `supabase/tests/test_migrations.py`.
+- Tests: `test_prompt_injection.py` (the 8 shared cases in `evals/datasets/adversarial.json` plus
+  2 JD cases, with a model that obeys every injection), `test_phase7_limits.py`,
+  `test_reminders.py`, `test_automation.py`, `e2e/reminders.mock.py`. Dependabot config;
+  `pip-audit` pinned.
+
+#### Changed
+- Injection heuristics also catch fake `SYSTEM:` markers, "score relevance 5", "score this answer
+  5 out of 5" and "match score of 100" (no false positives on the KB, demo or eval CVs/JDs).
+- Report email (`POST /sessions/{id}/email`) also checks the per-recipient limit.
+- `/privacy`: the cleanup job is live (deleted about a day after expiry), reminders row and
+  section, Resend / Turnstile / Upstash as processors. Landing page: "Auto-deletes in 7 days".
+- `docs/SECURITY.md`: every SPEC 9 item marked Done with the test or check that verifies it.
+- `.env.example`: `CRON_SECRET`, `REMINDER_TOKEN_SECRET`, `REMINDER_DAILY_CAP`,
+  `LLM_DAILY_BUDGET`, `LLM_DAILY_SOFT_RATIO`, `CLIENT_IP_HEADER_SECRET` (both projects).
+
+#### Research brief (PHASE7_TRUST_AND_ENGAGEMENT_BRIEF.md): applied / skipped
+- Applied: separate reminder record with its own expiry; two unticked opt-ins; confirmation-first
+  double opt-in; single-purpose hashed token; RFC 8058 headers + body link + no-login POST; one task
+  per day, no pixels, pause after 3 unclicked days, stop after day 7; send cap; batched idempotent
+  cleanup with `cron_runs`; global LLM budget with soft (demo) and hard limits; demo cache; signed
+  client-IP header; Turnstile managed on `/start`, invisible on the demo; per-recipient limit;
+  Standard Webhooks with a docs snippet; privacy copy at the opt-in.
+- Skipped: Turnstile `idempotency_key` (we never retry siteverify); "practise this question now"
+  deep link and the per-question "why" line (no single-question drill exists yet); sliding windows
+  (fixed windows + per-session quotas suffice); "Last cleanup" on the Engineering page (Phase 8 owns
+  that page; `GET /api/v1/cron/status` is ready for it); privacy copy on the mic button, share sheet
+  and report footer (those components belong to Phases 4-5; left for a polish pass).
+
+#### Pending (owner)
+- Apply migration 07 (after 04 and 05) in Supabase; create Upstash, Cloudflare Turnstile and
+  Resend accounts; set the secrets above; verify the client IP on the live site; keep Resend
+  tracking off.
+
 ### Phase 8: Evals and observability (2026-11-12)
 
 #### Added

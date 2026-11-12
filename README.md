@@ -19,7 +19,9 @@ built for practice only.
 
 **Status:** 🚧 Phases 5 and 8 done (CV + job analysis, voice or text mock interview, a scored report
 with share link, print-to-PDF, email (when `RESEND_API_KEY` is set) and delete-my-data, and an eval
-suite with published results in [evals/results.md](evals/results.md)); security automation next. Before
+suite with published results in [evals/results.md](evals/results.md)) and Phase 7 security hardening
+and automation (Upstash rate limits, Turnstile, a global daily LLM budget, nightly cleanup, double
+opt-in prep reminders, a signed webhook); production release next. Before
 deploying, apply the SQL in [supabase/PENDING_MIGRATIONS.md](supabase/PENDING_MIGRATIONS.md). See [SPEC.md](SPEC.md) for the full plan and
 [CHANGELOG.md](CHANGELOG.md) for progress. The full README (demo, architecture, evals) lands in Phase 9.
 
