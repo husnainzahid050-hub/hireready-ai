@@ -10,7 +10,16 @@ def test_health_ok() -> None:
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert set(body["dependencies"]) == {"database", "llm_groq", "llm_gemini"}
+    assert set(body["dependencies"]) == {
+        "database",
+        "llm_groq",
+        "llm_gemini",
+        "redis",
+        "turnstile",
+        "email",
+        "cron",
+        "webhook",
+    }
     assert "X-Request-ID" in r.headers
 
 

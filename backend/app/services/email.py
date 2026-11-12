@@ -13,7 +13,8 @@ Privacy: the recipient address and the report content are never logged, only the
 All user-controlled text placed in the email HTML is escaped (`html.escape`).
 
 Swapping providers (e.g. Brevo): add a class with the same `send` signature and return it from
-`get_email_provider()`. Phase 7 reminder emails reuse the same interface.
+`get_email_provider()`. Phase 7 reminder emails (`app.services.reminders`) reuse the same
+interface and add RFC 8058 unsubscribe headers.
 """
 
 from html import escape
@@ -39,7 +40,15 @@ class EmailError(Exception):
 
 class EmailProvider(Protocol):
     async def send(
-        self, *, to: str, subject: str, html: str, text: str, idempotency_key: str | None = None
+        self,
+        *,
+        to: str,
+        subject: str,
+        html: str,
+        text: str,
+        idempotency_key: str | None = None,
+        headers: dict[str, str] | None = None,
+        kind: str = "report",
     ) -> None: ...
 
 
@@ -55,24 +64,34 @@ class ResendProvider:
         self._client = client
 
     async def send(
-        self, *, to: str, subject: str, html: str, text: str, idempotency_key: str | None = None
+        self,
+        *,
+        to: str,
+        subject: str,
+        html: str,
+        text: str,
+        idempotency_key: str | None = None,
+        headers: dict[str, str] | None = None,
+        kind: str = "report",
     ) -> None:
-        headers = {"Authorization": f"Bearer {self._key}", "Accept": "application/json"}
+        """`headers`: extra email headers (Phase 7 reminders: List-Unsubscribe and
+        List-Unsubscribe-Post, RFC 8058). `kind`: a Resend tag, never personal data."""
+        http_headers = {"Authorization": f"Bearer {self._key}", "Accept": "application/json"}
         if idempotency_key:
-            headers["Idempotency-Key"] = idempotency_key[:256]
+            http_headers["Idempotency-Key"] = idempotency_key[:256]
+        body: dict[str, object] = {
+            "from": self._sender,
+            "to": [to],
+            "subject": subject,
+            "html": html,
+            "text": text,
+            "tags": [{"name": "kind", "value": kind}],
+        }
+        if headers:
+            body["headers"] = headers
         try:
             resp = await self._client.post(
-                RESEND_URL,
-                headers=headers,
-                json={
-                    "from": self._sender,
-                    "to": [to],
-                    "subject": subject,
-                    "html": html,
-                    "text": text,
-                    "tags": [{"name": "kind", "value": "report"}],
-                },
-                timeout=SEND_TIMEOUT_S,
+                RESEND_URL, headers=http_headers, json=body, timeout=SEND_TIMEOUT_S
             )
         except httpx.HTTPError as exc:
             raise EmailError(type(exc).__name__) from exc

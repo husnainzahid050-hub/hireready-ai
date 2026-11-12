@@ -9,15 +9,30 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import __version__
 from app.core.body_limit import BodySizeLimitMiddleware
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 from app.core.errors import register_error_handlers
 from app.core.headers import SecurityHeadersMiddleware
 from app.core.logging import configure_logging, get_logger, request_id_var, safe_request_id
-from app.routers import health, interview, report, sessions
+from app.routers import cron, health, interview, reminders, report, sessions
 
 configure_logging()
 log = get_logger("app")
 settings = get_settings()
+
+
+def check_startup(s: Settings) -> None:
+    """Fail fast in production on a broken configuration (SPEC 9: secrets validated at startup);
+    elsewhere only log. Warnings name controls that are switched off, never secret values."""
+    errors, warnings = s.startup_problems()
+    for w in warnings:
+        log.warning("config_warning", extra={"extra_fields": {"problem": w}})
+    if errors and s.is_production:
+        raise RuntimeError("Invalid production configuration: " + "; ".join(errors))
+    for e in errors:
+        log.warning("config_error", extra={"extra_fields": {"problem": e}})
+
+
+check_startup(settings)
 
 app = FastAPI(
     title="HireReady AI API",
@@ -77,3 +92,5 @@ app.include_router(sessions.router, prefix="/api/v1")
 app.include_router(interview.router, prefix="/api/v1")
 app.include_router(report.router, prefix="/api/v1")
 app.include_router(report.public_router, prefix="/api/v1")
+app.include_router(reminders.router, prefix="/api/v1")
+app.include_router(cron.router, prefix="/api/v1")

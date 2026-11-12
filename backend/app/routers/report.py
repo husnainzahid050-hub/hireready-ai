@@ -23,11 +23,12 @@ from uuid import UUID
 from fastapi import APIRouter, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 
+from app.core.budget import reserve_llm_calls
 from app.core.config import get_settings
 from app.core.errors import AI_UNAVAILABLE_MESSAGE, AppError
 from app.core.logging import get_logger
 from app.core.quotas import consume_quota
-from app.core.rate_limit import enforce_rate_limit
+from app.core.rate_limit import enforce_rate_limit, enforce_subject_limit
 from app.core.security import hash_token
 from app.core.sse import BudgetExceededError, Event, paced, sse
 from app.db.client import SupabaseRest, get_db
@@ -42,6 +43,7 @@ from app.schemas.report import (
     ShareInfo,
     ShareRequest,
 )
+from app.services import automation
 from app.services import email as email_service
 from app.services import report as service
 from app.services.llm import LLMError, get_llm
@@ -157,6 +159,7 @@ async def generate_report(
 
     try:
         await enforce_rate_limit(request, "report")
+        await reserve_llm_calls("report", demo=bool(session.get("is_demo")))
         await consume_quota(db, session_id, "report")
     except Exception:
         await release()
@@ -169,7 +172,8 @@ async def generate_report(
         slow_event=SLOW_EVENT,
         fallbacks=lambda: llm.fallbacks,
     )
-    return _stream(events, on_close=release)
+    # Phase 7: webhook, opted-in report email and reminder confirmation, after `done`.
+    return _stream(automation.after_report(events, db, session), on_close=release)
 
 
 @router.get("/report", response_model=ReportResponse)
@@ -266,6 +270,8 @@ async def email_report(
     if not to:
         raise AppError("email_required", "Enter the email address to send the report to.", 422)
     await enforce_rate_limit(request, "email")
+    # Per recipient across all sessions (3/day): HireReady can't be used to flood one inbox.
+    await enforce_subject_limit("email_recipient", hash_token(to.strip().lower())[:32])
     await consume_quota(db, session_id, "email")
     base = get_settings().app_base_url.rstrip("/")
     link = f"{base}/session/{session_id}/report"

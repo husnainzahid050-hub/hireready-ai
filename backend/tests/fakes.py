@@ -48,6 +48,8 @@ def _match(row: dict[str, Any], key: str, cond: str) -> bool:
         return str(row.get(key)) == cond[3:]
     if cond.startswith("lt."):
         return row.get(key) is not None and str(row.get(key)) < cond[3:]
+    if cond.startswith("lte."):
+        return row.get(key) is not None and str(row.get(key)) <= cond[4:]
     if cond == "not.is.null":
         return row.get(key) is not None
     if cond.startswith("in.("):
@@ -80,6 +82,7 @@ class FakeDB:
         self.t: dict[str, list[dict[str, Any]]] = {}
         self.usage: dict[tuple[str, str], int] = {}  # session_usage (quota counters)
         self.rpc_calls: list[str] = []
+        self.demo_cache: dict[str, Any] | None = None  # gap_analyses row copy_demo_analysis copies
 
     def rows(self, table: str) -> list[dict[str, Any]]:
         return self.t.setdefault(table, [])
@@ -156,6 +159,17 @@ class FakeDB:
             ids = {str(r["id"]) for r in doomed_rows}
             self.usage = {k: v for k, v in self.usage.items() if k[0] not in ids}
 
+    def _copy_demo(self, sid: str) -> bool:
+        is_demo = any(s.get("is_demo") for s in self._filter("sessions", {"id": f"eq.{sid}"}))
+        if self.demo_cache is None or not is_demo:
+            return False
+        if self._filter("gap_analyses", {"session_id": f"eq.{sid}"}):
+            return False
+        self.rows("gap_analyses").append({**self.demo_cache, "session_id": sid})
+        for s in self._filter("sessions", {"id": f"eq.{sid}"}):
+            s["status"] = "analyzed"
+        return True
+
     async def rpc(self, fn: str, args: dict[str, Any]) -> Any:
         self.rpc_calls.append(fn)
         if fn == "consume_quota":  # supabase/migrations/20261106000004_security.sql
@@ -175,6 +189,8 @@ class FakeDB:
                 s["analysis_started_at"] = datetime.now(UTC).isoformat()
                 return True
             return False
+        if fn == "copy_demo_analysis":  # 20261112000007; a test sets self.demo_cache to opt in
+            return self._copy_demo(args["p_session_id"])
         assert fn == "hybrid_search"
         f = args["filter"]
         if f["source"] == "cv":

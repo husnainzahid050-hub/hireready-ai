@@ -13,11 +13,18 @@ log = get_logger(__name__)
 class AppError(Exception):
     """Raise this for expected, user-facing errors."""
 
-    def __init__(self, code: str, message: str, status_code: int = 400) -> None:
+    def __init__(
+        self,
+        code: str,
+        message: str,
+        status_code: int = 400,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.status_code = status_code
+        self.headers = headers  # e.g. Retry-After on 503 daily_budget_exhausted
 
 
 def session_not_found() -> AppError:
@@ -41,7 +48,9 @@ def error_body(code: str, message: str) -> dict[str, dict[str, str]]:
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppError)
     async def _app_error(_: Request, exc: AppError) -> JSONResponse:
-        return JSONResponse(error_body(exc.code, exc.message), status_code=exc.status_code)
+        return JSONResponse(
+            error_body(exc.code, exc.message), status_code=exc.status_code, headers=exc.headers
+        )
 
     @app.exception_handler(StarletteHTTPException)
     async def _http_error(_: Request, exc: StarletteHTTPException) -> JSONResponse:
