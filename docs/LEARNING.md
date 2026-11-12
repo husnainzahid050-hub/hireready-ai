@@ -639,3 +639,77 @@ We send **metadata only**: no prompt, no output, because both contain CV and tra
 trade-off is that a trace shows *that* a call was slow or failed, not *what* it said. All calls in
 one HTTP request share a trace id derived from the request id, so an analysis shows up as one trace
 with its 3-4 LLM spans. Any tracing error is swallowed: observability must never break a request.
+
+## Phase 5: Scoring and report (2026-11-12)
+
+### 1. Let code do the maths, let the model do the words
+Every number in the report is computed in
+[backend/app/services/report.py](../backend/app/services/report.py) from scores that were already
+saved during the interview: a weighted mean per answer, a 70/30 blend when there was a follow-up,
+and readiness = 0.75 × interview + 0.25 × CV match. The model writes only text (the hiring-manager
+reaction, flags, themes and the plan). Why: numbers from an LLM drift between runs and can be talked
+into anything by a transcript; numbers from code are repeatable, testable and can be shown to the
+user as a formula ("How is this calculated?"). The model's one judgement, the verdict, is
+**clamped** to at most one step away from what the score implies.
+
+### 2. Calibration lives in the rubric, not the report
+"Calibrated scoring" happens per answer, in the interviewer's `evaluate_answer` node: the prompt
+includes the rubric's 1/3/5 **anchor answers** (few-shot examples of a weak, an average and a strong
+answer) and runs at low temperature. The report doesn't re-score; it aggregates. Two scorers
+disagreeing would be worse than one consistent one.
+
+### 3. Rounding is a design decision
+Python's `round(82.5)` is `82` ("banker's rounding": halves go to the even number). Users expect
+`83`. Floats add a second trap: `4.3` is stored as `4.2999…`. `round_half_up` first rounds to 6
+decimals (removing the float noise), then adds 0.5 and floors. A unit test pins both cases.
+
+### 4. Evidence quotes again, now for transcripts
+The same anti-hallucination guard as the CV analysis: a flag's quote must appear in the transcript
+of the answer it points at ([evidence.py](../backend/app/services/evidence.py) normalizes spacing,
+quotes and case first). If not, the quote is dropped and the UI never shows it. On the page,
+verified quotes are highlighted inside the transcript with `<mark>`, so you can see exactly which
+words earned the score.
+
+### 5. Stream what is ready
+The report stream sends an `overview` event (readiness, question cards, speech) the moment the code
+finishes, before the one slow LLM call. The page renders those sections at once and shows
+placeholders only for the AI-written parts. If the LLM step fails, the placeholders turn into a
+static message (never a skeleton that pulses forever) and the computed parts stay.
+
+### 6. A database row as a lock
+Two tabs could both start a report. Instead of a new SQL function, the `reports` primary key is the
+lock: the first request inserts a placeholder `{"state": "generating"}`; the second insert fails with
+a unique violation (HTTP 409 from PostgREST) and that request waits for the first one's result. A
+placeholder older than 120 s belongs to a crashed run and is replaced. The lesson from the
+integration pass applies again: check-and-act in one atomic step, and give every lock an expiry.
+
+### 7. Share links: unguessable, revocable, unindexed
+A share token is 32 random bytes (`secrets.token_urlsafe(32)`, 256 bits): guessing one is hopeless.
+Revoking sets it to null, so the old URL returns 404. The public endpoint returns a **redacted**
+copy (no session id, CV text or email; emails and phone numbers spoken in answers are masked).
+Hiding a page from search engines needs `noindex` (meta tag and `X-Robots-Tag` header), **not** a
+`robots.txt` Disallow: a crawler that may not fetch the page never sees its noindex, and can still
+index the bare URL if someone links it. `Referrer-Policy: no-referrer` stops the token leaking to
+the learning-resource sites the plan links to, and the Open Graph text stays generic because link
+previews are cached after a link is revoked.
+
+### 8. Email behind an interface, off by default
+[email.py](../backend/app/services/email.py) defines a tiny `EmailProvider` protocol (`send(...)`)
+and one implementation that calls Resend's HTTP API with httpx: no SDK, one less dependency. Until
+`RESEND_API_KEY` and `EMAIL_FROM` exist, the endpoint answers 503 `email_not_configured` and the
+button explains why it is disabled. The email is a summary (band, top fixes, day 1) because emails
+get forwarded and Gmail clips long ones; transcripts never go in. An `Idempotency-Key` (session +
+hashed address + report version) makes a double click send one email.
+
+### 9. Print CSS instead of a PDF library
+"Save as PDF" is the browser's print dialog plus `@media print` rules in
+[globals.css](../frontend/app/globals.css): force the light theme, hide the header, footer and
+buttons, open every `<details>` on `beforeprint`, avoid page breaks inside small blocks, print link
+URLs after resource links. Chromium ignores `break-inside: avoid` on flex/grid children, so the
+cards are made blocks in print. The e2e test asserts a 6-question report fits on 5 A4 pages.
+
+### 10. Deleting is one statement
+Every table references `sessions(id) ON DELETE CASCADE`, so "Delete my data" is a single
+`DELETE FROM sessions WHERE id = …` and Postgres removes documents, chunks, analysis, questions,
+answers, interview state, the report (and with it the share link), reminders and quota counters.
+The migration smoke test checks the cascade on a real Postgres.

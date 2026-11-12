@@ -157,6 +157,132 @@ body {
   background: color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
+/*
+ * Print / Save as PDF (Phase 5 report). No PDF library: the browser's print engine does it.
+ * Light theme always, chrome hidden (print:hidden on header, footer, action bar), every
+ * <details> opened by a beforeprint listener (components/report/report-actions.tsx).
+ */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-muted: #fafafa;
+    --surface-sunken: #f4f4f5;
+    --border: #d4d4d8;
+    --border-strong: #a1a1aa;
+    --fg: #18181b;
+    --fg-muted: #3f3f46;
+    --fg-subtle: #52525b;
+    --accent-soft: #eef2ff;
+    --accent-soft-fg: #3730a3;
+    --link: #3730a3;
+    --success-soft: #ecfdf5;
+    --success-fg: #065f46;
+    --warning-soft: #fffbeb;
+    --warning-fg: #92400e;
+    --shadow-card-v: none;
+    --shadow-raised-v: none;
+    color-scheme: light;
+  }
+  html {
+    font-size: 9.5pt;
+  }
+  /* Compact layout: the screen spacing would push 6 questions past 5 A4 pages. */
+  .report-page {
+    padding: 0 !important;
+  }
+  .report-page .report-block,
+  .report-page .report-card > details > div,
+  .report-page .report-card > details > summary {
+    padding: 8pt 10pt !important;
+  }
+  .report-page .space-y-6 > :not(:last-child) {
+    margin-bottom: 8pt !important;
+  }
+  .report-page .space-y-6 > :not(:first-child) {
+    margin-top: 0 !important;
+  }
+  .print-only {
+    display: block;
+  }
+  /* Gauge, bars and badges keep their colour; everything else may drop backgrounds. */
+  .print-exact {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  /* Chromium ignores break-inside on flex/grid children, so the cards themselves are blocks. */
+  .report-card,
+  .report-block {
+    display: block;
+    break-inside: avoid;
+  }
+  /* A tall question card may split across pages (whole-card "avoid" left half-empty pages),
+     but its header stays with the first lines of the card. */
+  .report-page li.report-card[id^="q"] {
+    break-inside: auto;
+  }
+  .report-page .report-card summary {
+    break-after: avoid;
+  }
+  /* The five dimension rows (each with its reason) side by side: halves the card height. */
+  .report-page .dim-list {
+    columns: 2;
+    column-gap: 16pt;
+  }
+  .report-page .dim-list > li {
+    break-inside: avoid;
+  }
+  .report-page .space-y-4 > :not(:last-child),
+  .report-page .space-y-5 > :not(:last-child) {
+    margin-bottom: 5pt !important;
+  }
+  .report-page .space-y-4 > :not(:first-child),
+  .report-page .space-y-5 > :not(:first-child) {
+    margin-top: 0 !important;
+  }
+  /* Plan: one compact row per day instead of a bordered card each. */
+  .report-page .plan-list > li > details {
+    border: 0;
+  }
+  .report-page .plan-list > li > details > summary,
+  .report-page .plan-list > li > details > div {
+    padding: 1pt 0 1pt 0 !important;
+  }
+  .report-page .plan-list > li > details > div {
+    padding-left: 30pt !important;
+  }
+  .report-page .plan-list > :not(:first-child) {
+    margin-top: 2pt !important;
+  }
+  .report-page h2,
+  .report-page h3,
+  .report-page h4 {
+    break-after: avoid;
+  }
+  .report-page summary {
+    list-style: none;
+  }
+  .report-page summary::-webkit-details-marker {
+    display: none;
+  }
+  /* Resource links: print the URL after the hostname so the plan is usable on paper. */
+  .report-page a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    word-break: break-all;
+  }
+  dialog {
+    display: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

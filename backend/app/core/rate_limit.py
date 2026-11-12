@@ -42,6 +42,8 @@ POLICIES: Final[dict[str, Policy]] = {
     "analyze": Policy(limit=10, window_s=3600),
     "interview_start": Policy(limit=3, window_s=86400),  # "3 full interviews/day per guest IP"
     "interview_answer": Policy(limit=30, window_s=3600),  # "30 answer submissions/hour"
+    "report": Policy(limit=10, window_s=3600),  # fresh report builds (cached reads are free)
+    "email": Policy(limit=5, window_s=3600),
 }
 
 

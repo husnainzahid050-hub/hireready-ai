@@ -106,3 +106,152 @@ export type SpeechMetrics = {
   long_pauses: number;
   longest_pause_seconds: number;
 };
+
+// ------------------------------------------------------------------ report (Phase 5)
+// Mirrors backend/app/schemas/report.py. Every number is computed in code on the server.
+
+export type HiringVerdict = "strong_yes" | "lean_yes" | "lean_no" | "no";
+export type ReadinessBand = "not_ready" | "getting_there" | "interview_ready" | "strong";
+export type AnswerLevel = "below_junior" | "junior" | "mid" | "senior";
+export type Dimension =
+  "relevance" | "technical_accuracy" | "depth" | "structure" | "communication";
+
+export type DimensionScore = {
+  key: Dimension;
+  label: string;
+  weight: number;
+  score: number | null; // 1-5; null = not applicable
+  justification: string;
+  evidence_quote: string | null; // verified against the transcript
+};
+
+export type AnswerSpeech = {
+  duration_seconds: number | null;
+  words_per_minute: number | null;
+  filler_count: number;
+  filler_breakdown: Record<string, number>;
+  long_pauses: number;
+};
+
+export type FollowUpReport = {
+  label: string;
+  question: string;
+  answer: string;
+  average: number;
+  score: number;
+  handling: string;
+  tip: string;
+};
+
+export type QuestionReport = {
+  label: string;
+  order: number;
+  type: string;
+  competency: string | null;
+  question: string;
+  answer: string;
+  dimensions: DimensionScore[];
+  average: number;
+  score: number;
+  level: AnswerLevel;
+  level_label: string;
+  summary: string;
+  what_interviewer_wanted: string;
+  improved_answer: string;
+  tip: string;
+  follow_up: FollowUpReport | null;
+  speech: AnswerSpeech | null;
+};
+
+export type Readiness = {
+  score: number;
+  band: ReadinessBand;
+  band_label: string;
+  interview_score: number;
+  match_score: number | null;
+  formula: string;
+  weights: Record<string, number>;
+  next_band_label: string | null;
+  points_to_next_band: number | null;
+};
+
+export type Flag = {
+  title: string;
+  detail: string;
+  answer_ref: string;
+  question: string;
+  quote: string | null;
+  quote_verified: boolean;
+};
+
+export type EmployerView = {
+  verdict: HiringVerdict;
+  verdict_label: string;
+  score_verdict: HiringVerdict;
+  reaction: string;
+  green_flags: Flag[];
+  red_flags: Flag[];
+};
+
+export type Theme = { title: string; detail: string; answer_refs: string[] };
+
+export type SpeechSummary = {
+  voice_answers: number;
+  average_wpm: number | null;
+  pace: "slow" | "ideal" | "fast" | null;
+  guidance: string;
+  filler_total: number;
+  filler_breakdown: Record<string, number>;
+  long_pauses_total: number;
+  rows: {
+    label: string;
+    words_per_minute: number | null;
+    filler_count: number;
+    long_pauses: number;
+    duration_seconds: number | null;
+  }[];
+};
+
+export type Report = {
+  version: number;
+  state: "ready";
+  generated_at: string;
+  generated_by: "llm" | "fallback";
+  role_title: string;
+  readiness: Readiness;
+  employer: EmployerView;
+  questions: QuestionReport[];
+  speech: SpeechSummary | null;
+  strengths: Theme[];
+  improvements: Theme[];
+  open_gaps: string[];
+  prep_plan: PrepDay[];
+};
+
+/** The code-computed part, streamed before the LLM write-up (SSE `overview`). */
+export type ReportOverview = {
+  readiness: Readiness;
+  score_verdict: HiringVerdict;
+  questions: QuestionReport[];
+  speech: SpeechSummary | null;
+};
+
+export type ShareInfo = { active: boolean; token: string | null; path: string | null };
+
+export type ReportResponse = {
+  status: "none" | "generating" | "ready";
+  report: Report | null;
+  share: ShareInfo;
+  email_configured: boolean;
+  emailed_at: string | null;
+  expires_at: string | null;
+  is_demo: boolean;
+};
+
+export type SharedReportResponse = { report: Report; expires_at: string | null };
+
+export type ReportEvent =
+  | { event: "status"; data: { step: string; message: string } }
+  | { event: "overview"; data: ReportOverview }
+  | { event: "done"; data: Report }
+  | { event: "error"; data: { code: string; message: string } };
