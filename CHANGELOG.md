@@ -4,6 +4,37 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### UX fixes: analysis, interview and report pages (2026-11-12)
+
+Applies `docs/UX_REVIEW.md` (items marked there). After screenshots: `docs/ux-review/after/`.
+
+#### Changed
+- **Analysis**: no duplicate back link; a summary row under the title (score, verbal band,
+  "N strong · N weak · N gaps", "Start mock interview") with the bottom CTA kept; progress pills
+  collapse to one "Analysis complete" line; a stopped run shows static "Not available" states, a
+  real "Try again" button and marks the step it stopped on (nothing pulses); skills sorted gaps
+  first with filter chips; "Verified in your CV" badge; token-coloured gauge with a verbal label;
+  7-day plan as `<details>` per day (day 1 open) with marked external links; styled "How is this
+  calculated?"; strengths empty state links to `#plan`. All zinc/indigo literals now tokens.
+- **Interview**: no back link; site footer hidden on the interview (`data-focus-mode`); question
+  caption on `bg-surface-sunken` with an accent border; transcript answers at 14 px; "Send
+  answer" uses `aria-disabled` plus a reason line instead of a faded button; keyboard hint hidden
+  on touch; practice switch uses `peer-checked:[&>span]:…`; voice controls on tokens and shared
+  icons. Completion screen leads with main's "See your report" CTA, "Back to your analysis" second.
+- New `components/ui/notice.tsx` (`Notice`, `Spinner`) and icons (`ExternalLink`, `ChevronDown`,
+  `Keyboard`, `Volume`, `VolumeOff`, `Replay`). Browser tests launch Chrome with `--mute-audio`.
+
+#### Added
+- **Daily-reminder opt-in on the report page** (`report-actions.tsx`, `subscribeReminders()` in
+  `lib/api.ts`): a separate, unticked checkbox under the report email form for
+  `POST /sessions/{id}/reminders`, with the double opt-in copy ("We'll send one confirmation
+  email first"). Off with the email panel when email isn't configured; a 503
+  `reminders_not_configured` disables it with the server's message. Covered in `report.mock.py`.
+
+#### Checks
+- `npm run lint`, `format:check`, `typecheck`, `build` clean; `e2e/analysis`, `interview`,
+  `voice`, `report` and `reminders` `.mock.py` all pass against `next start`.
+
 ### Phase 7: Security hardening and automation (2026-11-12)
 
 #### Added
