@@ -24,7 +24,7 @@ import httpx
 from app.core.config import Settings, get_settings
 from app.core.http import get_http_client
 from app.core.logging import get_logger
-from app.schemas.report import Flag, Report
+from app.schemas.report import Report
 
 log = get_logger(__name__)
 
@@ -99,81 +99,106 @@ def get_email_provider(settings: Settings | None = None) -> EmailProvider | None
 _MUTED = "color:#555;font-size:13px"
 
 
-def _flag_items(flags: list[Flag]) -> str:
-    return "".join(
-        f"<li><strong>{escape(f.title)}</strong> ({escape(f.answer_ref)}): {escape(f.detail)}</li>"
-        for f in flags
+def _button(href: str, label: str) -> str:
+    return (
+        f'<p><a href="{escape(href, quote=True)}" style="display:inline-block;padding:10px 16px;'
+        'background:#4f46e5;color:#fff;border-radius:8px;text-decoration:none">'
+        f"{escape(label)}</a></p>"
     )
 
 
 def render_report_email(
     report: Report, report_link: str, share_link: str | None = None
 ) -> tuple[str, str, str]:
-    """(subject, html, text). Self-contained: the report page needs the guest token that lives
-    in the browser the interview was taken in, so the email carries the essentials itself."""
+    """(subject, html, text): a short summary + link, never the transcripts (they are sensitive
+    and emails get forwarded) and well under Gmail's ~102 KB clipping limit.
+
+    Contents: band + score, the hiring signal, the top 3 fixes, per-question scores, Day 1 of the
+    plan in full and the other days' focus. The session link only works in the browser that holds
+    the guest token, so an active share link (if the user created one) is offered too."""
     r, e = report.readiness, report.employer
     role = report.role_title or "your target role"
-    subject = f"Your HireReady interview report: {r.score}/100 ({r.band_label})"
+    subject = f"Your HireReady interview report: {r.band_label}, {r.score}/100"
+    fixes = report.improvements[:3]
+    day1, later = (report.prep_plan[0], report.prep_plan[1:]) if report.prep_plan else (None, [])
+    next_line = (
+        f"{r.points_to_next_band} points to {r.next_band_label}."
+        if r.next_band_label and r.points_to_next_band is not None
+        else ""
+    )
 
-    q_rows = "".join(
-        f"<tr><td style='padding:4px 8px'>{escape(q.label)}</td>"
-        f"<td style='padding:4px 8px'>{q.score}/100</td>"
-        f"<td style='padding:4px 8px'>{escape(q.tip)}</td></tr>"
-        for q in report.questions
-    )
-    plan_items = "".join(
-        f"<li><strong>Day {d.day}: {escape(d.focus)}</strong><br>{escape('; '.join(d.tasks))}</li>"
-        for d in report.prep_plan
-    )
-    speech_html = (
-        f"<h3>Speaking</h3><p>{escape(report.speech.guidance)} Filler words: "
-        f"{report.speech.filler_total}. Long pauses: {report.speech.long_pauses_total}.</p>"
-        if report.speech
-        else ""
-    )
-    share_html = (
-        f'<p>Share link (read-only): <a href="{escape(share_link, quote=True)}">'
-        f"{escape(share_link)}</a></p>"
-        if share_link
-        else ""
-    )
     html = (
-        "<div style='font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:640px;"
+        "<div style='font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:600px;"
         "line-height:1.5;color:#111'>"
-        f"<h2>Your mock interview report for {escape(role)}</h2>"
-        f"<p style='font-size:18px'><strong>Readiness: {r.score}/100</strong> "
-        f"({escape(r.band_label)}). Hiring signal: <strong>{escape(e.verdict_label)}</strong>.</p>"
-        f"<p style='{_MUTED}'>{escape(r.formula)}</p>"
-        f"<h3>The hiring manager's take</h3><p>{escape(e.reaction)}</p>"
-        f"<h3>Green flags</h3><ul>{_flag_items(e.green_flags)}</ul>"
-        f"<h3>Red flags</h3><ul>{_flag_items(e.red_flags)}</ul>"
-        "<h3>Per question</h3><table style='border-collapse:collapse;font-size:14px'>"
-        "<tr><th align='left' style='padding:4px 8px'>Q</th>"
-        "<th align='left' style='padding:4px 8px'>Score</th>"
-        f"<th align='left' style='padding:4px 8px'>One tip</th></tr>{q_rows}</table>"
-        f"{speech_html}"
-        f"<h3>Your 7-day plan</h3><ol style='padding-left:0;list-style:none'>{plan_items}</ol>"
-        f"{share_html}"
-        f'<p><a href="{escape(report_link, quote=True)}">Open the full report</a> '
-        "(works in the browser you took the interview in).</p>"
-        f"<p style='{_MUTED}'>You asked HireReady AI to send this email; we don't add you to "
-        "any list. Guest data is deleted automatically after 7 days.</p></div>"
+        f"<h2 style='margin-bottom:4px'>Your practice interview report: {escape(role)}</h2>"
+        f"<p style='font-size:20px;margin:8px 0'><strong>{escape(r.band_label)}</strong> "
+        f"&middot; {r.score}/100</p>"
+        f"<p style='{_MUTED}'>Interview {r.interview_score}"
+        + (f" &middot; CV match {r.match_score}" if r.match_score is not None else "")
+        + f". {escape(next_line)} Simulated hiring-manager signal: "
+        f"{escape(e.verdict_label)}.</p>"
+        + (
+            "<h3>Top things to fix</h3><ol>"
+            + "".join(
+                f"<li><strong>{escape(t.title)}</strong>: {escape(t.detail)}</li>" for t in fixes
+            )
+            + "</ol>"
+            if fixes
+            else ""
+        )
+        + "<h3>Per question</h3><ul>"
+        + "".join(
+            f"<li>{escape(q.label)}: {escape(q.level_label)}, {q.score}/100</li>"
+            for q in report.questions
+        )
+        + "</ul>"
+        + (
+            f"<h3>Day 1: {escape(day1.focus)}</h3><ul>"
+            + "".join(f"<li>{escape(t)}</li>" for t in day1.tasks)
+            + "</ul>"
+            if day1
+            else ""
+        )
+        + (
+            "<p style='color:#555'>Next: "
+            + escape(" · ".join(f"Day {d.day} {d.focus}" for d in later))
+            + "</p>"
+            if later
+            else ""
+        )
+        + (_button(share_link, "View the full report") if share_link else "")
+        + (
+            f'<p><a href="{escape(report_link, quote=True)}">Open your report</a> '
+            "(works in the browser you took the interview in).</p>"
+        )
+        + f"<p style='{_MUTED}'>You asked HireReady AI to send this email; we don't add you to "
+        "any list. AI-generated practice feedback, not a hiring decision. Guest data is "
+        "deleted automatically after 7 days.</p></div>"
     )
-    text = (
-        f"Your mock interview report for {role}\n\n"
-        f"Readiness: {r.score}/100 ({r.band_label}). Hiring signal: {e.verdict_label}.\n"
-        f"{r.formula}\n\n"
-        f"The hiring manager's take:\n{e.reaction}\n\n"
-        "Green flags:\n"
-        + "".join(f"- {f.title} ({f.answer_ref}): {f.detail}\n" for f in e.green_flags)
-        + "\nRed flags:\n"
-        + "".join(f"- {f.title} ({f.answer_ref}): {f.detail}\n" for f in e.red_flags)
-        + "\nPer question:\n"
-        + "".join(f"- {q.label}: {q.score}/100. Tip: {q.tip}\n" for q in report.questions)
-        + (f"\nSpeaking: {report.speech.guidance}\n" if report.speech else "")
-        + "\nYour 7-day plan:\n"
-        + "".join(f"Day {d.day}: {d.focus}. {'; '.join(d.tasks)}\n" for d in report.prep_plan)
-        + (f"\nShare link (read-only): {share_link}\n" if share_link else "")
-        + f"\nFull report (in the browser you used): {report_link}\n"
-    )
+    lines = [
+        f"Your practice interview report: {role}",
+        "",
+        f"{r.band_label} - {r.score}/100",
+        f"Interview {r.interview_score}"
+        + (f", CV match {r.match_score}" if r.match_score is not None else "")
+        + f". {next_line} Simulated hiring-manager signal: {e.verdict_label}.",
+    ]
+    if fixes:
+        lines += ["", "Top things to fix:"]
+        lines += [f"{i}. {t.title}: {t.detail}" for i, t in enumerate(fixes, 1)]
+    lines += ["", "Per question:"]
+    lines += [f"- {q.label}: {q.level_label}, {q.score}/100" for q in report.questions]
+    if day1:
+        lines += ["", f"Day 1: {day1.focus}"] + [f"- {t}" for t in day1.tasks]
+    if later:
+        lines.append("Next: " + " | ".join(f"Day {d.day} {d.focus}" for d in later))
+    if share_link:
+        lines += ["", f"Full report (read-only link): {share_link}"]
+    lines += [
+        "",
+        f"Your report (in the browser you used): {report_link}",
+        "",
+        "AI-generated practice feedback, not a hiring decision.",
+    ]
+    text = "\n".join(lines) + "\n"
     return subject, html, text

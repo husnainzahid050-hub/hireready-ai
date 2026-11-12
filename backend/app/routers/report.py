@@ -38,6 +38,7 @@ from app.schemas.report import (
     EmailResponse,
     Report,
     ReportResponse,
+    SharedReportResponse,
     ShareInfo,
     ShareRequest,
 )
@@ -60,7 +61,19 @@ SLOW_EVENT: Event = (
     },
 )
 SHARE_TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{32,64}$")
-NOINDEX_HEADERS = {"X-Robots-Tag": "noindex, nofollow", "Cache-Control": "no-store"}
+# The token is in the URL: never index, archive or cache the page, never leak it as a Referer.
+NOINDEX_HEADERS = {
+    "X-Robots-Tag": "noindex, nofollow, noarchive",
+    "Cache-Control": "private, no-store",
+    "Referrer-Policy": "no-referrer",
+}
+GONE_MESSAGE = "This report link was revoked, has expired, or the report was deleted by its owner."
+
+
+def mask_email(address: str) -> str:
+    """ "ali.raza@gmail.com" -> "a•••@gmail.com" (enough to recognise, not to harvest)."""
+    local, _, domain = address.strip().partition("@")
+    return f"{local[:1]}•••@{domain}"
 
 
 def _require_completed(session: dict[str, Any]) -> None:
@@ -171,6 +184,8 @@ async def get_report(session_id: UUID, token: GuestToken = NO_TOKEN) -> ReportRe
         share=_share(row.share_token if row and row.report else None),
         email_configured=email_service.email_configured(),
         emailed_at=row.emailed_at if row else None,
+        expires_at=session.get("expires_at"),
+        is_demo=bool(session.get("is_demo")),
     )
 
 
@@ -200,22 +215,25 @@ async def share_report(
 @public_router.get("/shared/{share_token}")
 async def shared_report(share_token: str) -> JSONResponse:
     if not SHARE_TOKEN_RE.fullmatch(share_token):
-        raise AppError("report_not_found", "This link is invalid or was revoked.", 404)
+        raise AppError("report_not_found", GONE_MESSAGE, 404)
     db = get_db()
     rows = await db.select(
         "reports",
         {"select": "session_id,report", "share_token": f"eq.{share_token}", "limit": "1"},
     )
     if not rows or (rows[0].get("report") or {}).get("state") != "ready":
-        raise AppError("report_not_found", "This link is invalid or was revoked.", 404)
+        raise AppError("report_not_found", GONE_MESSAGE, 404)
     sessions = await db.select(
         "sessions",
         {"select": "expires_at", "id": f"eq.{rows[0]['session_id']}", "limit": "1"},
     )
     if not sessions or datetime.fromisoformat(sessions[0]["expires_at"]) < datetime.now(UTC):
-        raise AppError("report_not_found", "This link is invalid or was revoked.", 404)
+        raise AppError("report_not_found", GONE_MESSAGE, 404)
     report = Report.model_validate(rows[0]["report"])
-    return JSONResponse({"report": service.shared_view(report)}, headers=NOINDEX_HEADERS)
+    body = SharedReportResponse(
+        report=service.shared_view(report), expires_at=sessions[0]["expires_at"]
+    )
+    return JSONResponse(body.model_dump(mode="json"), headers=NOINDEX_HEADERS)
 
 
 # ------------------------------------------------------------------ email
@@ -266,7 +284,7 @@ async def email_report(
     sent_at = datetime.now(UTC).isoformat()
     await db.update("reports", {"session_id": f"eq.{session_id}"}, {"emailed_at": sent_at})
     log.info("report_emailed", extra={"extra_fields": {"session_id": str(session_id)}})
-    return EmailResponse(sent=True, emailed_at=sent_at)
+    return EmailResponse(sent=True, emailed_at=sent_at, sent_to=mask_email(to))
 
 
 # ------------------------------------------------------------------ delete my data

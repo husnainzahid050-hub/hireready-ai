@@ -401,6 +401,12 @@ def band_for(score: int) -> tuple[Band, str, Verdict]:
     return BANDS[-1][1], BANDS[-1][2], BANDS[-1][3]  # pragma: no cover
 
 
+def next_band(score: int) -> tuple[int, str] | None:
+    """(threshold, label) of the band just above `score`, or None at the top band."""
+    above = [(t, label) for t, _, label, _ in BANDS if t > score]
+    return min(above) if above else None
+
+
 def clamp_verdict(proposed: Verdict, implied: Verdict) -> Verdict:
     """The LLM may disagree with the score by at most one step (e.g. lean_no -> lean_yes)."""
     p, i = VERDICT_ORDER.index(proposed), VERDICT_ORDER.index(implied)
@@ -490,6 +496,7 @@ def readiness(cards: list[QuestionReport], match_score: int | None) -> Readiness
         )
         weights = {"interview": INTERVIEW_WEIGHT, "cv_match": MATCH_WEIGHT}
     band, label, _ = band_for(score)
+    nxt = next_band(score)
     return Readiness(
         score=score,
         band=band,
@@ -498,6 +505,8 @@ def readiness(cards: list[QuestionReport], match_score: int | None) -> Readiness
         match_score=match_score,
         formula=formula,
         weights=weights,
+        next_band_label=nxt[1] if nxt else None,
+        points_to_next_band=nxt[0] - score if nxt else None,
     )
 
 
@@ -575,6 +584,12 @@ null when the flag is about something missing.
 and one concrete next step.
 - prep_plan: exactly 7 days, each with a focus, 2-4 small tasks, and resource_urls copied ONLY \
 from ALLOWED_RESOURCES (or an empty list). Target the weakest answers and dimensions first.
+- Talk about the ANSWER, never the person: "Q2 named the tool but not why you chose it", not \
+"you lack depth" or "you seem nervous". No judgements of confidence, personality, accent or \
+appearance.
+- Each improvement starts with a verb and gives ONE next action. Calibrate to the role level \
+("solid for a junior role"). No empty praise ("Great job!").
+- prep_plan day 7 is always a re-test: redo a mock interview for this job and compare.
 - Write in plain, simple English."""
 
 

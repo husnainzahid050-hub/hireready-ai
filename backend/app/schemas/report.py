@@ -7,7 +7,7 @@ Two groups:
   computed in code from the per-answer scores saved during the interview, never by the LLM.
 """
 
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -112,6 +112,9 @@ class Readiness(BaseModel):
     match_score: int | None
     formula: str  # the exact arithmetic, shown to the user
     weights: dict[str, float]
+    # "6 points to Interview-ready" (computed from BANDS; None at the top band).
+    next_band_label: str | None = None
+    points_to_next_band: int | None = None
 
 
 class Flag(BaseModel):
@@ -185,6 +188,13 @@ class ReportResponse(BaseModel):
     share: ShareInfo
     email_configured: bool
     emailed_at: str | None
+    expires_at: str | None  # guest data auto-deletes then (shown in the footer)
+    is_demo: bool
+
+
+class SharedReportResponse(BaseModel):
+    report: dict[str, Any]  # redacted Report (see services.report.shared_view)
+    expires_at: str | None
 
 
 class ShareRequest(BaseModel):
@@ -199,3 +209,4 @@ class EmailRequest(BaseModel):
 class EmailResponse(BaseModel):
     sent: bool
     emailed_at: str
+    sent_to: str  # masked, e.g. "a•••@gmail.com" (never the full address in the UI or logs)

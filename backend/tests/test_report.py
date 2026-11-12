@@ -224,6 +224,7 @@ def test_formula_weights_and_renormalization() -> None:
     assert svc.band_for(78)[:2] == ("strong", "Strong")
     assert svc.band_for(62)[0] == "interview_ready"
     assert svc.band_for(44)[2] == "no"
+    assert svc.next_band(44) == (45, "Getting there") and svc.next_band(90) is None
 
 
 def test_verdict_is_clamped_to_one_step_from_score() -> None:
@@ -271,6 +272,7 @@ def test_report_end_to_end(monkeypatch: pytest.MonkeyPatch, db: FakeDB, client: 
     rd = r["readiness"]
     assert rd["interview_score"] == 53 and rd["match_score"] == 60 and rd["score"] == 55
     assert rd["band"] == "getting_there" and "0.75 × interview score 53" in rd["formula"]
+    assert rd["next_band_label"] == "Interview-ready" and rd["points_to_next_band"] == 7
 
     # ---- employer view: clamp + verified quotes only + valid refs only
     emp = r["employer"]
@@ -335,6 +337,7 @@ def test_cached_after_first_build(
     assert got["status"] == "ready" and got["report"] == first
     assert got["share"] == {"active": False, "token": None, "path": None}
     assert got["email_configured"] is False
+    assert got["is_demo"] is True and got["expires_at"]
 
 
 def test_get_before_generation(
@@ -487,8 +490,10 @@ def test_share_create_revoke_and_redaction(
 
     pub = client.get(f"/api/v1/reports/shared/{token}")
     assert pub.status_code == 200
-    assert pub.headers["x-robots-tag"].startswith("noindex")
-    assert pub.headers["cache-control"] == "no-store"
+    assert pub.headers["x-robots-tag"] == "noindex, nofollow, noarchive"
+    assert pub.headers["cache-control"] == "private, no-store"
+    assert pub.headers["referrer-policy"] == "no-referrer"
+    assert pub.json()["expires_at"]
     body = pub.text
     assert sid not in body and TOKEN not in body
     assert "ali@example.com" not in body and "1234567" not in body
@@ -544,7 +549,8 @@ class FakeEmail:
 def test_email_sends_escaped_summary_when_configured(
     monkeypatch: pytest.MonkeyPatch, db: FakeDB, client: TestClient
 ) -> None:
-    llm = ReportLLM(draft(hiring_manager_reaction="<script>alert(1)</script> fair answers"))
+    evil = [ThemeDraft(title="<script>alert(1)</script>", detail="d", answer_refs=["Q2"])]
+    llm = ReportLLM(draft(improvements=evil))
     install(monkeypatch, db, llm)
     fake = FakeEmail()
     monkeypatch.setattr(report_router.email_service, "get_email_provider", lambda: fake)
@@ -558,9 +564,12 @@ def test_email_sends_escaped_summary_when_configured(
     assert resp.status_code == 200 and resp.json()["sent"] is True
     mail = fake.sent[0]
     assert mail["to"] == "me@example.com" and "55/100" in mail["subject"]
-    assert "<script>" not in mail["html"] and "&lt;script&gt;" in mail["html"]
+    assert resp.json()["sent_to"] == "m•••@example.com"
+    assert "<script>" not in mail["html"]
+    assert A1[:30] not in mail["html"] and A1[:30] not in mail["text"]  # no transcripts
     assert f"/session/{sid}/report" in mail["text"]
-    assert "Day 7:" in mail["text"] and "Q2: 25/100" in mail["text"]  # self-contained
+    assert "Day 1: Day 0" in mail["text"] and "Q2: Below the junior bar, 25/100" in mail["text"]
+    assert "Top things to fix" in mail["text"] and "7 points to Interview-ready" in mail["text"]
     assert "/r/" not in mail["text"]  # no share link unless the user created one
     assert mail["key"] and "me@example.com" not in mail["key"]
     assert db.rows("reports")[0]["emailed_at"]
