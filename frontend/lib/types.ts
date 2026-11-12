@@ -58,7 +58,10 @@ export type SessionOptions = {
   difficulty: "junior" | "mid";
   interview_type: "technical" | "behavioral" | "mixed";
   email: string | null;
+  /** "Email me my report when it's ready" (unticked by default). */
   email_opt_in: boolean;
+  /** "Send me 7 daily prep emails" (separate consent, double opt-in by email). */
+  reminders_opt_in: boolean;
   consent: boolean;
 };
 

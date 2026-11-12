@@ -9,6 +9,7 @@ import { cn, focusRing } from "@/components/ui/cn";
 import { Checkbox, FieldError, Hint, Input, Label, Textarea } from "@/components/ui/field";
 import { Alert, Check, FileText, Upload, X } from "@/components/ui/icons";
 import { ApiError, createSession, uploadDocuments } from "@/lib/api";
+import { getTurnstileToken, TURNSTILE_FAILED_MESSAGE, turnstileEnabled } from "@/lib/turnstile";
 import type { SessionOptions } from "@/lib/types";
 
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -128,8 +129,11 @@ export function StartForm() {
     interview_type: "mixed",
     email: null,
     email_opt_in: false,
+    reminders_opt_in: false,
     consent: false,
   });
+  // Cloudflare Turnstile renders here when a session is created (off without a site key).
+  const challenge = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [attempted, setAttempted] = useState(false);
@@ -173,7 +177,18 @@ export function StartForm() {
       const options = { ...opts, email: opts.email?.trim() || null };
       const key = JSON.stringify(options);
       if (created.current?.options !== key) {
-        created.current = { id: (await createSession(options)).session_id, options: key };
+        let token: string | null = null;
+        if (turnstileEnabled && challenge.current) {
+          try {
+            token = await getTurnstileToken(challenge.current, "always");
+          } catch {
+            setError(TURNSTILE_FAILED_MESSAGE);
+            setBusy(false);
+            return;
+          }
+        }
+        const { session_id } = await createSession(options, false, token);
+        created.current = { id: session_id, options: key };
       }
       const session_id = created.current.id;
       await uploadDocuments(session_id, file, jd);
@@ -395,7 +410,7 @@ export function StartForm() {
       <Step n={4} title="Report and consent">
         <div className="space-y-3">
           <Label htmlFor="email">
-            Email <Hint>(optional, to receive your report)</Hint>
+            Email <Hint>(optional, only for the emails you tick below)</Hint>
           </Label>
           <Input
             id="email"
@@ -409,23 +424,46 @@ export function StartForm() {
                 ...opts,
                 email: e.target.value,
                 email_opt_in: e.target.value ? opts.email_opt_in : false,
+                reminders_opt_in: e.target.value ? opts.reminders_opt_in : false,
               })
             }
             className="sm:max-w-sm"
           />
-          <label
-            className={cn(
-              "flex items-center gap-3 text-sm",
-              opts.email ? "cursor-pointer" : "text-fg-subtle",
-            )}
-          >
-            <Checkbox
-              checked={opts.email_opt_in}
-              disabled={!opts.email}
-              onChange={(e) => setOpts({ ...opts, email_opt_in: e.target.checked })}
-            />
-            Send me daily prep-plan reminders (unsubscribe anytime)
-          </label>
+          {/* Two separate, unticked consents: one email vs a 7-day series (ICO guidance). */}
+          <fieldset className="space-y-2" disabled={!opts.email}>
+            <legend className="sr-only">Email options</legend>
+            <label
+              className={cn(
+                "flex items-start gap-3 text-sm",
+                opts.email ? "cursor-pointer" : "text-fg-subtle",
+              )}
+            >
+              <Checkbox
+                className="mt-0.5"
+                checked={opts.email_opt_in}
+                onChange={(e) => setOpts({ ...opts, email_opt_in: e.target.checked })}
+              />
+              <span>Email me my report when it&apos;s ready (one email)</span>
+            </label>
+            <label
+              className={cn(
+                "flex items-start gap-3 text-sm",
+                opts.email ? "cursor-pointer" : "text-fg-subtle",
+              )}
+            >
+              <Checkbox
+                className="mt-0.5"
+                checked={opts.reminders_opt_in}
+                onChange={(e) => setOpts({ ...opts, reminders_opt_in: e.target.checked })}
+              />
+              <span>
+                Send me 7 daily prep emails after the interview, then they stop.
+                <span className="text-fg-muted block">
+                  We email you once to confirm first. Unsubscribe in one click.
+                </span>
+              </span>
+            </label>
+          </fieldset>
         </div>
 
         <label
@@ -468,6 +506,7 @@ export function StartForm() {
 
       {/* ------------------------------------------------------------ submit */}
       <div className="border-border space-y-3 border-t pt-8 sm:pl-[3.25rem]">
+        {turnstileEnabled && <div ref={challenge} className="min-h-0" />}
         {error && (
           <div
             role="alert"
