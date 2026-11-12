@@ -95,6 +95,9 @@ def stream_cut_short(browser) -> None:
     expect(page.get_by_text("The connection closed before the analysis finished")).to_be_visible()
     expect(page.get_by_role("heading", name="Analysis stopped")).to_be_visible()
     expect(page.get_by_role("button", name="Try again")).to_be_visible()
+    # Nothing keeps pulsing after the run stopped (UX_REVIEW item 4).
+    expect(page.locator(".animate-pulse")).to_have_count(0)
+    expect(page.get_by_text("Not available").first).to_be_visible()
     page.context.close()
 
 
@@ -108,6 +111,7 @@ def slow_then_timeout(browser) -> None:
     # "slow" changed only the message: the progress stays on "Match skills".
     expect(page.locator("li[aria-current]")).to_have_count(1)
     expect(page.locator("li[aria-current]")).to_contain_text("Match skills")
+    expect(page.locator("li[aria-current]")).to_contain_text("(stopped)")
     page.context.close()
 
 

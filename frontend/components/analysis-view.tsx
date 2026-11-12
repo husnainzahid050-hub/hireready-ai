@@ -7,7 +7,7 @@ import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card as UiCard } from "@/components/ui/card";
 import { cn, focusRing } from "@/components/ui/cn";
-import { ArrowRight, Check, ChevronDown, ExternalLink } from "@/components/ui/icons";
+import { Alert, ArrowRight, Check, ChevronDown, ExternalLink } from "@/components/ui/icons";
 import { Notice } from "@/components/ui/notice";
 import { ApiError, getAnalysis, getToken, streamAnalysis } from "@/lib/api";
 import type {
@@ -113,7 +113,16 @@ function Pending({ lines = 3, stopped }: { lines?: number; stopped: boolean }) {
   );
 }
 
-function Progress({ step, done }: { step: string | null; done: boolean }) {
+function Progress({
+  step,
+  done,
+  stopped,
+}: {
+  step: string | null;
+  done: boolean;
+  /** The run ended with an error: the step it was on is marked stopped, nothing pulses. */
+  stopped: boolean;
+}) {
   const current = done
     ? STEPS.length
     : Math.max(
@@ -123,15 +132,17 @@ function Progress({ step, done }: { step: string | null; done: boolean }) {
   return (
     <ol className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4" aria-label="Analysis progress">
       {STEPS.map((s, i) => {
-        const state = i < current ? "done" : i === current && !done ? "active" : "todo";
+        const state =
+          i < current ? "done" : i === current && !done ? (stopped ? "stopped" : "active") : "todo";
         return (
           <li
             key={s.id}
-            aria-current={state === "active" ? "step" : undefined}
+            aria-current={state === "active" || state === "stopped" ? "step" : undefined}
             className={cn(
               "flex items-center gap-2 rounded-lg border px-3 py-2",
               state === "done" && "border-success-solid/30 bg-success-soft text-success-fg",
               state === "active" && "border-accent/40 bg-accent-soft text-accent-soft-fg",
+              state === "stopped" && "border-warning-solid/40 bg-warning-soft text-warning-fg",
               state === "todo" && "border-border text-fg-subtle",
             )}
           >
@@ -142,12 +153,15 @@ function Progress({ step, done }: { step: string | null; done: boolean }) {
                 aria-hidden
                 className="bg-accent size-2 shrink-0 animate-pulse rounded-full motion-reduce:animate-none"
               />
+            ) : state === "stopped" ? (
+              <Alert className="size-4 shrink-0" />
             ) : (
               <span aria-hidden className="bg-border-strong size-2 shrink-0 rounded-full" />
             )}
             <span>
               {s.label}
               {state === "done" && <span className="sr-only"> (done)</span>}
+              {state === "stopped" && <span className="sr-only"> (stopped)</span>}
             </span>
           </li>
         );
@@ -547,7 +561,7 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
             {s.restored ? " · reopened from your saved session" : ""}
           </p>
         ) : (
-          <Progress step={s.step} done={s.done} />
+          <Progress step={s.step} done={s.done} stopped={s.error !== null} />
         )}
       </header>
 
