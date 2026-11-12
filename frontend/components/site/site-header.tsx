@@ -30,7 +30,7 @@ export function Logo({ className }: { className?: string }) {
 /** Shared header. Server component: no client JS. */
 export function SiteHeader() {
   return (
-    <header className="border-border bg-bg/80 border-b">
+    <header className="border-border bg-bg/80 border-b print:hidden">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-5 sm:px-6">
         <Logo />
         <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">

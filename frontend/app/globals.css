@@ -157,6 +157,79 @@ body {
   background: color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
+/*
+ * Print / Save as PDF (Phase 5 report). No PDF library: the browser's print engine does it.
+ * Light theme always, chrome hidden (print:hidden on header, footer, action bar), every
+ * <details> opened by a beforeprint listener (components/report/report-actions.tsx).
+ */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 16mm;
+  }
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-muted: #fafafa;
+    --surface-sunken: #f4f4f5;
+    --border: #d4d4d8;
+    --border-strong: #a1a1aa;
+    --fg: #18181b;
+    --fg-muted: #3f3f46;
+    --fg-subtle: #52525b;
+    --accent-soft: #eef2ff;
+    --accent-soft-fg: #3730a3;
+    --link: #3730a3;
+    --success-soft: #ecfdf5;
+    --success-fg: #065f46;
+    --warning-soft: #fffbeb;
+    --warning-fg: #92400e;
+    --shadow-card-v: none;
+    --shadow-raised-v: none;
+    color-scheme: light;
+  }
+  html {
+    font-size: 11pt;
+  }
+  .print-only {
+    display: block;
+  }
+  /* Gauge, bars and badges keep their colour; everything else may drop backgrounds. */
+  .print-exact {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  /* Chromium ignores break-inside on flex/grid children, so the cards themselves are blocks. */
+  .report-card,
+  .report-block {
+    display: block;
+    break-inside: avoid;
+  }
+  .report-page h2,
+  .report-page h3,
+  .report-page h4 {
+    break-after: avoid;
+  }
+  .report-page summary {
+    list-style: none;
+  }
+  .report-page summary::-webkit-details-marker {
+    display: none;
+  }
+  /* Resource links: print the URL after the hostname so the plan is usable on paper. */
+  .report-page a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    word-break: break-all;
+  }
+  dialog {
+    display: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

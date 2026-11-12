@@ -42,12 +42,12 @@ const COLLECTED: React.ReactNode[][] = [
   [
     "Analysis and interview",
     "Profiles, skill verdicts with quotes, questions, your answers (typed or transcribed) and their scores",
-    "Showing results and, later, your report",
+    "Showing results and your report",
   ],
   [
     "Email (optional)",
     "Only if you enter it, plus whether you want reminders",
-    "Sending your report and reminders (coming soon)",
+    "Sending your report when you click “Email me this report” (reminders coming soon)",
   ],
   [
     "Technical data",
@@ -150,8 +150,10 @@ export default function PrivacyPage() {
             address or ID numbers; they are not needed for the analysis.
           </p>
           <p className="text-fg-muted">
-            When report emails ship, an email provider (Brevo) will receive your email address and
-            the report. We will update this page before that happens.
+            When you click &ldquo;Email me this report&rdquo;, our email provider (Resend) receives
+            your email address and a short summary of the report (scores, top fixes, day 1 of your
+            plan; never your answers or CV text). We send nothing you didn&apos;t ask for and never
+            add you to a list.
           </p>
         </DocSection>
 
@@ -170,8 +172,9 @@ export default function PrivacyPage() {
               <strong className="text-fg">Deletion:</strong> expired sessions are deleted from the
               database by a scheduled cleanup job. That job is being added now (it ships with the
               security and automation phase); until it is live, expired data stays in the database,
-              inaccessible, until it is removed. A &ldquo;Delete my data&rdquo; button is also on
-              the way.
+              inaccessible, until it is removed. You don&apos;t have to wait: the &ldquo;Delete my
+              data&rdquo; button on your report deletes the session and everything in it at once,
+              and any share link stops working.
             </li>
             <li>
               <strong className="text-fg">Logs:</strong> record IDs, timings and error types, never
@@ -185,7 +188,11 @@ export default function PrivacyPage() {
             <li>No accounts, passwords or social logins.</li>
             <li>No advertising, analytics or tracking scripts, and no cookies for tracking.</li>
             <li>We don&apos;t sell or share your data with anyone beyond the providers above.</li>
-            <li>Shared report links (coming soon) will leave out your CV text and your email.</li>
+            <li>
+              Shared report links leave out your CV text and your email, mask any email address or
+              phone number you said in an answer, are hidden from search engines, and stop working
+              when you revoke them, delete your data or the session expires.
+            </li>
           </ul>
         </DocSection>
 

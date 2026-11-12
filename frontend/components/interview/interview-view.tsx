@@ -564,12 +564,21 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
         <section className="space-y-3 rounded-2xl bg-indigo-50 p-5 sm:p-6 dark:bg-indigo-950">
           <h1 className="text-2xl font-semibold tracking-tight">Interview complete. Nice work!</h1>
           <p className="text-zinc-700 dark:text-zinc-300">
-            {answeredSummary(turn.history)} Your scored report, with per-answer scores, improved
-            example answers and an overall readiness score, arrives in the next update.
+            {answeredSummary(turn.history)} Your scored report is ready to build: per-answer scores
+            with quotes from what you said, improved example answers, an overall readiness score and
+            a fresh 7-day plan.
           </p>
-          <Link href={`/session/${sessionId}/analysis`} className={`${BUTTON_PRIMARY} mt-1`}>
-            Back to your analysis
-          </Link>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <Link href={`/session/${sessionId}/report`} className={BUTTON_PRIMARY}>
+              See your report
+            </Link>
+            <Link
+              href={`/session/${sessionId}/analysis`}
+              className="text-sm font-medium text-indigo-700 underline hover:no-underline dark:text-indigo-300"
+            >
+              Back to your analysis
+            </Link>
+          </div>
         </section>
         {feedback && <FeedbackCard feedback={feedback} />}
         <Transcript history={turn.history} pending={null} defaultOpen />
