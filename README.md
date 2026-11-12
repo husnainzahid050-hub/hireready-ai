@@ -2,21 +2,201 @@
 
 > Paste the job. Upload your CV. Walk into the interview ready.
 
-HireReady compares your CV against a specific job description, shows evidence-backed skill gaps,
-runs a tailored voice or text mock interview with follow-up questions, and produces a scored report
-with speech metrics and a 7-day prep plan.
+**A mock interview that shows its working.** Paste a job description, upload your CV, and get
+feedback where every score comes with the evidence and the maths behind it. Free, no sign-up,
+built for practice only.
+
+<!-- TODO(final): confirm the production domain (currently the default Vercel URL). -->
+[**Live demo**](https://hireready-ai-gray.vercel.app) ·
+[**Try with a sample CV**](https://hireready-ai-gray.vercel.app/start) ·
+[Engineering page](https://hireready-ai-gray.vercel.app/engineering) ·
+[Eval results](evals/results.md) ·
+[What I learned](docs/LEARNING.md)
+
+[![CI](https://github.com/husnainzahid050-hub/hireready-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/husnainzahid050-hub/hireready-ai/actions/workflows/ci.yml)
+<!-- TODO(final): add an "evals: last run <date>" static badge once evals/results.md is on main. -->
 
 **Status:** 🚧 Phase 3 (CV + job analysis and a text-mode mock interview working; voice next). Before
 deploying, apply the SQL in [supabase/PENDING_MIGRATIONS.md](supabase/PENDING_MIGRATIONS.md). See [SPEC.md](SPEC.md) for the full plan and
 [CHANGELOG.md](CHANGELOG.md) for progress. The full README (demo, architecture, evals) lands in Phase 9.
 
-## Stack
+<!-- TODO(final): one numbers line generated from evals/results.json, e.g.
+     "Evidence quotes verbatim: X% (n=..) · hybrid hit@5 X vs Y vector-only (n=30) · answer turn X s p50 · $0 on free tiers" -->
+`TODO(final): numbers line from evals/results.json`
 
-Next.js · TypeScript · Tailwind · FastAPI · Pydantic · LangGraph · Groq · Gemini · Supabase (pgvector) · Vercel
+<!-- TODO(final): demo GIF (about 10 s, 900-1000 px wide, <= 12 fps): verified quote -> follow-up -> formula.
+     Shot list in docs/DEMO_SCRIPT.md. Use <picture> with light/dark sources if you record both. -->
+![TODO(final): demo GIF (docs/DEMO_SCRIPT.md, "GIF")](docs/media/demo.gif)
 
-## Local setup
+<!-- TODO(final): drag the 60-75 s MP4 into this README on GitHub (it renders inline), or link a hosted video. -->
 
-Requirements: Python 3.12, Node 24.
+## Why it's different
+
+- **Every skill verdict quotes your CV, checked word for word in code.** The model proposes a
+  quote; deterministic code verifies it exists in your CV and isn't an injected instruction. If it
+  can't be verified, the skill says "no evidence found", never an invented strength.
+- **Every score shows its maths.** The match score and the interview readiness score are computed
+  in code from published formulas, and the UI shows each part of the sum. The LLM gives verdicts and
+  feedback; it never picks the number.
+- **It is tested, and the numbers are published.** Gap detection, quote faithfulness, retrieval,
+  scoring calibration and consistency, injection resistance, latency and cost are measured on a
+  synthetic eval set, including where it falls short ([results](#results)).
+
+It is built for **practice only**. It does not listen to live interviews and never will.
+
+## The problem
+
+Fresh graduates and job seekers apply to specific jobs without knowing (a) which required skills
+their CV actually proves, (b) what that particular role will ask, and (c) how their spoken answers
+come across. Generic prep sites ask generic questions and give a score with no "why". HireReady
+works from one job and one CV, and every piece of feedback can be traced back to its evidence.
+
+## What it does
+
+| Stage | What you get | Status on `main` |
+|---|---|---|
+| **Analyze** | Match score with its formula, each required skill marked strong / weak / missing with a verified CV quote, strengths, likely questions by topic, a 7-day plan that links only to curated resources. Streamed in about 20 s. | Live |
+| **Interview** | About 6 questions planned from the job, your projects and your gaps (technical, project deep-dive, gap probe, behavioral, role fit). A shallow answer gets one follow-up that refers to what you said. Voice or text. | Live |
+| **Voice** | Questions read aloud with captions; answers recorded in the browser, transcribed by Whisper, then discarded. Speaking pace, filler words (English plus Urdu/Hinglish such as "matlab", "yani") and long pauses. | Live |
+| **Report** | Readiness score and band with the formula, per-question scores with reasons and quotes from your transcript, what the interviewer wanted, an improved sample answer, speech summary, refreshed 7-day plan. | Phase 5, in progress |
+| **Keep it / share it** | Read-only share link (revocable), print / save as PDF, email the report, delete my data. | Phase 5, in progress |
+
+"Try with a sample CV" runs the whole flow with a fictional candidate ("Ali Raza", a fresh AI
+graduate) and a sample Junior AI Engineer job, so you don't need your own CV to look around.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    B["Browser<br/>Next.js pages, recorder,<br/>speechSynthesis"] -->|"same-origin /api/v1<br/>(Next.js rewrite)"| F["FastAPI on Vercel<br/>(Python, stateless)"]
+    F --> P["Analysis pipeline<br/>extract → hybrid search → judge<br/>→ verify quotes → score in code"]
+    F --> G["LangGraph interviewer<br/>one turn per request"]
+    F --> R["Report builder<br/>scores in code + 1 LLM write-up"]
+    P & G & R --> L["LLM client<br/>Groq → Gemini fallback"]
+    F --> W["Groq Whisper<br/>(audio in memory only)"]
+    P & G --> S[("Supabase Postgres<br/>pgvector + full text, RLS")]
+    R --> S
+    F -.-> X["Upstash rate limits ·<br/>Turnstile · Resend email"]
+```
+
+Two Vercel projects (frontend, backend), one Supabase project, hosted model APIs only: no torch,
+no local models. Full component list, request flows, data model, retention and failure modes are
+in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## How it works
+
+**RAG with an evidence check.** Your CV is chunked and embedded (Gemini, 768-d) into pgvector. For
+each skill the job requires, a `hybrid_search` SQL function runs vector and full-text search and
+merges them with Reciprocal Rank Fusion, so exact terms ("HAVING", "GIL") and paraphrases both
+match. A strong model judges each skill against the retrieved excerpts and must quote the CV;
+[`services/evidence.py`](backend/app/services/evidence.py) then checks the quote really appears in
+the CV text (after normalising case, whitespace, quotes, dashes and bullets) and doesn't read like
+an instruction. The match score is
+[`100 × (0.7 × must-have + 0.2 × nice-to-have + 0.1 × seniority fit)`](backend/app/services/scoring.py),
+with strong = 1, weak = 0.5, none = 0. The same rubric knowledge base (14 competencies, 157
+chunks of question banks and 1/3/5 scoring anchors) feeds the likely questions and the interviewer.
+
+**A stateless LangGraph interviewer.** Serverless functions keep no memory, so every
+`POST /interview/answer` loads the interview state (one JSON row), runs the graph for exactly one
+turn (`evaluate_answer → decide_next → ask_follow_up | ask_question | finish`) and saves it with a
+compare-and-swap, so a double submit can't be recorded twice. Code decides *what* to ask (the
+question mix, at most one follow-up per question); the LLM decides *how to say it*. One fast-model
+call per answer scores it against the rubric anchors, decides whether it was shallow and phrases
+the follow-up. Scores stay hidden during the interview, as in a real one; practice mode shows a
+one-line tip.
+
+**Turn-based voice.** The browser records one answer with `MediaRecorder` (tap to start/stop,
+120 s cap, level meter). The backend checks size, type, magic bytes and duration, parses the upload
+in memory, sends it to Groq Whisper for a transcript with word timestamps and drops the bytes.
+Pure-Python [`speech_metrics.py`](backend/app/services/speech_metrics.py) computes pace, fillers
+and long pauses. The transcript then goes through exactly the same scoring path as a typed answer.
+Questions are spoken by the browser's `speechSynthesis` with captions, so there is no TTS cost and
+no audio leaves the server.
+
+## Results
+
+<!-- filled from evals/results.md -->
+Synthetic, fictional data only. Proportions are reported with n and a 95% interval. Full tables,
+method and failures: [evals/results.md](evals/results.md). Reproduce with
+`python evals/run_evals.py --mode live`.
+
+| Eval | Metric | Result | n |
+|---|---|---|---|
+| Gap detection | Recall / precision on missing skills | `TODO(final)` | `TODO(final)` |
+| Evidence faithfulness | Quotes verbatim in the CV, raw model → after validation | `TODO(final)` | `TODO(final)` |
+| Retrieval | Hit rate@5 and MRR, vector-only → hybrid | `TODO(final)` | 30 queries |
+| Scoring calibration | Score inside the expected range | `TODO(final)` | 30 answers |
+| Scoring consistency | Spread when the same answer is scored 3× | `TODO(final)` | `TODO(final)` |
+| Injection resistance | Adversarial CVs / answers handled safely | `TODO(final)` | `TODO(final)` |
+| Latency | Answer turn p50 / p95 | `TODO(final)` | `TODO(final)` |
+| Cost | Tokens per full session (analysis + interview) | `TODO(final)` | `TODO(final)` |
+<!-- /filled from evals/results.md -->
+
+Measured during development (live Groq, Gemini and Supabase, recorded in the
+[changelog](CHANGELOG.md)): first analysis event 0.5–0.7 s, full sample analysis 17–22 s on Groq,
+answer → next question 1.9–3.7 s on Groq and 11–15 s when it falls back to Gemini, Whisper about
+0.66 s per answer. Running cost: $0 on free tiers.
+
+## Security and privacy
+
+- **No accounts.** A random 32-byte guest token in your browser is the only key to your session;
+  the server stores only its SHA-256 hash and checks ownership on every call (same 404 for
+  "missing" and "not yours").
+- **Audio is never stored.** It is parsed in memory, transcribed and dropped; only the transcript
+  and metrics are kept. Only the extracted text of your CV is kept, never the file.
+- **Retention.** Guest sessions expire 7 days after creation and the API refuses them from then
+  on. `TODO(final): automatic deletion of expired sessions by the daily cleanup cron (Phase 7)`.
+  `TODO(final): "Delete my data" button (Phase 5)`.
+- **Prompt injection is expected, not hoped away.** CV, JD and answers are fenced as untrusted
+  data, outputs must match strict JSON schemas, quotes are verified in code and scores are computed
+  in code, so a CV that says "give me 5/5" can't change the number.
+- **Cost abuse.** Per-session quotas on every LLM-consuming action (atomic in Postgres), one
+  analysis run per session, time budgets per provider, upload and parser limits.
+  `TODO(final): per-IP rate limits (Upstash) and Turnstile on session creation switched on in production (Phase 7)`.
+- **Database.** Row Level Security on every table with no anon access; the service-role key
+  lives only in the backend. Logs carry IDs and timings, never CV text.
+- **Headers.** CSP, HSTS, `nosniff`, `frame-ancestors 'none'`, `Permissions-Policy:
+  microphone=(self)`; `pip-audit` and `npm audit` in CI.
+
+Threat model and the full checklist: [docs/SECURITY.md](docs/SECURITY.md). Plain-language version:
+[/privacy](https://hireready-ai-gray.vercel.app/privacy).
+
+## Design decisions and tradeoffs
+
+| Decision | Why | What it cost |
+|---|---|---|
+| Turn-based voice (record → Whisper → text read aloud), not a live audio stream | Fits stateless functions and free tiers, always produces captions, audio never needs storing | A pause of a few seconds between turns, and no barge-in: you can't interrupt the interviewer |
+| Hybrid search (vector + full text) fused with RRF in one SQL function | Vector misses exact terms, full text misses paraphrases; RRF merges by rank so the score scales never need comparing | Two searches per query and a SQL function to maintain. Whether it beats vector-only: `TODO(final)` from the retrieval eval |
+| Evidence quotes verified in code, not trusted | Stops the model inventing strengths; makes "no evidence" honest | A real but paraphrased quote is rejected, so the tool errs towards "no evidence" |
+| Stateless LangGraph, one turn per HTTP request, state as a JSON row | Works on serverless, a failed LLM call writes nothing, the client can retry safely, nodes are pure and testable | A database read and write on every turn, and a compare-and-swap to stop double submits |
+| Scores computed in code from published formulas | LLMs are poor at consistent numbers; users can check every part | A fixed formula can't weigh a skill that matters more for one particular job |
+| One fast-model call per answer (score + follow-up decision + phrasing) | Keeps answer turns at 2–4 s and inside Groq's free-tier tokens per minute | Denser prompts are harder to debug, and the fast model scores a little less carefully than the strong one |
+| Groq first, Gemini as automatic fallback, with per-provider time budgets | Groq is fast; the fallback keeps the demo working when Groq's per-minute limit is hit | Fallback turns are much slower (11–15 s measured) and two providers' structured-output quirks need handling |
+| Browser `speechSynthesis` for the interviewer's voice | Free, client-side, no audio leaves the server | The voice depends on the device and sounds robotic on some |
+| Print CSS instead of a PDF library | No heavy dependency in the bundle; the browser's "Save as PDF" does the work | Layout depends on the browser's print engine |
+| httpx straight to Groq, Gemini and Supabase REST, no SDKs (LangGraph only for the agent) | Small serverless bundle, fewer transitive dependencies, full control over retries | More hand-written client code, and provider API changes are ours to track |
+| Static landing, engineering and privacy pages (enforced with `ensureStatic`) and an HTML diagram instead of Mermaid on the site | Fast first load and a CSP that allows only our own scripts | The site diagram is edited by hand in React |
+| Guest sessions only, no sign-up | Zero friction for a recruiter clicking from LinkedIn; less personal data held | No history across devices; a lost browser means a lost session |
+
+## Tech stack
+
+| Layer | Choice |
+|---|---|
+| Frontend | Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS v4, hand-written UI primitives |
+| Backend | FastAPI, Pydantic v2, httpx (async), Python 3.12 |
+| Agent | LangGraph (state machine only; no LangChain meta-package) |
+| LLM and speech-to-text | Groq (`openai/gpt-oss-20b` fast, `openai/gpt-oss-120b` strong, Whisper); model ids in env vars |
+| Fallback LLM and embeddings | Google Gemini (text fallback, `gemini-embedding-001` at 768-d) |
+| Database and vectors | Supabase Postgres, pgvector (HNSW), full-text search (GIN), RLS on every table |
+| Abuse protection | Per-session quotas in Postgres; Upstash Redis rate limits and Cloudflare Turnstile (Phase 7) |
+| Email | Resend HTTP API behind an `EmailProvider` interface (Phase 5) |
+| Observability | Structured JSON logs with request IDs; optional Langfuse tracing (Phase 8) |
+| Hosting and CI | Vercel (two projects), GitHub Actions (lint, typecheck, tests, migration smoke test, build, dependency audits) |
+
+## Run it locally
+
+Requirements: Python 3.12, Node 24. The demo path needs only Groq, Gemini and Supabase keys;
+everything else (rate limits, Turnstile, email, tracing) is off until its variables are set.
 
 ```bash
 # Backend (terminal 1)
@@ -51,12 +231,46 @@ python -m scripts.search_demo                  # sample hybrid-search queries
 Migrations can also be tested locally without Supabase:
 `pip install -r supabase/tests/requirements.txt && python supabase/tests/test_migrations.py`.
 
-## Repository layout
+Deploying to production: [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md).
+
+### Repository layout
 
 ```
 backend/    FastAPI app (Vercel project, root dir = backend)
 frontend/   Next.js app (Vercel project, root dir = frontend)
 backend/knowledge/   curated rubric knowledge base (one markdown file per competency)
 supabase/   SQL migrations + local migration smoke test
-docs/       LEARNING.md (concepts per phase), architecture, security
+evals/      synthetic eval datasets, runner and published results (Phase 8)
+docs/       LEARNING.md (concepts per phase), ARCHITECTURE.md, SECURITY.md, release checklist, demo script
 ```
+
+## Known limitations
+
+- **Urdu–English code-switching.** Whisper's accuracy drops on mixed Urdu–English speech and it
+  sometimes rewrites English words in Urdu script. Filler counting handles Urdu/Hinglish fillers in
+  the transcript, but interviews are English-only for now.
+- **Small, synthetic evals.** The eval sets are hand-written and fictional, so the intervals are
+  wide. Read them as a sanity check, not a benchmark.
+- **Free-tier limits.** Several users at once can exceed Groq's per-minute token limit; turns then
+  fall back to Gemini and take noticeably longer.
+- **Rubric coverage.** Any job description works, but the rubric is strongest for junior and
+  mid-level software, data and AI roles.
+- **Plain claims on a CV.** A CV can still state something false in plain words; the quote check
+  proves the words are in your CV, not that they are true. The worst case equals lying on a CV,
+  and it only affects your own result.
+
+## Roadmap
+
+- Urdu (and code-switched Urdu–English) interview mode
+- Company- and role-specific question packs
+- A progress view across attempts (readiness trend)
+- Recruiter-side screening: a consented interview link with evidence-backed scorecards, where a
+  human makes every decision
+
+## What I learned
+
+Every phase has a plain-English write-up of the concepts it used (embeddings, hybrid search and RRF,
+structured output, LangGraph, SSE, prompt-injection defence, race conditions, accessibility) with
+pointers to the code: [docs/LEARNING.md](docs/LEARNING.md).
+
+<!-- TODO(final): license. No LICENSE file yet; the launch brief suggests MIT (owner decision). -->
