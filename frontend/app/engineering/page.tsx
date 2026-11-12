@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { cn, focusRing } from "@/components/ui/cn";
 import { ArrowRight, Github } from "@/components/ui/icons";
 import { Container } from "@/components/ui/section";
+import { evalResults, pct, seconds } from "@/lib/evals";
 
 export const ensureStatic = "navigation";
 
@@ -62,6 +63,18 @@ const ANALYSIS_FLOW: { title: string; body: string; calls?: string }[] = [
   },
 ];
 
+const R = evalResults;
+const RET = R.headline.retrieval;
+const EVIDENCE = R.headline.evidence;
+const LAT = R.latency;
+const ANSWER = LAT?.steps.score_answer;
+
+const HYBRID_TRADEOFF = RET
+  ? (RET.hybrid.value ?? 0) > (RET.vector.value ?? 0)
+    ? `Two searches per query and one more SQL function to maintain. On 30 labelled queries hybrid found more of the right rubric chunks (hit rate@5 ${pct(RET.vector)} vector-only vs ${pct(RET.hybrid)} hybrid).`
+    : `Two searches per query and one more SQL function to maintain. On our 30 labelled queries it did not beat vector-only (hit rate@5 ${pct(RET.vector)} vs ${pct(RET.hybrid)}): the set is small and mostly paraphrased, so the exact-term advantage is unproven here.`
+  : "Two searches per query and one more SQL function to maintain.";
+
 const DECISIONS: { title: string; why: ReactNode; tradeoff: ReactNode }[] = [
   {
     title: "Turn-based voice, not a live audio stream",
@@ -72,8 +85,7 @@ const DECISIONS: { title: string; why: ReactNode; tradeoff: ReactNode }[] = [
   {
     title: "Hybrid search with Reciprocal Rank Fusion",
     why: "Vector search understands meaning but misses exact terms like “GIL”, “HAVING” or “STAR”; full-text search is the opposite. RRF merges the two by rank (1/(k + rank), k = 50), so their incompatible score scales never need to be compared.",
-    tradeoff:
-      "Two searches per query and one more SQL function to maintain. Whether it beats vector-only is measured in Phase 8 (hit rate@5, MRR).",
+    tradeoff: HYBRID_TRADEOFF,
   },
   {
     title: "Evidence quotes are verified, not trusted",
@@ -136,17 +148,70 @@ const NUMBERS: ReactNode[][] = [
   ["Answer turn on Gemini fallback", "11–15 s", "—", "When Groq's per-minute limit is hit"],
   ["Evidence quotes found verbatim in the CV", "100%", "100%", "6 live QA analyses"],
   ["Rubric knowledge base", "14 competencies, 157 chunks", "—", "Curated markdown, hybrid-indexed"],
-  ["Backend tests", "230", "—", "All LLM and network calls mocked"],
 ];
 
-const EVALS: ReactNode[][] = [
-  ["Gap detection", "Precision / recall on 10 labelled CV–JD pairs", "—"],
-  ["Evidence faithfulness", "% of quotes verbatim in the CV", "100% after validation"],
-  ["Retrieval", "Hit rate@5 and MRR, vector-only vs hybrid (30 queries)", "—"],
-  ["Scoring calibration", "% of 30 labelled answers within the expected range", "—"],
-  ["Scoring consistency", "Variance when the same answer is scored 3×", "—"],
-  ["Injection resistance", "% of adversarial CVs/answers handled safely", "—"],
-  ["Latency and cost", "p50/p95 per endpoint, tokens per interview", "Answer turn < 4 s p50"],
+// Per-call numbers measured by the eval suite (live providers, first fetch of each response).
+if (LAT) {
+  const row = (label: string, step: string, target: string, note: string) => {
+    const st = LAT.steps[step];
+    if (st)
+      NUMBERS.push([
+        label,
+        `${seconds(st.p50_s)} p50 / ${seconds(st.p95_s)} p95`,
+        target,
+        `${note}; n = ${st.ok} calls, ~${(st.mean_prompt_tokens + st.mean_completion_tokens).toLocaleString("en-US")} tokens each`,
+      ]);
+  };
+  row(
+    "Answer scoring call (eval suite)",
+    "score_answer",
+    "< 4 s p50",
+    "Fast model, one call per answer",
+  );
+  row("Skill judge call (eval suite)", "judge", "—", "Strong model, one call per analysis");
+  row("Interview planning call (eval suite)", "plan", "—", "Strong model, once per interview");
+  NUMBERS.push([
+    "Tokens per full session",
+    `~${LAT.per_session.tokens.toLocaleString("en-US")}`,
+    "—",
+    `${LAT.per_session.llm_calls} LLM calls: analysis + 6 questions + 1 follow-up (eval-suite means)`,
+  ]);
+  NUMBERS.push([
+    "Cost per full session",
+    "$0 (free tiers)",
+    "$0",
+    `≈ $${LAT.per_session.cost_usd_list_price.toFixed(4)} at Groq list prices, checked ${LAT.prices_checked}`,
+  ]);
+  const analysis = LAT.endpoint_llm_time.analysis;
+  if (analysis)
+    NUMBERS.push([
+      "LLM time per analysis (eval suite)",
+      `${seconds(analysis.p50_s)} p50 / ${seconds(analysis.p95_s)} p95`,
+      "—",
+      "Sum of per-step percentiles; the p95 includes Gemini fallback calls",
+    ]);
+}
+NUMBERS.push(["Backend tests", "324", "—", "All LLM and network calls mocked"]);
+
+const HEADLINE: { value: string; label: string }[] = [
+  ...(EVIDENCE
+    ? [
+        {
+          value: pct(EVIDENCE.final_verbatim),
+          label: `of evidence quotes are verbatim in the CV (enforced by code; raw model ${pct(EVIDENCE.raw_verbatim)})`,
+        },
+      ]
+    : []),
+  ...(RET
+    ? [
+        {
+          value: `${pct(RET.vector)} / ${pct(RET.hybrid)}`,
+          label: "rubric hit rate@5, vector-only / hybrid",
+        },
+      ]
+    : []),
+  ...(ANSWER ? [{ value: seconds(ANSWER.p50_s), label: "answer scoring call, p50" }] : []),
+  { value: "$0", label: "to run, on free tiers" },
 ];
 
 const SECURITY = [
@@ -298,17 +363,66 @@ START -(answer)-> evaluate_answer --> decide_next -+-> ask_follow_up --> END
 
           <DocSection id="evals" title="Evaluation">
             <div className="flex flex-wrap items-center gap-3">
-              <Badge tone="accent">Coming in Phase 8</Badge>
+              <Badge tone="accent">
+                Run {R.meta.date} · commit {R.meta.commit}
+              </Badge>
               <p className="text-fg-muted text-sm">
-                Synthetic, fictional datasets and a runner that writes <code>evals/results.md</code>
-                . Results will be published here.
+                Synthetic, fictional data written by the author, labels fixed before the first run.
+                Per-case tables and known failures:{" "}
+                <TextLink href={docUrl("evals/results.md")}>evals/results.md</TextLink>.
               </p>
             </div>
+            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {HEADLINE.map((h) => (
+                <li key={h.label}>
+                  <Card className="h-full space-y-1">
+                    <p className="text-2xl font-semibold tracking-tight">{h.value}</p>
+                    <p className="text-fg-muted text-sm">{h.label}</p>
+                  </Card>
+                </li>
+              ))}
+            </ul>
             <DataTable
-              caption="Planned evaluation suite"
-              head={["Eval", "What is measured", "Target", "Result"]}
-              rows={EVALS.map((r) => [...r, <span key="r">Pending</span>])}
+              caption="Evaluation results"
+              head={["Eval", "Metric", "Result", "n", "Target"]}
+              rows={R.summary.map((r) => [
+                r.eval,
+                r.metric,
+                <span key="r">
+                  {r.result}
+                  {r.kind === "guarantee" && (
+                    <Badge tone="success" className="ml-2">
+                      by code
+                    </Badge>
+                  )}
+                </span>,
+                r.n,
+                r.target,
+              ])}
             />
+            {R.retrieval && (
+              <>
+                <h3 className="pt-2 text-lg font-semibold">Retrieval: vector-only vs hybrid</h3>
+                <DataTable
+                  caption="Retrieval comparison"
+                  head={["Mode", "Hit rate@5", "Failure rate@5", "MRR@5"]}
+                  rows={R.retrieval.map((m) => [
+                    m.mode,
+                    `${pct(m.hit_at_5)} (${m.hit_at_5.k}/${m.hit_at_5.n})`,
+                    `${Math.round(m.failure_rate_at_5 * 100)}%`,
+                    m.mrr_at_5.toFixed(2),
+                  ])}
+                />
+              </>
+            )}
+            <p className="text-fg-muted max-w-3xl text-sm">
+              Every percentage comes with its count because the sets are small (10 CV/JD pairs, 30
+              queries, 30 answers): 90% on 30 items is roughly 74–97% at 95% confidence. Models:{" "}
+              <code>{R.meta.models.groq_fast}</code> (fast),{" "}
+              <code>{R.meta.models.groq_strong}</code> (strong),{" "}
+              <code>{R.meta.models.embedding}</code> (embeddings). The suite made{" "}
+              {R.meta.llm_calls_total} LLM calls and caches every response, so re-runs are free.
+            </p>
           </DocSection>
 
           <DocSection id="security" title="Security and privacy">
