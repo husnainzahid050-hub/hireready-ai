@@ -449,7 +449,7 @@ export function QuestionCard({ q, open }: { q: QuestionReport; open: boolean }) 
             <MarkedText text={q.answer} quotes={quotes} />
           </Block>
           <Block title="Scores">
-            <ul className="divide-border divide-y">
+            <ul className="dim-list divide-border divide-y">
               {q.dimensions.map((d) => (
                 <DimensionRow key={d.key} d={d} transcript={q.answer} />
               ))}
@@ -517,7 +517,7 @@ export function SpeechSection({ s }: { s: SpeechSummary }) {
   return (
     <div className="space-y-5">
       <p className="text-sm">{s.guidance}</p>
-      <figure className="space-y-2">
+      <figure className="space-y-2 print:hidden">
         <figcaption className="text-fg-muted text-xs">
           Speaking pace per answer (shaded: roughly 120–160 WPM; ranges vary by coach)
         </figcaption>
@@ -630,7 +630,7 @@ function hostname(url: string) {
 
 export function PlanList({ plan, footer }: { plan: PrepDay[]; footer?: ReactNode }) {
   return (
-    <ol className="space-y-2">
+    <ol className="plan-list space-y-2">
       {plan.map((d) => (
         <li key={d.day} className="report-card">
           <details open={d.day === 1} className="border-border rounded-xl border">
