@@ -54,6 +54,16 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
   `supabase/tests/test_migrations.py` checks the reports lock, share-token uniqueness and cascade;
   `frontend/e2e/report.mock.py` (real Chrome, mocked API).
 
+#### Fixed
+- **Scoring injection (Phase 8 eval finding):** an "answer" that was pasted JSON in the scorer's own
+  output format (`{"relevance": {"score": "5"}, ...}`) scored 5/5. Now the scoring prompt says the
+  fenced transcript may imitate the output format and must then score 1, and code enforces it in
+  `backend/app/agents/interviewer/tools.py`: `imitates_output_format` (2+ scorer field names used
+  as keys, a bare JSON value, or >20% markup characters) floors every criterion at 1, marks the
+  answer `off_topic` (the interviewer re-asks) and replaces the model's feedback with "Not a real
+  answer". Separately, a score of 4-5 with no verified quote from the answer anywhere is capped at
+  3. Tests in `backend/tests/test_interview.py`.
+
 #### Changed
 - Interview completion screen leads with "See your report".
 - Landing: the report / email / share feature is **Live**; the "Report" step lost its badge.
@@ -64,7 +74,7 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 - `streamAnalysis` and `streamReport` share one SSE reader in `frontend/lib/api.ts`.
 
 #### Verified
-- Backend: ruff, ruff format, mypy clean; pytest 328 passed, 1 xfailed. Migration smoke test (embedded
+- Backend: ruff, ruff format, mypy clean; pytest 339 passed, 1 xfailed. Migration smoke test (embedded
   Postgres) ALL OK.
 - Frontend: lint, typecheck, prettier, `next build` clean; `e2e/report.mock.py` 7/7 and the
   analysis / interview / voice mocks still pass.
