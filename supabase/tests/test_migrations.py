@@ -204,11 +204,137 @@ with psycopg.connect(uri, autocommit=True) as conn:
     print("session_usage rows after deleting the session:", usage_left)
     ok &= usage_left == 0
 
+    # Phase 7 (20261112000007_phase7_automation.sql) ---------------------------------------
+    # cleanup_expired: an expired session with EVERY child type is fully deleted, its running
+    # reminder survives (detached), a live session is untouched, expired reminders go, a run is
+    # recorded, and a second run is a no-op.
+    def session(expired: bool, demo: bool = False) -> str:
+        when = "now() - interval '1 day'" if expired else "now() + interval '7 days'"
+        return conn.execute(
+            f"insert into sessions (guest_token_hash, expires_at, is_demo, reminders_opt_in)"
+            f" values ('h', {when}, %s, true) returning id",
+            (demo,),
+        ).fetchone()[0]
+
+    def full_session(expired: bool) -> str:
+        s = session(expired)
+        did = conn.execute(
+            "insert into documents (session_id, kind, raw_text, content_hash) values (%s,'cv','t','c') returning id",
+            (s,),
+        ).fetchone()[0]
+        conn.execute(
+            "insert into doc_chunks (document_id, chunk_index, content, embedding) values (%s,0,'t',%s::extensions.vector)",
+            (did, vec(7)),
+        )
+        conn.execute(
+            "insert into gap_analyses (session_id, match_score, breakdown, gaps, strengths,"
+            " likely_questions, prep_plan) values (%s, 50, '{}', '[]', '[]', '[]', '[]')",
+            (s,),
+        )
+        qid = conn.execute(
+            "insert into questions (session_id, order_index, type, text) values (%s, 1, 'technical', 'q') returning id",
+            (s,),
+        ).fetchone()[0]
+        conn.execute("insert into answers (question_id, transcript) values (%s, 'a')", (qid,))
+        conn.execute("insert into interview_state (session_id, state) values (%s, '{}')", (s,))
+        conn.execute("insert into reports (session_id, report) values (%s, '{}')", (s,))
+        conn.execute("select consume_quota(%s, 'upload', 5)", (s,))
+        return s
+
+    def reminder(sid: str | None, nonce: str, expires: str = "now() + interval '5 days'") -> None:
+        conn.execute(
+            "insert into reminders (session_id, email, email_hash, plan, token_nonce, token_hash,"
+            f" status, expires_at) values (%s, 'a@b.co', %s, '[]', %s, %s, 'active', {expires})",
+            (sid, "e" * 64, nonce, nonce.ljust(64, "0")),
+        )
+
+    expired_sid, live_sid = full_session(True), full_session(False)
+    reminder(expired_sid, "nonce-expired-session-0001")
+    reminder(None, "nonce-expired-reminder-0002", "now() - interval '1 hour'")
+    stats = conn.execute("select cleanup_expired(200)").fetchone()[0]
+    print("cleanup stats:", stats)
+    ok &= stats["sessions"] == 1 and stats["answers"] == 1 and stats["doc_chunks"] == 1
+    ok &= stats["reminders"] == 1 and stats["session_usage"] == 1 and stats["more"] is False
+    for table in ("documents", "doc_chunks", "gap_analyses", "questions", "answers",
+                  "interview_state", "reports", "session_usage"):  # fmt: skip
+        col = "document_id" if table == "doc_chunks" else "question_id" if table == "answers" else None
+        if col is None:
+            left = conn.execute(f"select count(*) from {table} where session_id = %s", (expired_sid,)).fetchone()[0]
+        else:
+            left = conn.execute(f"select count(*) from {table}").fetchone()[0] - 1  # live session's row
+        ok &= left == 0
+        if left:
+            print("FAIL: cleanup left rows in", table)
+    kept = conn.execute("select session_id from reminders where token_nonce = 'nonce-expired-session-0001'").fetchone()
+    print("reminder of the expired session kept, detached:", kept)
+    ok &= kept is not None and kept[0] is None
+    ok &= conn.execute("select count(*) from sessions where id = %s", (live_sid,)).fetchone()[0] == 1
+    again = conn.execute("select cleanup_expired(200)").fetchone()[0]
+    ok &= again["sessions"] == 0 and again["reminders"] == 0
+    runs = conn.execute("select count(*) from cron_runs where name = 'cleanup'").fetchone()[0]
+    print("cron_runs rows:", runs)
+    ok &= runs == 2
+
+    # "Delete my data" still deletes the reminder (cascade); one reminder per session.
+    reminder(live_sid, "nonce-live-session-00003")
+    try:
+        reminder(live_sid, "nonce-live-session-00004")
+        ok = False
+        print("FAIL: second reminder for one session should be rejected")
+    except psycopg.errors.UniqueViolation:
+        print("second reminder per session rejected")
+    conn.execute("delete from sessions where id = %s", (live_sid,))
+    ok &= conn.execute("select count(*) from reminders where token_nonce like 'nonce-live%%'").fetchone()[0] == 0
+
+    # copy_demo_analysis: copies profiles, chunks (with embeddings) and the analysis from an
+    # earlier demo session with the same CV + JD; never from a non-demo or different text.
+    def demo_docs(s: str, cv_hash: str, structured: bool) -> None:
+        for kind, h in (("cv", cv_hash), ("jd", "jdhash")):
+            conn.execute(
+                "insert into documents (session_id, kind, raw_text, content_hash, structured)"
+                " values (%s, %s, 't', %s, %s::jsonb)",
+                (s, kind, h, '{"name": "Ali"}' if structured else None),
+            )
+
+    src = session(False, demo=True)
+    demo_docs(src, "cvhash", True)
+    src_cv = conn.execute("select id from documents where session_id = %s and kind = 'cv'", (src,)).fetchone()[0]
+    conn.execute(
+        "insert into doc_chunks (document_id, chunk_index, content, embedding) values (%s,0,'demo chunk',%s::extensions.vector)",
+        (src_cv, vec(9)),
+    )
+    conn.execute(
+        "insert into gap_analyses (session_id, match_score, breakdown, gaps, strengths,"
+        " likely_questions, prep_plan) values (%s, 64, '{}', '[]', '[]', '[]', '[]')",
+        (src,),
+    )
+    conn.execute("update sessions set role_title = 'Junior AI Engineer' where id = %s", (src,))
+    dst, other_cv, not_demo = session(False, demo=True), session(False, demo=True), session(False)
+    demo_docs(dst, "cvhash", False)
+    demo_docs(other_cv, "different", False)
+    demo_docs(not_demo, "cvhash", False)
+    copied = [conn.execute("select copy_demo_analysis(%s)", (s,)).fetchone()[0] for s in (dst, dst, other_cv, not_demo)]
+    print("copy_demo_analysis (dst, dst again, other CV, not demo):", copied)
+    ok &= copied == [True, False, False, False]
+    row = conn.execute(
+        "select s.status, s.role_title, g.match_score, (select count(*) from doc_chunks c join documents d"
+        " on d.id = c.document_id where d.session_id = s.id), (select structured->>'name' from documents"
+        " where session_id = s.id and kind = 'cv') from sessions s join gap_analyses g on g.session_id = s.id"
+        " where s.id = %s",
+        (dst,),
+    ).fetchone()
+    print("copied demo session:", row)
+    ok &= row == ("analyzed", "Junior AI Engineer", 64, 1, "Ali")
+
     # anon must not read tables or call the functions
     conn.execute("set role anon")
     for stmt in (
         "select * from knowledge_chunks",
         "select * from session_usage",
+        "select * from reminders",
+        "select * from cron_runs",
+        "select cleanup_expired(10)",
+        "select copy_demo_analysis(gen_random_uuid())",
         f"select * from hybrid_search('{vec(1)}'::extensions.vector,'x')",
         "select consume_quota(gen_random_uuid(), 'x', 5)",
         "select claim_analysis(gen_random_uuid(), 60)",
