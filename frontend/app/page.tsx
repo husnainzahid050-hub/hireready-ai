@@ -113,14 +113,13 @@ const PROOF = [
   { value: "3–4", label: "LLM calls per analysis, so it stays fast on free tiers" },
 ];
 
-// Trust strip under the hero CTAs. Only claims that are true on main.
-// TODO(final): "Data expires in 7 days" -> "Auto-deletes in 7 days" once the Phase 7 cleanup cron
-// is live (until then expired sessions are refused by the API but not yet physically deleted).
+// Trust strip under the hero CTAs. Only claims that are true on main ("auto-deletes": the daily
+// cleanup cron, backend/app/routers/cron.py, deletes expired sessions).
 const TRUST = [
   "Free",
   "No sign-up",
   "Audio never stored",
-  "Data expires in 7 days",
+  "Auto-deletes in 7 days",
   "Practice only",
 ];
 
@@ -430,9 +429,8 @@ export default function Home() {
               </span>
               <h2 className="text-xl font-semibold tracking-tight">Private by default</h2>
             </div>
-            {/* TODO(final): "Guest data auto-deletes in 7 days." once the Phase 7 cleanup cron is live. */}
             <p className="text-lg font-medium text-pretty">
-              Audio is never stored. Guest data expires after 7 days.
+              Audio is never stored. Guest data auto-deletes in 7 days.
             </p>
             <ul className="text-fg-muted space-y-2 text-sm">
               {[

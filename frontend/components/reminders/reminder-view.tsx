@@ -86,10 +86,7 @@ export function ReminderView() {
             One short email a day with one task, for 7 days, then they stop. Day 1 arrives right
             after you confirm.
           </p>
-          <Button
-            onClick={() => act("confirm", "Confirmed. Day 1 is on its way.")}
-            disabled={busy}
-          >
+          <Button onClick={() => act("confirm", "Confirmed. Day 1 is on its way.")} disabled={busy}>
             Start my 7-day plan
           </Button>
         </div>

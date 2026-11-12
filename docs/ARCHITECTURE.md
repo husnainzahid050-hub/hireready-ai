@@ -2,10 +2,7 @@
 
 How HireReady AI is put together: components, the four main request flows, the data model,
 retention, how it is deployed, and what happens when something fails. Written against the code on
-`main` (Phases 0-6, 5 and 8 merged). Parts that are still being built on other branches are marked
-**(in progress, Phase N)**; check them again when those phases merge.
-
-`TODO(final)`: re-check every "(in progress)" marker after Phase 7 is on `main`.
+`main` (Phases 0-8 merged).
 
 ## 1. Components
 
@@ -45,7 +42,7 @@ flowchart LR
 | API client | `frontend/lib/api.ts`, `lib/types.ts` | Typed calls mirroring the backend contract, SSE parsing, guest token in `localStorage`. |
 | Recorder | `frontend/components/interview/voice/` | Lazy-loaded `MediaRecorder` (webm/opus), 120 s auto-stop, level meter via `requestAnimationFrame`, mic released on stop/unmount. |
 | FastAPI app | `backend/app/main.py` | Request IDs, structured logs, CORS allowlist, body-size limit (4.5 MB), security headers, error envelope. |
-| Routers | `backend/app/routers/` | `health`, `sessions` (create, documents, analyze, analysis), `interview` (start, get, answer). `report` (report, share, email, delete). Cron + unsubscribe **(in progress, Phase 7)**. |
+| Routers | `backend/app/routers/` | `health`, `sessions` (create, documents, analyze, analysis), `interview` (start, get, answer). `report` (report, share, email, delete). `reminders` (token links, one-click unsubscribe, opt-in after the report), `cron` (cleanup, reminders, public status), `health/client-ip`. |
 | Analysis pipeline | `backend/app/services/analysis.py` | Extraction, CV indexing, hybrid retrieval, evidence judging, quote verification, match score, insights. Streamed as SSE. |
 | Interviewer agent | `backend/app/agents/interviewer/` | LangGraph state machine: `plan_interview`, `ask_question`, `evaluate_answer`, `decide_next`, `ask_follow_up`, `finish`; tools `search_cv`, `search_rubric`, `score_answer`. |
 | Interview service | `backend/app/services/interview.py` | Load state → one graph turn → persist with compare-and-swap → API response. |
@@ -71,7 +68,8 @@ cheap checks, so rejected requests cost nothing.
 
 1. `POST /api/v1/sessions` (consent required; `?demo=true` preloads the fictional "Ali Raza" CV and
    a Junior AI Engineer JD from `backend/app/demo/samples.py`). Turnstile is verified here when
-   `TURNSTILE_SECRET_KEY` is set **(widget on `/start`: in progress, Phase 7)**. Returns
+   `TURNSTILE_SECRET_KEY` is set (widget on `/start`, invisible "interaction-only" on the demo
+   button; the CSP allows Cloudflare only on `/`, `/start`, `/r/*`). Returns
    `session_id` and a random 32-byte guest token; only its SHA-256 is stored.
 2. `POST /sessions/{id}/documents` (multipart CV + JD text). PDF/DOCX only, 2 MB, 5 pages, MIME
    must match magic bytes, pypdf/DOCX bomb limits, parsing in a worker thread with a 15 s timeout.
@@ -189,20 +187,33 @@ Merged with Phase 5 (`backend/app/services/report.py`, `routers/report.py`).
    are set. A short summary plus link, never transcripts.
 7. Delete: `DELETE /sessions/{id}` removes the session; every table cascades from `sessions`.
 
-### 2.6 Scheduled jobs (in progress, Phase 7)
+### 2.6 Scheduled jobs, reminders and the webhook (Phase 7)
 
-Not on `main` and not started on another branch at the time of writing. Planned per SPEC 6.7:
+`backend/vercel.json` has two Vercel Cron entries (Hobby: once a day, about ±1 h precision):
 
-- `GET /api/v1/cron/cleanup`: delete sessions past `expires_at` (all related rows cascade).
-- `GET /api/v1/cron/reminders`: send the next day of the prep plan to opted-in users, with a
-  one-click `GET /unsubscribe/{token}` (`reminders.unsubscribe_token` already exists).
-- Both protected by `CRON_SECRET` (Vercel Cron sends it as `Authorization: Bearer <CRON_SECRET>`).
-  Vercel Hobby runs cron jobs at most once a day, with up to ±59 min precision.
-- Optional HMAC-signed outbound webhook on report completion (`OUTBOUND_WEBHOOK_URL`,
-  `OUTBOUND_WEBHOOK_SECRET`).
+| Schedule (UTC) | Endpoint | What it does |
+|---|---|---|
+| `0 2 * * *` | `GET /api/v1/cron/cleanup` | `cleanup_expired(200)` in batches (≤ 10 per run, 40 s budget): deletes sessions past `expires_at` (every child table cascades), first detaching their reminder rows; deletes expired reminders and `cron_runs` older than 30 days; records each batch in `cron_runs` and returns the counts |
+| `0 3 * * *` | `GET /api/v1/cron/reminders` | Sends the next plan day to every due ACTIVE reminder, up to `REMINDER_DAILY_CAP` (250); pauses a plan after 3 sent days without a "Mark done" click; stops after day 7 |
 
-`TODO(final)`: replace this section with the shipped endpoints and the `crons` entry in
-`backend/vercel.json`.
+Both require `Authorization: Bearer <CRON_SECRET>` (Vercel sends it when the env var is set),
+compared in constant time; unset = 503, wrong = 401. Both are idempotent: the reminder day moves
+with a compare-and-swap before the email goes out, and Resend's `Idempotency-Key` backs it up.
+`GET /api/v1/cron/status` (public, no IDs) shows when each job last ran.
+
+Reminders (`backend/app/services/reminders.py`): opt-in at `/start` ("Send me 7 daily prep
+emails", separate from "Email me my report") or `POST /sessions/{id}/reminders`. When the report is
+built, a PENDING row is created and ONE confirmation email is sent (double opt-in); Day 1 goes out
+when the person presses "Start my 7-day plan" on `/reminders/{token}`. Every email has
+`List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) and a footer
+link; `POST /api/v1/unsubscribe/{token}` deletes the row with no login and no confirmation step,
+while GET never changes anything (mail scanners prefetch links).
+
+After a fresh report (`backend/app/services/automation.py`, started on the `done` event so it can't
+delay or fail the report): the `report.completed` webhook (Standard Webhooks: `webhook-id`,
+`webhook-timestamp`, `webhook-signature: v1,<base64 HMAC-SHA256>`; 5 s per attempt, 3 attempts,
+minimal payload without CV text, transcripts or email), the report email if opted in, and the
+reminder confirmation if opted in.
 
 ## 3. Data model
 
@@ -221,19 +232,27 @@ functions are executable by `service_role` only. Everything cascades from `sessi
 | `answers` | `question_id`, `transcript` (≤ 10k), `duration_seconds`, `words_per_minute`, `filler_count`, `filler_breakdown`, `long_pauses`, `scores`, `feedback` | interview |
 | `interview_state` | `session_id` (pk), `state` (the whole LangGraph state as JSON), `updated_at` | interview (compare-and-swap) |
 | `reports` | `session_id` (pk), `report` (jsonb; also the generation lock), `share_token` (unique), `emailed_at` | report |
-| `reminders` | `session_id`, `next_send_date`, `day_index`, `active`, `unsubscribe_token` | reminders cron **(Phase 7)** |
+| `reminders` | `id`, `session_id` (nullable: detached by cleanup), `email`, `email_hash`, `role_title`, `plan` (7 days), `token_nonce` + `token_hash` (token = HMAC of the nonce; only its hash stored), `status` (pending / active / paused / finished), `day_index`, `last_click_day`, `next_send_date`, `expires_at` (own lifetime) | report automation, reminder links, reminders cron |
+| `cron_runs` | `name`, `ran_at`, `stats` (counts) | cleanup function, reminders cron |
 | `session_usage` | `(session_id, action)` pk, `count` | `consume_quota()` |
 
 SQL functions: `hybrid_search(query_embedding, query_text, match_count, filter)` (vector + full-text
 fused with RRF, `1/(k + rank)`, k = 50; raises if a CV search has no `session_id`),
 `consume_quota(session_id, action, limit)` (one atomic upsert), `claim_analysis(session_id,
-stale_seconds)` (one conditional update).
+stale_seconds)` (one conditional update), `cleanup_expired(batch)` (batched deletion, returns
+counts) and `copy_demo_analysis(session_id)` (a demo session reuses an earlier demo session's
+analysis, chunks and profiles for the same CV + JD: no LLM calls).
 
 Per-session quotas (`backend/app/core/quotas.py`): upload 5, analysis 3, interview start 3,
 answers 40, report 3, email 3, over-long audio strikes 2.
 
-Per-IP rate limits when Upstash is configured (`backend/app/core/rate_limit.py`, fixed window per
-hashed IP): session create 10/h, upload 10/h, analyze 10/h, interview start 3/day, answers 30/h.
+Per-IP rate limits (`backend/app/core/rate_limit.py`, fixed window per hashed IP; Upstash Redis
+when configured, otherwise an in-process window): session create 10/h, upload 10/h, analyze 10/h,
+interview start 3/day, answers 30/h, report 10/h, email 5/h, plus 3 emails per recipient per day
+across all sessions. The client IP comes from `X-HireReady-Client-IP`, set by `frontend/proxy.ts`
+and trusted only with `CLIENT_IP_HEADER_SECRET`. A global daily LLM-call budget
+(`backend/app/core/budget.py`, `LLM_DAILY_BUDGET`) pauses fresh demo work at 80% and all fresh LLM
+work at 100% (503 with `Retry-After` until 00:00 UTC).
 
 ## 4. Retention
 
@@ -241,14 +260,12 @@ hashed IP): session create 10/h, upload 10/h, analyze 10/h, interview start 3/da
 |---|---|---|
 | Audio | Never stored | Parsed in memory, sent to Whisper, dropped when the request ends |
 | CV file | Never stored | Only the extracted text is kept |
-| CV/JD text, profiles, chunks, analysis, questions, answers, interview state, report | Until the session expires (7 days after creation) or is deleted | Expiry is enforced on every read today (the API refuses expired sessions, and shared links die with them). Physical deletion: **cleanup cron, in progress (Phase 7)**. "Delete my data" on the report removes everything at once |
+| CV/JD text, profiles, chunks, analysis, questions, answers, interview state, report | Until the session expires (7 days after creation) or is deleted | Expiry is enforced on every read today (the API refuses expired sessions, and shared links die with them). Physical deletion: daily cleanup cron (02:00 UTC), so at most about a day after expiry. "Delete my data" on the report removes everything at once |
 | Knowledge base | Permanent | Curated content, no user data |
 | Logs (Vercel) | Vercel's log retention | IDs, timings and error types only; emails masked, long strings truncated, no LLM output |
 | Traces (Langfuse, optional) | Langfuse's retention | Metadata only (model, tokens, latency, request id) |
 | Data sent to providers | Their terms | Groq, Google Gemini, Supabase, Vercel (and Resend for email) process data to produce the feedback; listed on `/privacy` |
-
-`TODO(final)`: once the cleanup cron ships, change the "Physical deletion" cell to "daily cron,
-at most ~1 day after expiry" (or whatever was built).
+| Reminder row (email, job title, 7 plan days, token hash) | Pending: 3 days to confirm. Active: until 3 days after the last email | Deleted at once on unsubscribe or "Delete my data"; otherwise by the cleanup cron when it expires. Survives the session's 7-day expiry on purpose (the plan starts after the interview) |
 
 ## 5. Deployment topology
 

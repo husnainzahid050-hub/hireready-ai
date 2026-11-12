@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const LAST_UPDATED = "7 November 2026";
+const LAST_UPDATED = "12 November 2026";
 
 const SUMMARY = [
   "Audio is never stored. Voice answers are transcribed, then discarded.",
-  "Guest sessions expire 7 days after they are created.",
+  "Guest sessions are deleted automatically 7 days after they are created.",
   "Only the text of your CV is kept, never the file.",
   "No account, no tracking cookies, no advertising or analytics scripts.",
   "CV text never appears in our logs: they contain IDs only.",
@@ -46,8 +46,13 @@ const COLLECTED: React.ReactNode[][] = [
   ],
   [
     "Email (optional)",
-    "Only if you enter it, plus whether you want reminders",
-    "Sending your report when you click “Email me this report” (reminders coming soon)",
+    "Only if you enter it, plus which of the two email options you ticked",
+    "Sending your report (when you tick the box or click “Email me this report”)",
+  ],
+  [
+    "Prep reminders (optional)",
+    "Your email, the job title, the 7 plan days and a hashed single-purpose link token, kept separately from your session",
+    "Sending one short prep email a day for 7 days, after you confirm by email",
   ],
   [
     "Technical data",
@@ -82,6 +87,27 @@ const PROCESSORS: React.ReactNode[][] = [
     "Vercel",
     "Hosts the website and the API; keeps short-lived request logs",
     <TextLink key="v" href="https://vercel.com/legal/privacy-policy">
+      Privacy policy
+    </TextLink>,
+  ],
+  [
+    "Resend",
+    "Sends the emails you ask for (report and prep reminders); open and click tracking are off",
+    <TextLink key="r" href="https://resend.com/legal/privacy-policy">
+      Privacy policy
+    </TextLink>,
+  ],
+  [
+    "Cloudflare Turnstile",
+    "Checks that a person, not a bot, starts a session (on the start page and the demo button)",
+    <TextLink key="c" href="https://www.cloudflare.com/turnstile-privacy-policy/">
+      Turnstile privacy addendum
+    </TextLink>,
+  ],
+  [
+    "Upstash",
+    "Rate-limit counters keyed by a hash of your IP address (never the address itself)",
+    <TextLink key="u" href="https://upstash.com/trust/privacy.pdf">
       Privacy policy
     </TextLink>,
   ],
@@ -150,10 +176,11 @@ export default function PrivacyPage() {
             address or ID numbers; they are not needed for the analysis.
           </p>
           <p className="text-fg-muted">
-            When you click &ldquo;Email me this report&rdquo;, our email provider (Resend) receives
-            your email address and a short summary of the report (scores, top fixes, day 1 of your
-            plan; never your answers or CV text). We send nothing you didn&apos;t ask for and never
-            add you to a list.
+            When you ask for your report by email, our email provider (Resend) receives your email
+            address and a short summary of the report (scores, top fixes, day 1 of your plan; never
+            your answers or CV text). Prep reminders send one plan day at a time. We send nothing
+            you didn&apos;t ask for, never add you to any other list, and send no reminder until you
+            confirm from the first email.
           </p>
         </DocSection>
 
@@ -169,12 +196,21 @@ export default function PrivacyPage() {
               opened by anyone, including you.
             </li>
             <li>
-              <strong className="text-fg">Deletion:</strong> expired sessions are deleted from the
-              database by a scheduled cleanup job. That job is being added now (it ships with the
-              security and automation phase); until it is live, expired data stays in the database,
-              inaccessible, until it is removed. You don&apos;t have to wait: the &ldquo;Delete my
-              data&rdquo; button on your report deletes the session and everything in it at once,
-              and any share link stops working.
+              <strong className="text-fg">Deletion:</strong> a cleanup job runs every night (about
+              02:00 UTC) and deletes expired sessions with everything in them: CV text, analysis,
+              questions, answers, report and share link. So data is gone at most about a day after
+              it expires. You don&apos;t have to wait: the &ldquo;Delete my data&rdquo; button on
+              your report deletes the session and everything in it at once, and any share link stops
+              working.
+            </li>
+            <li id="reminders">
+              <strong className="text-fg">Prep reminders:</strong> only if you tick &ldquo;Send me 7
+              daily prep emails&rdquo; and then confirm from the first email (if you don&apos;t, the
+              request is deleted after 3 days). They are kept apart from your session so a plan can
+              finish after the session is deleted, and they stop on their own after day 7 (or pause
+              after 3 days without a &ldquo;Mark done&rdquo;). Unsubscribing in one click, or
+              &ldquo;Delete my data&rdquo;, deletes your email and plan at once; otherwise they are
+              deleted 3 days after the last email. No tracking pixels.
             </li>
             <li>
               <strong className="text-fg">Logs:</strong> record IDs, timings and error types, never

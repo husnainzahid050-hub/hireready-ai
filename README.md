@@ -165,14 +165,20 @@ answer → next question 1.9–3.7 s on Groq and 11–15 s when it falls back to
 - **Audio is never stored.** It is parsed in memory, transcribed and dropped; only the transcript
   and metrics are kept. Only the extracted text of your CV is kept, never the file.
 - **Retention.** Guest sessions expire 7 days after creation and the API refuses them from then
-  on. `TODO(final): automatic deletion of expired sessions by the daily cleanup cron (Phase 7)`.
+  on, and a daily cleanup cron deletes them with everything in them (batched, idempotent, each run
+  recorded in `cron_runs`; `GET /api/v1/cron/status` shows the last run). Opt-in prep reminders
+  live in their own small table (email, job title, plan, hashed token) and are deleted on
+  unsubscribe or 3 days after the last email.
   **Delete my data** on the report removes the session and every related row at once.
 - **Prompt injection is expected, not hoped away.** CV, JD and answers are fenced as untrusted
   data, outputs must match strict JSON schemas, quotes are verified in code and scores are computed
   in code, so a CV that says "give me 5/5" can't change the number.
 - **Cost abuse.** Per-session quotas on every LLM-consuming action (atomic in Postgres), one
   analysis run per session, time budgets per provider, upload and parser limits.
-  `TODO(final): per-IP rate limits (Upstash) and Turnstile on session creation switched on in production (Phase 7)`.
+  Per-IP rate limits (Upstash Redis, in-process fallback; fail-open or fail-closed decided per
+  endpoint), Cloudflare Turnstile on session creation, a per-recipient email limit and a global
+  daily LLM-call budget (the demo is served from a cache). Each switches on with its env vars;
+  see [`docs/SECURITY.md`](docs/SECURITY.md).
 - **Database.** Row Level Security on every table with no anon access; the service-role key
   lives only in the backend. Logs carry IDs and timings, never CV text.
 - **Headers.** CSP, HSTS, `nosniff`, `frame-ancestors 'none'`, `Permissions-Policy:
