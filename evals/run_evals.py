@@ -1142,12 +1142,11 @@ async def main(args: argparse.Namespace) -> int:
 
     out_dir = Path(args.out) if args.out else (EVALS if args.mode == "live" else EVALS / "out-fake")
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "results.json").write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
-    (out_dir / "results.md").write_text(render_md(report), encoding="utf-8")
+    lf = {"encoding": "utf-8", "newline": "\n"}  # same bytes on Windows and Linux
+    (out_dir / "results.json").write_text(json.dumps(report, indent=1, ensure_ascii=False) + "\n", **lf)  # type: ignore[arg-type]
+    (out_dir / "results.md").write_text(render_md(report), **lf)  # type: ignore[arg-type]
     if out_dir.resolve() == EVALS.resolve():
-        FRONTEND_JSON.write_text(
-            json.dumps(frontend_view(report), indent=1, ensure_ascii=False) + "\n", encoding="utf-8"
-        )
+        FRONTEND_JSON.write_text(json.dumps(frontend_view(report), indent=1, ensure_ascii=False) + "\n", **lf)  # type: ignore[arg-type]
     print(f"wrote {out_dir / 'results.md'} ({len(ctx.errors)} errors)")
     return 0
 

@@ -198,7 +198,7 @@ class CachedLLM:
         if path:
             path.parent.mkdir(parents=True, exist_ok=True)
             entry = {"step": step, "result": out.model_dump(mode="json"), "calls": records}
-            path.write_text(json.dumps(entry, ensure_ascii=False, indent=1), encoding="utf-8")
+            path.write_text(json.dumps(entry, ensure_ascii=False, indent=1), encoding="utf-8", newline="\n")
         return out
 
 
@@ -241,7 +241,7 @@ class CachedEmbedder:
                 p = self._path(texts[i], task)
                 if p:
                     p.parent.mkdir(parents=True, exist_ok=True)
-                    p.write_text(json.dumps(v), encoding="utf-8")
+                    p.write_text(json.dumps(v), encoding="utf-8", newline="\n")
         return [v for v in out if v is not None]
 
 
