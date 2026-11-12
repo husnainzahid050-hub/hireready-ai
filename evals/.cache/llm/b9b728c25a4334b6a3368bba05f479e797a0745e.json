@@ -1,0 +1,49 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Omar Farooq",
+  "education": [
+   {
+    "degree": "BBA Marketing",
+    "institution": "Fictional Business School",
+    "year": "2023"
+   }
+  ],
+  "skills": [
+   "Excel",
+   "Google Analytics",
+   "social media marketing",
+   "SQL",
+   "copywriting",
+   "presentation skills"
+  ],
+  "projects": [],
+  "experience": [
+   {
+    "role": "Marketing Executive",
+    "org": "Fictional Foods Ltd.",
+    "duration": "2023 - Present",
+    "bullets": [
+     "Planned social media campaigns for four product launches.",
+     "Tracked campaign results in Excel spreadsheets with pivot tables and charts.",
+     "Presented monthly campaign reports to the marketing director and the sales team."
+    ]
+   }
+  ],
+  "certifications": [
+   "SQL for Beginners (online course, in progress)"
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 1.075,
+   "ok": true,
+   "prompt_tokens": 722,
+   "completion_tokens": 268,
+   "error": null
+  }
+ ]
+}

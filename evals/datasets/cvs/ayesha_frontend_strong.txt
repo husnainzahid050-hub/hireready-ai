@@ -1,0 +1,23 @@
+Ayesha Siddiqui
+Islamabad, Pakistan | ayesha.siddiqui@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BS Computer Science, Fictional Capital University, 2026
+
+SKILLS
+JavaScript, TypeScript, React, Next.js, HTML, CSS, Tailwind CSS, Git, Jest
+
+PROJECTS
+Study Planner Web App
+- Built a responsive study planner with React, TypeScript and Tailwind CSS.
+- Wrote Jest tests for the scheduling logic and React components.
+- Audited the app with Lighthouse and fixed accessibility issues: labels, colour contrast and keyboard navigation.
+
+Portfolio Site
+- Built a statically generated portfolio with Next.js and semantic HTML and CSS.
+
+EXPERIENCE
+Frontend Intern, Fictional EdTech (Jun 2025 - Sep 2025)
+- Implemented UI components in React and JavaScript from Figma designs.
+- Opened pull requests on GitHub and resolved merge conflicts with Git.

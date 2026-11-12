@@ -1,0 +1,79 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "Python",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Fixed bugs in a Python Flask application and wrote documentation for its endpoints.",
+    "reason": "Candidate explicitly used Python in a Flask project."
+   },
+   {
+    "skill": "FastAPI or Django",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Neither FastAPI nor Django is mentioned."
+   },
+   {
+    "skill": "PostgreSQL",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of PostgreSQL."
+   },
+   {
+    "skill": "Docker",
+    "verdict": "weak_evidence",
+    "evidence_quote": "SKILLS\nPython, Flask, SQLite, Git, Linux, Docker",
+    "reason": "Docker is listed as a skill but not shown as used in a project."
+   },
+   {
+    "skill": "REST API design",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a Flask REST API with SQLite for book loans, with endpoints for search and returns.",
+    "reason": "Candidate explicitly built a REST API."
+   },
+   {
+    "skill": "pytest",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "pytest is not mentioned."
+   },
+   {
+    "skill": "CI/CD",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No CI/CD related information provided."
+   },
+   {
+    "skill": "Redis",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Redis is not mentioned."
+   },
+   {
+    "skill": "Kubernetes",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Kubernetes is not mentioned."
+   },
+   {
+    "skill": "AWS",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "AWS is not mentioned."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 1.886,
+   "ok": true,
+   "prompt_tokens": 725,
+   "completion_tokens": 709,
+   "error": null
+  }
+ ]
+}

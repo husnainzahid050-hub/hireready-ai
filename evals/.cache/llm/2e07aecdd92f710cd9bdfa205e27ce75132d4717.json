@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly addresses overfitting and prevention methods.",
+   "evidence_quote": "Overfitting is when a model learns the noise in the training data instead of the general pattern, so training accuracy is high but validation accuracy is much lower."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "All technical points are correct and align with rubric anchors.",
+   "evidence_quote": "use regularization like L2 or dropout, use cross-validation, and stop early when the validation loss starts rising."
+  },
+  "depth": {
+   "score": "4",
+   "justification": "Provides concrete example and remedies, but lacks discussion of leakage, metric choice, or prioritization.",
+   "evidence_quote": "In my crop disease project the CNN hit 99 percent on training but 80 on validation, so I added data augmentation and early stopping, and the test accuracy went up to 91 percent."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "Logical flow: definition, detection, prevention, example.",
+   "evidence_quote": "I detect it by comparing training and validation curves. To prevent it you can get more data, use a simpler model, add regularization like L2 or dropout, use cross-validation, and stop early when the validation loss starts rising."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "Clear, concise, and well‑structured language.",
+   "evidence_quote": "Overfitting is when a model learns the noise in the training data instead of the general pattern, so training accuracy is high but validation accuracy is much lower."
+  },
+  "what_interviewer_wanted": "Explain what overfitting is, how to detect it, and list practical prevention techniques, ideally with a project example.",
+  "improved_answer": "Overfitting happens when a model captures noise instead of the underlying pattern, so training accuracy is high but validation accuracy drops. I detect it by looking for a gap between training and validation curves. To prevent it I use more data or augmentation, choose a simpler model, apply regularization (L1/L2 or dropout), employ early stopping, and validate with cross‑validation. In my crop‑disease CNN project, I saw a 99% training vs 80% validation accuracy, so I added data augmentation and early stopping, which raised test accuracy to 91%.",
+  "one_tip": "Mention metric suitability and data leakage checks to show deeper understanding.",
+  "feedback_summary": "Great explanation with a solid example—just add a note on metric choice and data leakage for extra depth.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.197,
+   "ok": true,
+   "prompt_tokens": 1840,
+   "completion_tokens": 606,
+   "error": null
+  }
+ ]
+}

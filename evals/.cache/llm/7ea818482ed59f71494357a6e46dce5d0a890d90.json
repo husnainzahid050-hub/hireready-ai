@@ -1,0 +1,86 @@
+{
+ "step": "jd_extract",
+ "result": {
+  "title": "Junior Frontend Developer",
+  "seniority": "junior",
+  "must_have_skills": [
+   {
+    "name": "JavaScript",
+    "competency": "frontend_basics"
+   },
+   {
+    "name": "React",
+    "competency": "frontend_basics"
+   },
+   {
+    "name": "HTML",
+    "competency": "frontend_basics"
+   },
+   {
+    "name": "CSS",
+    "competency": "frontend_basics"
+   },
+   {
+    "name": "TypeScript",
+    "competency": "frontend_basics"
+   },
+   {
+    "name": "Git",
+    "competency": "git_collaboration"
+   },
+   {
+    "name": "Web accessibility basics",
+    "competency": "other"
+   }
+  ],
+  "nice_to_have_skills": [
+   {
+    "name": "Next.js",
+    "competency": "frontend_basics"
+   },
+   {
+    "name": "Jest",
+    "competency": "frontend_basics"
+   },
+   {
+    "name": "Playwright",
+    "competency": "frontend_basics"
+   },
+   {
+    "name": "Tailwind CSS",
+    "competency": "frontend_basics"
+   }
+  ],
+  "responsibilities": [
+   "Build UI components and pages from Figma designs.",
+   "Make pages responsive and accessible.",
+   "Fix bugs and improve page load performance."
+  ],
+  "tools": [
+   "JavaScript",
+   "React",
+   "HTML",
+   "CSS",
+   "TypeScript",
+   "Git",
+   "Web accessibility basics",
+   "Next.js",
+   "Jest",
+   "Playwright",
+   "Tailwind CSS"
+  ],
+  "soft_skills": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "JobProfile",
+   "latency_s": 1.05,
+   "ok": true,
+   "prompt_tokens": 880,
+   "completion_tokens": 461,
+   "error": null
+  }
+ ]
+}

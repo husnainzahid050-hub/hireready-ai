@@ -27,13 +27,15 @@ jobs:
           cache-dependency-path: backend/requirements*.txt
       - run: pip install -r requirements-dev.txt
       - name: Lint
-        run: ruff check . && ruff format --check .
+        run: ruff check . ../evals && ruff format --check . ../evals
       - name: Typecheck
         run: mypy app
       - name: Test
         run: pytest
       - name: Validate knowledge base
         run: python -m scripts.ingest_knowledge --dry-run
+      - name: Evals plumbing check (offline, fake providers)
+        run: python ../evals/run_evals.py --mode fake
       - name: Dependency audit
         run: pip-audit -r requirements.txt
 

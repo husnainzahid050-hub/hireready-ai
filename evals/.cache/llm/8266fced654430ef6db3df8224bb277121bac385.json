@@ -1,0 +1,44 @@
+{
+ "step": "plan",
+ "result": {
+  "opening": "Hi Hamza, thanks for joining today. I'm excited to learn more about your experience building ML solutions for real-world problems.",
+  "questions": [
+   {
+    "text": "Can you walk me through how you structure a Python codebase for training and deploying deep learning models to ensure maintainability and scalability?",
+    "follow_up_hint": "Probe for use of modules, config management, testing, and CI/CD practices."
+   },
+   {
+    "text": "When you encounter a training loss that isn’t decreasing in a PyTorch model, what steps do you take to diagnose and fix the issue?",
+    "follow_up_hint": "Ask about checking data pipelines, learning rates, model architecture, and debugging tools."
+   },
+   {
+    "text": "Tell me about the fruit‑grading project at Fictional AgriTech—what were the key challenges you faced, how did you decide on the model architecture and training strategy, and what impact did the final deployment have?",
+    "follow_up_hint": "Dig into data preprocessing, experiment tracking with MLflow, and production monitoring."
+   },
+   {
+    "text": "Distributed training isn’t listed on your CV—how would you approach scaling a PyTorch CNN training job across multiple GPUs or nodes?",
+    "follow_up_hint": "Explore familiarity with DataParallel, DistributedDataParallel, or orchestration tools like Kubernetes."
+   },
+   {
+    "text": "Describe a specific situation where you took initiative beyond your assigned tasks and what the outcome was.",
+    "follow_up_hint": "Look for a clear STAR story highlighting impact and collaboration."
+   },
+   {
+    "text": "What draws you to this Machine Learning Engineer role, and how do you see your background adding value to our team’s image‑modeling and deployment pipelines?",
+    "follow_up_hint": "Assess motivation, alignment with responsibilities, and unique contributions."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "InterviewPlanDraft",
+   "latency_s": 1.344,
+   "ok": true,
+   "prompt_tokens": 1202,
+   "completion_tokens": 428,
+   "error": null
+  }
+ ]
+}

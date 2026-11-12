@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The candidate did not provide any answer to the question.",
+   "evidence_quote": null
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "No technical content was provided, so accuracy cannot be assessed.",
+   "evidence_quote": null
+  },
+  "depth": {
+   "score": "1",
+   "justification": "The response lacks any detail or reasoning.",
+   "evidence_quote": null
+  },
+  "structure": {
+   "score": "1",
+   "justification": "There is no structure to evaluate as the answer is missing.",
+   "evidence_quote": null
+  },
+  "communication": {
+   "score": "1",
+   "justification": "The answer is empty, so communication is absent.",
+   "evidence_quote": null
+  },
+  "what_interviewer_wanted": "Explain why using a mutable default argument like an empty list is dangerous in Python, including the evaluation of default values at function definition and the recommendation to use None.",
+  "improved_answer": "I haven’t yet had to deal with mutable defaults in a project, but I know that in Python default arguments are evaluated once when the function is defined. If you use a mutable object like a list, that same list is shared across all calls, so data from one call can leak into another. The usual fix is to set the default to None and create a new list inside the function.",
+  "one_tip": "When answering technical questions, start with the core concept before adding details or examples.",
+  "feedback_summary": "You missed the question entirely; try to provide a concise explanation next time.",
+  "answer_quality": "off_topic",
+  "follow_up_question": "Can you explain what happens if you use a mutable default argument in a function that appends items to the list?",
+  "transition": "Thanks for your response."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.863,
+   "ok": true,
+   "prompt_tokens": 1735,
+   "completion_tokens": 384,
+   "error": null
+  }
+ ]
+}

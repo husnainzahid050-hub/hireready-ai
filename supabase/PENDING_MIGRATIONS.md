@@ -9,7 +9,9 @@ them **in this order**, one at a time:
 | 1 | [`migrations/20261106000004_security.sql`](migrations/20261106000004_security.sql) | `session_usage` table + `consume_quota()` (per-session quotas) | Upload, analyze and interview requests fail with 500 (quotas fail closed) |
 | 2 | [`migrations/20261106000005_analysis_claim.sql`](migrations/20261106000005_analysis_claim.sql) | `sessions.analysis_started_at` + `claim_analysis()` (one analysis run per session) | Every fresh analyze request fails with 500 |
 
-(There is no `...003` file; the numbering gap is intentional.)
+(There is no `...003` file; the numbering gap is intentional. Phase 5 (report, share links,
+email, delete) needs **no new SQL**: it uses the `reports` table and the cascades from the first
+migration.)
 
 Both files only add objects (no data changes) and are safe to run on the live database. Each
 function is executable by `service_role` only. Check afterwards:

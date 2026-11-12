@@ -1,0 +1,45 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "Answer does not address the question of a mistake or learning experience.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "1",
+   "justification": "No specifics, reasoning, or examples provided.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No STAR structure; no situation, task, action, result.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "communication": {
+   "score": "2",
+   "justification": "Answer is concise but lacks detail and clarity on the requested story.",
+   "evidence_quote": "Maybe I work too hard sometimes."
+  },
+  "what_interviewer_wanted": "They wanted a concrete example of a mistake, ownership, actions taken, and a learning outcome using the STAR method.",
+  "improved_answer": "I haven’t had a major mistake yet, but during my internship at Fictional Data Co. I once misconfigured a model’s hyperparameters, which caused inaccurate predictions. I caught the issue by reviewing logs, corrected the settings, and added a validation step to my workflow. This taught me to double‑check configurations before running experiments.",
+  "one_tip": "When asked about mistakes, share a real incident—even a small one—and explain what you did to fix it and how you changed your process.",
+  "feedback_summary": "You need to provide a specific example; a brief statement about not making mistakes won’t satisfy the question.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you describe a small error you caught during your internship and how you addressed it?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.365,
+   "ok": true,
+   "prompt_tokens": 1735,
+   "completion_tokens": 604,
+   "error": null
+  }
+ ]
+}

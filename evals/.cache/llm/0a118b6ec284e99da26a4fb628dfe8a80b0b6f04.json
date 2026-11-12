@@ -1,0 +1,45 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "3",
+   "justification": "Answer addresses the question but lacks depth and detail.",
+   "evidence_quote": "Once I submitted an assignment late because I misread the deadline."
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "2",
+   "justification": "Minimal specifics, no explanation of impact or learning beyond a generic habit.",
+   "evidence_quote": "I learned to put deadlines in my calendar."
+  },
+  "structure": {
+   "score": "2",
+   "justification": "No clear STAR structure; missing situation, task, action, result.",
+   "evidence_quote": null
+  },
+  "communication": {
+   "score": "3",
+   "justification": "Clear and concise, but too brief to convey full story.",
+   "evidence_quote": "Now I am more careful."
+  },
+  "what_interviewer_wanted": "A concrete example of a mistake, ownership, specific actions taken, and a clear lesson or change in behavior.",
+  "improved_answer": "I once missed a deadline for an assignment because I misread the due date. I took responsibility, apologized to my instructor, and added the deadline to my calendar and set reminders so I would not repeat the mistake.",
+  "one_tip": "Include the impact of the mistake and how you corrected it to show ownership and learning.",
+  "feedback_summary": "Good effort, but adding more detail and structure will strengthen your story.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you describe how missing that deadline affected the project or your team, and what specific steps you took to prevent it in the future?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 0.809,
+   "ok": true,
+   "prompt_tokens": 1743,
+   "completion_tokens": 452,
+   "error": null
+  }
+ ]
+}

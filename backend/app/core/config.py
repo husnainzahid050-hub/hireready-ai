@@ -64,6 +64,11 @@ class Settings(BaseSettings):
     llm_daily_budget: int = Field(default=1500, ge=1)
     llm_daily_soft_ratio: float = Field(default=0.8, gt=0, le=1)
 
+    # Optional Langfuse tracing (Phase 8): on only when all three are set. See core/tracing.py.
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: SecretStr | None = None
+    langfuse_host: str | None = None
+
     @field_validator("embedding_dim")
     @classmethod
     def _positive_dim(cls, v: int) -> int:

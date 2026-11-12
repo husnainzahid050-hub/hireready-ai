@@ -77,7 +77,7 @@ export function ReportSections({
         <h2 id="answers-h" className="text-lg font-semibold tracking-tight">
           Question by question
         </h2>
-        <p className="text-fg-muted text-sm">
+        <p className="text-fg-muted text-sm print:hidden">
           Highlighted words are the parts of your answer the scorer quoted as evidence. Your weakest
           answer is open; tap any question to expand it.
         </p>

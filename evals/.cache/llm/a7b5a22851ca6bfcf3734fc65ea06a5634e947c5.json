@@ -1,0 +1,58 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Hira Khan",
+  "education": [
+   {
+    "degree": "BS Statistics",
+    "institution": "Fictional University of Karachi",
+    "year": "2025"
+   }
+  ],
+  "skills": [
+   "SQL",
+   "Excel",
+   "Python",
+   "pandas",
+   "Tableau",
+   "statistics",
+   "A/B testing"
+  ],
+  "projects": [
+   {
+    "title": "Customer Churn Analysis",
+    "stack": [
+     "Python",
+     "pandas"
+    ],
+    "outcome": "Cleaned 80,000 transaction records and identified top churn drivers."
+   }
+  ],
+  "experience": [
+   {
+    "role": "Junior Data Analyst",
+    "org": "Fictional Mart",
+    "duration": "Sep 2025 - Present",
+    "bullets": [
+     "Wrote SQL queries with joins and window functions to build weekly sales reports.",
+     "Built Tableau dashboards used by 12 regional managers to track revenue.",
+     "Used Excel pivot tables and XLOOKUP to reconcile monthly inventory data.",
+     "Presented weekly findings to non-technical store managers in plain language."
+    ]
+   }
+  ],
+  "certifications": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 0.838,
+   "ok": true,
+   "prompt_tokens": 767,
+   "completion_tokens": 309,
+   "error": null
+  }
+ ]
+}

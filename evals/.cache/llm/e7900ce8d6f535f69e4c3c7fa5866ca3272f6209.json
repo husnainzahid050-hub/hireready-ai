@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The candidate directly addresses the question by explaining what RAG is and how they implemented it.",
+   "evidence_quote": "RAG is retrieval augmented generation. You search your documents and then give the results to the LLM so it can answer better."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "The explanation correctly identifies embeddings and a vector database as core components of RAG.",
+   "evidence_quote": "You use embeddings and a vector database for the search part."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "The answer lacks details on chunking, prompt instructions, source citation, or evaluation metrics.",
+   "evidence_quote": "I built a chatbot like this for university policies."
+  },
+  "structure": {
+   "score": "3",
+   "justification": "The response is a single paragraph; it could be better organized into steps.",
+   "evidence_quote": "RAG is retrieval augmented generation. You search your documents and then give the results to the LLM so it can answer better."
+  },
+  "communication": {
+   "score": "4",
+   "justification": "The answer is clear and concise, but could be more polished.",
+   "evidence_quote": "You use embeddings and a vector database for the search part."
+  },
+  "what_interviewer_wanted": "They wanted a clear explanation of RAG, including chunking, retrieval, prompt design, source citation, and how to build a pipeline with concrete steps and tools.",
+  "improved_answer": "RAG stands for Retrieval‑Augmented Generation. I built a campus policy assistant using LangChain, FAISS, and FastAPI. The pipeline first chunks policy documents into 200‑token pieces, embeds each chunk with a transformer model, and stores the vectors in FAISS. At query time the user question is embedded, the nearest chunks are retrieved, and those chunks are inserted into the prompt with a system instruction that the LLM must answer only from the provided context and cite the chunk IDs. This approach cut hallucinations by 40% compared to a vanilla LLM chatbot.",
+  "one_tip": "Add a brief mention of how you evaluate or monitor hallucinations to show depth.",
+  "feedback_summary": "Good start—your RAG implementation shows practical experience, but adding more detail on chunking, prompt design, and evaluation would strengthen your answer.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you describe how you chose the chunk size and what impact it had on retrieval quality in your campus policy assistant?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.992,
+   "ok": true,
+   "prompt_tokens": 1766,
+   "completion_tokens": 612,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,73 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "JavaScript",
+    "verdict": "weak_evidence",
+    "evidence_quote": "JavaScript (beginner)",
+    "reason": "Only listed as a beginner skill, no concrete usage shown."
+   },
+   {
+    "skill": "React",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The excerpt does not mention React at all."
+   },
+   {
+    "skill": "HTML and CSS",
+    "verdict": "strong_evidence",
+    "evidence_quote": "coded it in HTML and CSS.",
+    "reason": "Candidate explicitly coded a landing page using HTML and CSS."
+   },
+   {
+    "skill": "TypeScript",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of TypeScript in the excerpt."
+   },
+   {
+    "skill": "Git",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Git is not referenced in the provided text."
+   },
+   {
+    "skill": "Web accessibility",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No evidence of accessibility work is present."
+   },
+   {
+    "skill": "Next.js",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Next.js is not mentioned."
+   },
+   {
+    "skill": "Frontend testing (Jest or Playwright)",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No testing tools or activities are described."
+   },
+   {
+    "skill": "Tailwind CSS",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Tailwind CSS is not referenced."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 1.631,
+   "ok": true,
+   "prompt_tokens": 750,
+   "completion_tokens": 603,
+   "error": null
+  }
+ ]
+}

@@ -422,3 +422,8 @@ Begin with **Phase 0**. First, list the exact accounts/keys I need to create for
 ## Implementation notes (deviations agreed during the build)
 
 - **Phase 0:** Vercel now auto-detects a FastAPI `app` in `backend/app/main.py` (zero-config), so `backend/api/index.py` is not needed. Verified limits (Nov 2026, Hobby, Fluid compute): Python bundle 500 MB, max duration 300 s, request/response body 4.5 MB, cron jobs once per day with ±59 min precision.
+- **Phase 5:** email is implemented with Resend's HTTP API (`RESEND_API_KEY`, `EMAIL_FROM`) behind
+  the `EmailProvider` interface instead of Brevo; the provider is still swappable and email stays
+  off until the keys exist. The share-link page is excluded from search with `noindex` (header +
+  meta) rather than a `robots.txt` Disallow, which would hide the noindex from crawlers. No new SQL:
+  the `reports` table from the first migration is used as is.

@@ -192,7 +192,22 @@ body {
     color-scheme: light;
   }
   html {
-    font-size: 11pt;
+    font-size: 9.5pt;
+  }
+  /* Compact layout: the screen spacing would push 6 questions past 5 A4 pages. */
+  .report-page {
+    padding: 0 !important;
+  }
+  .report-page .report-block,
+  .report-page .report-card > details > div,
+  .report-page .report-card > details > summary {
+    padding: 8pt 10pt !important;
+  }
+  .report-page .space-y-6 > :not(:last-child) {
+    margin-bottom: 8pt !important;
+  }
+  .report-page .space-y-6 > :not(:first-child) {
+    margin-top: 0 !important;
   }
   .print-only {
     display: block;
@@ -207,6 +222,44 @@ body {
   .report-block {
     display: block;
     break-inside: avoid;
+  }
+  /* A tall question card may split across pages (whole-card "avoid" left half-empty pages),
+     but its header stays with the first lines of the card. */
+  .report-page li.report-card[id^="q"] {
+    break-inside: auto;
+  }
+  .report-page .report-card summary {
+    break-after: avoid;
+  }
+  /* The five dimension rows (each with its reason) side by side: halves the card height. */
+  .report-page .dim-list {
+    columns: 2;
+    column-gap: 16pt;
+  }
+  .report-page .dim-list > li {
+    break-inside: avoid;
+  }
+  .report-page .space-y-4 > :not(:last-child),
+  .report-page .space-y-5 > :not(:last-child) {
+    margin-bottom: 5pt !important;
+  }
+  .report-page .space-y-4 > :not(:first-child),
+  .report-page .space-y-5 > :not(:first-child) {
+    margin-top: 0 !important;
+  }
+  /* Plan: one compact row per day instead of a bordered card each. */
+  .report-page .plan-list > li > details {
+    border: 0;
+  }
+  .report-page .plan-list > li > details > summary,
+  .report-page .plan-list > li > details > div {
+    padding: 1pt 0 1pt 0 !important;
+  }
+  .report-page .plan-list > li > details > div {
+    padding-left: 30pt !important;
+  }
+  .report-page .plan-list > :not(:first-child) {
+    margin-top: 2pt !important;
   }
   .report-page h2,
   .report-page h3,

@@ -1,0 +1,67 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "SQL",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Wrote SQL queries with joins and window functions to build weekly sales reports.",
+    "reason": "The candidate explicitly wrote SQL queries in a job role."
+   },
+   {
+    "skill": "Excel",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Used Excel pivot tables and XLOOKUP to reconcile monthly inventory data.",
+    "reason": "Direct statement of using Excel features in work."
+   },
+   {
+    "skill": "Python with pandas",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Cleaned 80,000 transaction records with Python and pandas and found the three biggest churn drivers.",
+    "reason": "Explicit use of Python and pandas on a project."
+   },
+   {
+    "skill": "Power BI or Tableau",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built Tableau dashboards used by 12 regional managers to track revenue.",
+    "reason": "Clear evidence of using Tableau, satisfying the alternative."
+   },
+   {
+    "skill": "Statistics",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Applied hypothesis tests and confidence intervals to compare customer segments.",
+    "reason": "Demonstrates application of statistical methods."
+   },
+   {
+    "skill": "Communication with non-technical stakeholders",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Presented weekly findings to non-technical store managers in plain language.",
+    "reason": "Shows direct communication with non‑technical audience."
+   },
+   {
+    "skill": "A/B testing",
+    "verdict": "weak_evidence",
+    "evidence_quote": "SQL, Excel, Python, pandas, Tableau, statistics, A/B testing",
+    "reason": "Skill is listed but no concrete example of performing an A/B test."
+   },
+   {
+    "skill": "dbt",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of dbt in any excerpt."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 1.85,
+   "ok": true,
+   "prompt_tokens": 799,
+   "completion_tokens": 696,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,69 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Ayesha Siddiqui",
+  "education": [
+   {
+    "degree": "BS Computer Science",
+    "institution": "Fictional Capital University",
+    "year": "2026"
+   }
+  ],
+  "skills": [
+   "JavaScript",
+   "TypeScript",
+   "React",
+   "Next.js",
+   "Tailwind CSS",
+   "HTML",
+   "CSS",
+   "Git",
+   "Jest"
+  ],
+  "projects": [
+   {
+    "title": "Study Planner Web App",
+    "stack": [
+     "React",
+     "TypeScript",
+     "Tailwind CSS",
+     "Jest"
+    ],
+    "outcome": "Responsive study planner with tested scheduling logic and accessibility fixes."
+   },
+   {
+    "title": "Portfolio Site",
+    "stack": [
+     "Next.js",
+     "HTML",
+     "CSS"
+    ],
+    "outcome": "Statically generated portfolio with semantic HTML and CSS."
+   }
+  ],
+  "experience": [
+   {
+    "role": "Frontend Intern",
+    "org": "Fictional EdTech",
+    "duration": "Jun 2025 - Sep 2025",
+    "bullets": [
+     "Implemented UI components in React and JavaScript from Figma designs.",
+     "Opened pull requests on GitHub and resolved merge conflicts with Git."
+    ]
+   }
+  ],
+  "certifications": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 0.867,
+   "ok": true,
+   "prompt_tokens": 788,
+   "completion_tokens": 243,
+   "error": null
+  }
+ ]
+}

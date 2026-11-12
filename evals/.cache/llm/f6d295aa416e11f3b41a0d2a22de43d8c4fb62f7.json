@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly addresses the question by explaining the final‑year project in plain terms.",
+   "evidence_quote": "My project is like a helpful librarian for university rules."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "The description accurately reflects the project’s function without technical errors.",
+   "evidence_quote": "it finds the few paragraphs that talk about it, and it writes a short answer and shows you which document it came from"
+  },
+  "depth": {
+   "score": "4",
+   "justification": "It gives concrete numbers and a clear outcome, but could mention a bit more about how it works.",
+   "evidence_quote": "I tested it with 50 real student questions, and it made up answers far less often than a normal chatbot, about 40 percent fewer mistakes."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "Logical flow: problem → analogy → solution → results → impact.",
+   "evidence_quote": "Students usually have to dig through hundreds of pages to find out, say, how to apply for a scholarship."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "Clear, concise, no jargon, uses everyday analogy.",
+   "evidence_quote": "My project is like a helpful librarian for university rules."
+  },
+  "what_interviewer_wanted": "Explain the project in simple terms, starting with the problem it solves, using an everyday analogy, and highlighting the impact without technical jargon.",
+  "improved_answer": "My project is a helpful librarian for university rules. Students often have to sift through many pages to find out how to apply for a scholarship. With my assistant, they just type a question in plain language, and it pulls the relevant paragraphs, writes a short answer, and shows the source document so they can verify it. In tests with 50 real student questions, it cut hallucinated answers by 40 %, saving time and reducing misinformation.",
+  "one_tip": "Keep the analogy short and tie it directly to the user benefit.",
+  "feedback_summary": "Great job simplifying the project and highlighting its real‑world impact!",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 0.82,
+   "ok": true,
+   "prompt_tokens": 1759,
+   "completion_tokens": 493,
+   "error": null
+  }
+ ]
+}

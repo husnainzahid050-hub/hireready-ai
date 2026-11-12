@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "Directly answers the question asked.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "Accurate description of WHERE and HAVING usage.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "Lacks discussion of execution order and aggregate restrictions.",
+   "evidence_quote": "So HAVING is for groups, like when you use COUNT."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "Logical order, straightforward statement.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "Clear and concise explanation of the difference.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "what_interviewer_wanted": "Explain that WHERE filters rows before grouping, while HAVING filters groups after aggregation and cannot use aggregates in WHERE.",
+  "improved_answer": "WHERE filters rows before any GROUP BY, so it can’t reference aggregates; HAVING applies after grouping and can filter on aggregate values like COUNT or SUM.",
+  "one_tip": "Add a brief note on execution order to show deeper understanding.",
+  "feedback_summary": "Good concise answer; adding a bit about execution order would make it stronger.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 0.723,
+   "ok": true,
+   "prompt_tokens": 1693,
+   "completion_tokens": 459,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,45 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "3",
+   "justification": "The answer addresses a team disagreement, but lacks detail on the situation and outcome.",
+   "evidence_quote": "In a university project my teammate wanted to use React and I wanted to use plain HTML."
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "2",
+   "justification": "Minimal specifics; no reasoning or trade-offs discussed.",
+   "evidence_quote": "We talked about it and in the end we used React because more people knew it."
+  },
+  "structure": {
+   "score": "2",
+   "justification": "No clear STAR structure; missing task, action, result details.",
+   "evidence_quote": "We talked about it and in the end we used React because more people knew it."
+  },
+  "communication": {
+   "score": "3",
+   "justification": "Clear but overly brief; lacks elaboration.",
+   "evidence_quote": "It worked out fine."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a detailed STAR story showing how the candidate handled a technical disagreement, including listening, proposing a solution, and reflecting on the outcome.",
+  "improved_answer": "In my final‑year project, a teammate wanted to switch to React while I preferred plain HTML. I asked him to explain his reasoning and we compared the pros and cons: React would speed up development for the rest of the team, but it added a build step. We decided to use React because most teammates were familiar with it, and we documented the decision for future reference. The project was delivered on time, and I learned to balance personal preference with team efficiency.",
+  "one_tip": "Provide more context and reflect on what you learned.",
+  "feedback_summary": "Good start, but adding details and reflection would strengthen your story.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you share a specific example of how you weighed the pros and cons of React versus plain HTML in that project?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.239,
+   "ok": true,
+   "prompt_tokens": 1781,
+   "completion_tokens": 411,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,21 @@
+Zainab Hussain
+Islamabad, Pakistan | zainab.hussain@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BS Software Engineering, Fictional National University, 2021
+
+SKILLS
+Python, Django, FastAPI, PostgreSQL, Docker, pytest, GitHub Actions, Redis, REST APIs
+
+EXPERIENCE
+Backend Engineer, Fictional Logistics Pvt Ltd (2023 - Present)
+- Designed REST APIs in Django REST Framework for a shipment tracking product used by 40 business clients.
+- Optimised slow PostgreSQL queries with indexes, cutting p95 latency from 900 ms to 180 ms.
+- Containerised five services with Docker and set up GitHub Actions CI/CD pipelines with automated deploys.
+- Added Redis caching for rate-limited partner APIs.
+
+Software Engineer, Fictional Apps Studio (2021 - 2023)
+- Built FastAPI microservices in Python for a booking platform.
+- Wrote pytest unit and integration tests and raised coverage from 45% to 85%.
+- Mentored two interns on code review practices.

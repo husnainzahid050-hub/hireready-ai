@@ -1,0 +1,73 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "Python",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention Python."
+   },
+   {
+    "skill": "Machine learning fundamentals",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention machine learning."
+   },
+   {
+    "skill": "LLMs and RAG pipelines",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention LLMs or RAG."
+   },
+   {
+    "skill": "REST APIs with FastAPI",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention FastAPI or REST APIs."
+   },
+   {
+    "skill": "SQL",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention SQL."
+   },
+   {
+    "skill": "Git",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention Git."
+   },
+   {
+    "skill": "Docker",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention Docker."
+   },
+   {
+    "skill": "AWS or GCP",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention AWS or GCP."
+   },
+   {
+    "skill": "Vector databases",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention vector databases."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 1.503,
+   "ok": true,
+   "prompt_tokens": 716,
+   "completion_tokens": 470,
+   "error": null
+  }
+ ]
+}

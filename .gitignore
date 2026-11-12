@@ -28,3 +28,7 @@ next-env.d.ts
 Thumbs.db
 .vscode/
 .idea/
+
+# Evals: fake-mode output is a local plumbing check (the live cache in evals/.cache/ IS committed)
+evals/out-fake/
+evals/*.log

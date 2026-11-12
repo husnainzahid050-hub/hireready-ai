@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The answer does not address the question about which HTTP status codes to use and when.",
+   "evidence_quote": "I just return 200 for everything and put an error message in the body."
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "Incorrect practice; status codes are essential for API clients.",
+   "evidence_quote": "Status codes are not that important if the frontend reads the message."
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No specifics, no reasoning, no examples.",
+   "evidence_quote": "I just return 200 for everything."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No logical structure, no categories or ordering.",
+   "evidence_quote": "I just return 200 for everything and put an error message in the body."
+  },
+  "communication": {
+   "score": "1",
+   "justification": "Very brief, unclear, and dismissive of best practices.",
+   "evidence_quote": "Status codes are not that important if the frontend reads the message."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a list of common HTTP status codes (e.g., 200, 201, 204, 400, 401, 403, 404, 422, 429, 500) and an explanation of when each should be used in an API.",
+  "improved_answer": "I would use 200 OK for successful GET requests, 201 Created when a new resource is created, 204 No Content for successful DELETE or PUT that don’t return data, 400 Bad Request for malformed input, 401 Unauthorized when authentication is missing, 403 Forbidden when the user is authenticated but lacks permission, 404 Not Found for missing resources, 422 Unprocessable Entity for validation errors, 429 Too Many Requests for rate limiting, and 500 Internal Server Error for unexpected server failures. These codes let clients handle responses correctly without parsing the body.",
+  "one_tip": "Mention at least three status codes and a brief scenario for each to show you understand their purpose.",
+  "feedback_summary": "Your answer missed the key details; try to list specific codes and explain when you’d use them.",
+  "answer_quality": "off_topic",
+  "follow_up_question": "Can you give an example of when you would use 422 versus 400 in an API you’ve built?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.275,
+   "ok": true,
+   "prompt_tokens": 1734,
+   "completion_tokens": 492,
+   "error": null
+  }
+ ]
+}

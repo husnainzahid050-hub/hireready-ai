@@ -1,0 +1,18 @@
+Fatima Noor
+Lahore, Pakistan | fatima.noor@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BFA Graphic Design, Fictional College of Arts, 2025
+
+SKILLS
+Figma, Adobe Illustrator, HTML, CSS, JavaScript (beginner), user research
+
+PROJECTS
+Bakery Landing Page
+- Designed a landing page in Figma and coded it in HTML and CSS.
+
+EXPERIENCE
+UI Design Intern, Fictional Creative Agency (Jan 2025 - Jun 2025)
+- Created wireframes and high-fidelity mockups in Figma for two mobile apps.
+- Ran five user interviews and summarised the findings for the product team.
