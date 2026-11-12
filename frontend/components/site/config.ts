@@ -3,8 +3,9 @@
 export const SITE_NAME = "HireReady AI";
 export const TAGLINE = "Paste the job. Upload your CV. Walk into the interview ready.";
 export const DESCRIPTION =
-  "Free AI interview prep: see which job skills your CV actually proves (with verified quotes), " +
-  "the questions this role will ask, a 7-day plan, and an AI mock interview with follow-ups.";
+  "A free mock interview that shows its working: see which job skills your CV actually proves " +
+  "(with quotes verified in code), scores with their formulas, the questions this role will ask " +
+  "and a 7-day plan. Practice only, no sign-up.";
 
 /** Canonical origin, used for absolute Open Graph URLs, robots and the sitemap. */
 export const SITE_URL = (
