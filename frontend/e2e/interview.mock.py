@@ -298,6 +298,9 @@ def desktop_flow(browser) -> None:
     expect(page.get_by_role("heading", name="Interview complete. Nice work!")).to_be_visible()
     expect(page.get_by_role("link", name="Back to your analysis")).to_have_attribute(
         "href", f"/session/{SID}/analysis")
+    # The report CTA leads the completion screen (UX_REVIEW item 18).
+    expect(page.get_by_role("link", name="See your report")).to_have_attribute(
+        "href", f"/session/{SID}/report")
     page.screenshot(path=str(SHOTS / "desktop-6-complete.png"), full_page=True)
     page.context.close()
 
