@@ -1,3 +1,5 @@
+import { cn } from "@/components/ui/cn";
+import { Alert, Check } from "@/components/ui/icons";
 import type { SpeechMetrics } from "@/lib/types";
 import { speechGuidance } from "@/lib/voice";
 
@@ -7,26 +9,39 @@ export function SpeechFeedback({ metrics }: { metrics: SpeechMetrics }) {
   return (
     <section
       aria-labelledby="speech-feedback-heading"
-      className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm sm:p-5 dark:border-sky-900 dark:bg-sky-950"
+      className="border-border bg-surface shadow-card rounded-2xl border p-4 sm:p-5"
     >
-      <h2 id="speech-feedback-heading" className="font-semibold text-sky-950 dark:text-sky-100">
+      <h2 id="speech-feedback-heading" className="font-semibold">
         How you sounded
       </h2>
-      <dl className="mt-2 grid gap-3 sm:grid-cols-3">
-        {items.map((g) => (
-          <div key={g.label} className="space-y-0.5">
-            <dt className="text-xs font-medium tracking-wide text-sky-900 uppercase dark:text-sky-200">
-              {g.label}
-            </dt>
-            <dd className="font-medium text-sky-950 dark:text-sky-50">
-              <span aria-hidden className="mr-1">
-                {g.tone === "good" ? "✓" : "!"}
-              </span>
-              {g.value}
-            </dd>
-            <dd className="text-sky-900 dark:text-sky-200">{g.advice}</dd>
-          </div>
-        ))}
+      <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+        {items.map((g) => {
+          const good = g.tone === "good";
+          return (
+            <div
+              key={g.label}
+              className={cn(
+                "space-y-1 rounded-xl border p-3 text-sm",
+                good
+                  ? "border-success-solid/25 bg-success-soft"
+                  : "border-warning-solid/30 bg-warning-soft",
+              )}
+            >
+              <dt
+                className={cn(
+                  "flex items-center gap-1.5 text-xs font-semibold tracking-wide uppercase",
+                  good ? "text-success-fg" : "text-warning-fg",
+                )}
+              >
+                {good ? <Check className="size-4" /> : <Alert className="size-4" />}
+                {g.label}
+                <span className="sr-only">{good ? " (good)" : " (to improve)"}</span>
+              </dt>
+              <dd className="text-fg text-base font-semibold">{g.value}</dd>
+              <dd className="text-fg-muted">{g.advice}</dd>
+            </div>
+          );
+        })}
       </dl>
     </section>
   );

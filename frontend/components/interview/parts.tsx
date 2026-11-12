@@ -1,14 +1,17 @@
 // Presentational pieces of the interview page. No hooks here, so the skeleton can also be
 // rendered by the server page shell as the <Suspense> fallback.
 
+import { Badge } from "@/components/ui/badge";
+import { buttonClasses } from "@/components/ui/button";
+import { cn, focusRing } from "@/components/ui/cn";
+import { Check } from "@/components/ui/icons";
+import { Notice as UiNotice } from "@/components/ui/notice";
 import type { AnswerFeedback, Question, QuestionType } from "@/lib/types";
 
-export const FOCUS_RING =
-  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-400";
-
-export const BUTTON_PRIMARY = `inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 font-medium text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600 ${FOCUS_RING}`;
-
-export const BUTTON_SECONDARY = `inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-900 ${FOCUS_RING}`;
+/** Kept for older call sites; new code should use `focusRing` / `buttonClasses()` directly. */
+export const FOCUS_RING = focusRing;
+export const BUTTON_PRIMARY = buttonClasses();
+export const BUTTON_SECONDARY = buttonClasses({ variant: "secondary" });
 
 const TYPE_LABEL: Record<QuestionType, string> = {
   technical: "Technical",
@@ -38,29 +41,33 @@ export function SpeakingIndicator({ status }: { status: InterviewerStatus }) {
     <div className="flex items-center gap-3">
       <span
         aria-hidden
-        className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${
-          active ? "bg-indigo-600" : "bg-zinc-500 dark:bg-zinc-600"
-        }`}
+        className={cn(
+          "relative flex size-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors motion-reduce:transition-none",
+          active
+            ? "bg-accent text-accent-fg"
+            : "bg-surface-sunken text-fg-muted ring-border ring-1",
+        )}
       >
         AI
         {active && (
-          <span className="absolute inset-0 animate-ping rounded-full bg-indigo-500 opacity-30 motion-reduce:hidden" />
+          <span className="bg-accent absolute inset-0 animate-ping rounded-full opacity-30 motion-reduce:hidden" />
         )}
       </span>
       <span className="flex h-5 items-end gap-0.5" aria-hidden>
         {[0, 1, 2, 3].map((i) => (
           <span
             key={i}
-            className={`w-1 rounded-sm bg-indigo-500 dark:bg-indigo-400 ${
+            className={cn(
+              "bg-accent w-1 rounded-sm",
               active
                 ? "animate-bars h-full origin-bottom motion-reduce:animate-none"
-                : "h-1.5 opacity-50"
-            }`}
+                : "h-1.5 opacity-40",
+            )}
             style={active ? { animationDelay: `${i * 0.12}s` } : undefined}
           />
         ))}
       </span>
-      <span className="text-sm text-zinc-600 dark:text-zinc-400">{STATUS_TEXT[status]}</span>
+      <span className="text-fg-muted text-sm">{STATUS_TEXT[status]}</span>
     </div>
   );
 }
@@ -85,15 +92,9 @@ export function ProgressHeader({
           {completed ? "Interview complete" : `Question ${current} of ~${total}`}
         </span>
         {question && !completed && (
-          <span
-            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-              question.is_follow_up
-                ? "bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-200"
-                : "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-            }`}
-          >
+          <Badge tone={question.is_follow_up ? "warning" : "neutral"}>
             {questionLabel(question)}
-          </span>
+          </Badge>
         )}
       </div>
       <div
@@ -102,10 +103,10 @@ export function ProgressHeader({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={pct}
-        className="h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
+        className="bg-surface-sunken h-1.5 overflow-hidden rounded-full"
       >
         <div
-          className="h-full origin-left rounded-full bg-indigo-600 transition-transform duration-500 motion-reduce:transition-none"
+          className="bg-accent h-full origin-left rounded-full transition-transform duration-500 motion-reduce:transition-none"
           style={{ transform: `scaleX(${pct / 100})` }}
         />
       </div>
@@ -115,7 +116,7 @@ export function ProgressHeader({
 
 /**
  * The interviewer: a caption-style card for the current question plus a status indicator.
- * `controls` is the slot for Phase 4 voice controls (mute toggle, replay via speechSynthesis).
+ * `controls` is the slot for the voice controls (replay and mute, via speechSynthesis).
  */
 export function InterviewerPanel({
   question,
@@ -129,7 +130,7 @@ export function InterviewerPanel({
   return (
     <section
       aria-labelledby="current-question-label"
-      className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:p-6 dark:border-zinc-800 dark:bg-zinc-900"
+      className="border-border bg-surface shadow-card rounded-2xl border p-4 sm:p-6"
     >
       <div className="flex min-h-11 flex-wrap items-center justify-between gap-3">
         <SpeakingIndicator status={status} />
@@ -138,12 +139,12 @@ export function InterviewerPanel({
       <h2 id="current-question-label" className="sr-only">
         Current question
       </h2>
-      <p className="mt-4 rounded-xl bg-zinc-900 px-4 py-3 text-lg leading-relaxed text-white sm:px-5 sm:py-4 sm:text-xl dark:bg-black dark:ring-1 dark:ring-zinc-800">
+      <p className="bg-surface-sunken border-accent text-fg mt-4 rounded-xl border-l-4 px-4 py-3 text-lg leading-relaxed font-medium text-pretty sm:px-5 sm:py-4 sm:text-xl">
         {question.text}
       </p>
       {question.competency && (
-        <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-          Topic: <span className="font-medium">{question.competency}</span>
+        <p className="text-fg-subtle mt-2 text-xs">
+          Topic: <span className="text-fg-muted font-medium">{question.competency}</span>
         </p>
       )}
     </section>
@@ -154,14 +155,15 @@ export function FeedbackCard({ feedback }: { feedback: AnswerFeedback }) {
   return (
     <section
       aria-labelledby="feedback-heading"
-      className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm sm:p-5 dark:border-emerald-900 dark:bg-emerald-950"
+      className="border-success-solid/25 bg-success-soft text-success-fg rounded-2xl border p-4 text-sm sm:p-5"
     >
-      <h2 id="feedback-heading" className="font-semibold text-emerald-900 dark:text-emerald-200">
+      <h2 id="feedback-heading" className="flex items-center gap-1.5 font-semibold">
+        <Check className="size-4" />
         Practice feedback on your last answer
       </h2>
-      <p className="mt-1 text-emerald-900 dark:text-emerald-100">{feedback.summary}</p>
-      <p className="mt-2 text-emerald-900 dark:text-emerald-100">
-        <span className="font-medium">Tip: </span>
+      <p className="text-fg mt-1.5">{feedback.summary}</p>
+      <p className="text-fg mt-2">
+        <span className="text-success-fg font-semibold">Tip: </span>
         {feedback.tip}
       </p>
     </section>
@@ -175,22 +177,13 @@ export function Notice({
   tone: "error" | "warning" | "info";
   children: React.ReactNode;
 }) {
-  const cls = {
-    error: "bg-red-50 text-red-900 dark:bg-red-950 dark:text-red-200",
-    warning: "bg-amber-50 text-amber-900 dark:bg-amber-950 dark:text-amber-200",
-    info: "bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200",
-  }[tone];
-  return (
-    <div role={tone === "error" ? "alert" : "status"} className={`rounded-xl p-4 text-sm ${cls}`}>
-      {children}
-    </div>
-  );
+  return <UiNotice tone={tone}>{children}</UiNotice>;
 }
 
 function Bar({ w, h = "h-4" }: { w: string; h?: string }) {
   return (
     <div
-      className={`${h} animate-pulse rounded bg-zinc-200 motion-reduce:animate-none dark:bg-zinc-800`}
+      className={cn(h, "bg-surface-sunken animate-pulse rounded motion-reduce:animate-none")}
       style={{ width: w }}
     />
   );
@@ -205,10 +198,7 @@ export function InterviewSkeleton() {
         <Bar w="10rem" />
         <Bar w="100%" h="h-1.5" />
       </div>
-      <div
-        aria-hidden
-        className="space-y-4 rounded-2xl border border-zinc-200 p-4 sm:p-6 dark:border-zinc-800"
-      >
+      <div aria-hidden className="border-border space-y-4 rounded-2xl border p-4 sm:p-6">
         <Bar w="12rem" h="h-11" />
         <Bar w="100%" h="h-20" />
       </div>

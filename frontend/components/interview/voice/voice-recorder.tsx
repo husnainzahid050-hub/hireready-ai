@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, FOCUS_RING } from "@/components/interview/parts";
+import { Button } from "@/components/ui/button";
+import { cn, focusRing } from "@/components/ui/cn";
+import { Mic } from "@/components/ui/icons";
 import {
   formatClock,
   type Recording,
@@ -11,15 +13,19 @@ import {
   useRecorder,
 } from "@/lib/use-recorder";
 
-const MIC_ERRORS: RecorderError[] = ["unsupported", "insecure", "denied", "no_device", "busy"];
+const ACCENT_PILL = "bg-accent-soft text-accent-soft-fg ring-accent/20";
+const WARN_PILL = "bg-warning-soft text-warning-fg ring-warning-solid/25";
+const PILL: Record<string, { text: string; cls: string }> = {
+  idle: { text: "Ready", cls: "bg-surface-sunken text-fg-muted ring-border" },
+  requesting: { text: "Waiting for mic", cls: ACCENT_PILL },
+  recording: { text: "Recording", cls: "bg-danger-soft text-danger-fg ring-danger-solid/25" },
+  uploading: { text: "Uploading", cls: ACCENT_PILL },
+  transcribing: { text: "Transcribing", cls: ACCENT_PILL },
+  kept: { text: "Not sent yet", cls: WARN_PILL },
+  error: { text: "Microphone problem", cls: WARN_PILL },
+};
 
-function MicIcon({ className }: { className?: string }) {
-  return (
-    <svg aria-hidden viewBox="0 0 20 20" className={className} fill="currentColor">
-      <path d="M10 13a3 3 0 0 0 3-3V5a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Zm5-3a1 1 0 1 1 2 0 7 7 0 0 1-6 6.93V19a1 1 0 1 1-2 0v-2.07A7 7 0 0 1 3 10a1 1 0 1 1 2 0 5 5 0 0 0 10 0Z" />
-    </svg>
-  );
-}
+const MIC_ERRORS: RecorderError[] = ["unsupported", "insecure", "denied", "no_device", "busy"];
 
 /**
  * Voice answer input: one big tap-to-start / tap-to-stop button, a timer, a level meter, and the
@@ -115,6 +121,23 @@ export function VoiceRecorder({
       ? "Waiting for microphone permission"
       : "Start recording your answer";
 
+  // One visible state at a time (shown as a pill next to the heading).
+  type Phase =
+    "idle" | "requesting" | "recording" | "uploading" | "transcribing" | "kept" | "error";
+  const phase: Phase = sending
+    ? uploadProgress === null || uploadProgress >= 1
+      ? "transcribing"
+      : "uploading"
+    : recording
+      ? "recording"
+      : requesting
+        ? "requesting"
+        : failedRecording
+          ? "kept"
+          : error
+            ? "error"
+            : "idle";
+
   let statusText: string;
   if (sending)
     statusText =
@@ -131,11 +154,25 @@ export function VoiceRecorder({
   return (
     <section
       aria-labelledby="voice-answer-heading"
-      className="space-y-4 rounded-2xl border border-zinc-200 p-4 sm:p-6 dark:border-zinc-800"
+      className="border-border bg-surface shadow-card space-y-4 rounded-2xl border p-4 sm:p-6"
     >
-      <h2 id="voice-answer-heading" className="font-medium">
-        Your answer (voice)
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="voice-answer-heading" className="font-medium">
+          Your answer (voice)
+        </h2>
+        <span
+          aria-hidden
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset",
+            PILL[phase].cls,
+          )}
+        >
+          {phase === "recording" && (
+            <span className="bg-danger-solid size-2 animate-pulse rounded-full motion-reduce:animate-none" />
+          )}
+          {PILL[phase].text}
+        </span>
+      </div>
 
       <div className="flex flex-col items-center gap-3 text-center">
         <button
@@ -145,55 +182,59 @@ export function VoiceRecorder({
           disabled={disabled}
           aria-label={label}
           aria-describedby="recorder-status recorder-hint"
-          className={`relative flex h-20 w-20 items-center justify-center rounded-full text-white shadow-md transition-colors disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none ${FOCUS_RING} ${
+          className={cn(
+            "relative flex size-24 items-center justify-center rounded-full text-white shadow-lg transition-[background-color,transform] active:scale-95 disabled:cursor-not-allowed disabled:opacity-55 motion-reduce:transition-none sm:size-20",
+            focusRing,
             recording
-              ? "bg-red-600 hover:bg-red-700"
-              : "bg-indigo-600 hover:bg-indigo-700 disabled:hover:bg-indigo-600"
-          }`}
+              ? "bg-danger-solid hover:bg-danger-fg"
+              : "bg-accent hover:bg-accent-hover disabled:hover:bg-accent",
+          )}
         >
           {recording ? (
-            <span aria-hidden className="h-7 w-7 rounded-md bg-white" />
+            <span aria-hidden className="size-8 rounded-md bg-white" />
           ) : busy ? (
             <span
               aria-hidden
-              className="h-7 w-7 animate-spin rounded-full border-4 border-white/40 border-t-white motion-reduce:animate-none"
+              className="size-8 animate-spin rounded-full border-4 border-white/40 border-t-white motion-reduce:animate-none"
             />
           ) : (
-            <MicIcon className="h-9 w-9" />
+            <Mic className="size-10" strokeWidth={2} />
           )}
           {recording && (
             <span
               aria-hidden
-              className="absolute inset-0 animate-ping rounded-full bg-red-500 opacity-20 motion-reduce:hidden"
+              className="bg-danger-solid absolute inset-0 animate-ping rounded-full opacity-20 motion-reduce:hidden"
             />
           )}
         </button>
 
-        <p id="recorder-status" className="text-sm font-medium" aria-live="off">
+        <p id="recorder-status" className="text-fg text-sm font-medium" aria-live="off">
           {statusText}
         </p>
 
         <p
-          className={`font-mono text-2xl tabular-nums ${warn ? "text-red-700 dark:text-red-400" : ""}`}
+          className={cn(
+            "font-mono text-3xl tabular-nums",
+            warn ? "text-danger-fg" : recording ? "text-fg" : "text-fg-subtle",
+          )}
           aria-label={`Recording time ${formatClock(elapsed)} of ${formatClock(maxSeconds)}`}
         >
           {formatClock(elapsed)}{" "}
-          <span className="text-base text-zinc-500 dark:text-zinc-400">
-            / {formatClock(maxSeconds)}
-          </span>
+          <span className="text-fg-subtle text-base">/ {formatClock(maxSeconds)}</span>
         </p>
 
         {/* Level meter: --level (0..1) is set by the recorder hook without re-rendering. */}
         <div
           aria-hidden
-          className="h-2 w-full max-w-xs overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
+          className="bg-surface-sunken h-2 w-full max-w-xs overflow-hidden rounded-full"
         >
           <div
             ref={meterRef}
             data-testid="level-meter"
-            className={`h-full origin-left rounded-full transition-transform duration-75 motion-reduce:transition-none ${
-              recording ? "bg-emerald-500" : "bg-zinc-400"
-            }`}
+            className={cn(
+              "h-full origin-left rounded-full transition-transform duration-75 motion-reduce:transition-none",
+              recording ? "bg-success-solid" : "bg-border-strong",
+            )}
             style={{ transform: "scaleX(var(--level, 0))" }}
           />
         </div>
@@ -205,18 +246,22 @@ export function VoiceRecorder({
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={Math.round((uploadProgress ?? 1) * 100)}
-            className="h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800"
+            className="bg-surface-sunken h-1.5 w-full max-w-xs overflow-hidden rounded-full"
           >
             <div
-              className="h-full origin-left rounded-full bg-indigo-600 transition-transform motion-reduce:transition-none"
+              className="bg-accent h-full origin-left rounded-full transition-transform motion-reduce:transition-none"
               style={{ transform: `scaleX(${uploadProgress ?? 1})` }}
             />
           </div>
         )}
 
-        <p id="recorder-hint" className="text-xs text-zinc-600 dark:text-zinc-400">
-          Up to 2 minutes. Press Space or Enter on the button to start and stop. Audio is only used
-          to transcribe your answer and is never stored.
+        <p id="recorder-hint" className="text-fg-subtle max-w-md text-xs">
+          Up to 2 minutes.
+          <span className="pointer-coarse:sr-only">
+            {" "}
+            Press Space or Enter on the button to start and stop.
+          </span>{" "}
+          Audio is only used to transcribe your answer and is never stored.
           {blockedReason ? ` ${blockedReason}.` : ""}
         </p>
       </div>
@@ -224,49 +269,36 @@ export function VoiceRecorder({
       {error && (
         <div
           role="alert"
-          className="rounded-xl bg-amber-50 p-4 text-sm text-amber-900 dark:bg-amber-950 dark:text-amber-200"
+          className="border-warning-solid/30 bg-warning-soft text-warning-fg rounded-xl border p-4 text-sm"
         >
           <p>{RECORDER_ERROR_TEXT[error]}</p>
           {micBlocked && (
-            <button
-              type="button"
-              onClick={onSwitchToText}
-              className={`${BUTTON_PRIMARY} mt-3 w-full sm:w-auto`}
-            >
+            <Button onClick={onSwitchToText} className="mt-3 w-full sm:w-auto">
               Type your answer instead
-            </button>
+            </Button>
           )}
         </div>
       )}
 
       {failedRecording && !sending && (
         <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-          <button
-            type="button"
-            onClick={onRetry}
-            disabled={blockedReason !== null}
-            className={`${BUTTON_PRIMARY} w-full sm:w-auto`}
-          >
+          <Button onClick={onRetry} disabled={blockedReason !== null} className="w-full sm:w-auto">
             Retry upload
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="secondary"
             onClick={() => {
               onDiscardFailed();
               rec.reset();
               requestAnimationFrame(() => buttonRef.current?.focus());
             }}
-            className={`${BUTTON_SECONDARY} w-full sm:w-auto`}
+            className="w-full sm:w-auto"
           >
             Record again
-          </button>
-          <button
-            type="button"
-            onClick={onSwitchToText}
-            className={`${BUTTON_SECONDARY} w-full sm:w-auto`}
-          >
+          </Button>
+          <Button variant="secondary" onClick={onSwitchToText} className="w-full sm:w-auto">
             Type instead
-          </button>
+          </Button>
         </div>
       )}
     </section>

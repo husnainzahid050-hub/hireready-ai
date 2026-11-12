@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 
-import { FOCUS_RING, questionLabel } from "@/components/interview/parts";
+import { questionLabel } from "@/components/interview/parts";
+import { cn, focusRing } from "@/components/ui/cn";
+import { ChevronDown } from "@/components/ui/icons";
 import type { InterviewTurn, Question } from "@/lib/types";
 
 type Entry = { question: Question; answer_text: string; pending?: boolean };
@@ -32,49 +34,50 @@ export function Transcript({
           aria-expanded={open}
           aria-controls="transcript-list"
           onClick={() => setOpen((o) => !o)}
-          className={`flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border border-zinc-200 px-4 text-left lg:hidden dark:border-zinc-800 ${FOCUS_RING}`}
+          className={cn(
+            "border-border bg-surface hover:bg-surface-muted flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border px-4 text-left lg:hidden",
+            focusRing,
+          )}
         >
           <span>
-            Transcript{" "}
-            <span className="font-normal text-zinc-600 dark:text-zinc-400">({count})</span>
+            Transcript <span className="text-fg-muted font-normal">({count})</span>
           </span>
-          <span
-            aria-hidden
-            className={`transition-transform motion-reduce:transition-none ${open ? "rotate-180" : ""}`}
-          >
-            ▾
-          </span>
+          <ChevronDown
+            className={cn(
+              "text-fg-subtle size-4 transition-transform motion-reduce:transition-none",
+              open && "rotate-180",
+            )}
+          />
         </button>
         <span className="hidden lg:inline">
-          Transcript <span className="font-normal text-zinc-600 dark:text-zinc-400">({count})</span>
+          Transcript <span className="text-fg-muted font-normal">({count})</span>
         </span>
       </h2>
 
       <div id="transcript-list" className={open ? "block" : "hidden lg:block"}>
         {count === 0 ? (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Your questions and answers will appear here.
-          </p>
+          <p className="text-fg-muted text-sm">Your questions and answers will appear here.</p>
         ) : (
-          <ol className="space-y-4">
+          <ol className="space-y-3">
             {entries.map((e, i) => (
               <li
                 key={`${e.question.id}-${i}`}
-                className="space-y-2 rounded-xl border border-zinc-200 p-3 text-sm dark:border-zinc-800"
+                className="border-border bg-surface space-y-2 rounded-xl border p-3 text-sm"
               >
-                <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                <p className="text-fg-subtle text-xs font-medium">
                   Q{e.question.order} · {questionLabel(e.question)}
                 </p>
                 <p className="font-medium">{e.question.text}</p>
                 <p
-                  className={`border-l-2 border-indigo-300 pl-3 whitespace-pre-wrap text-zinc-700 dark:border-indigo-800 dark:text-zinc-300 ${
-                    e.pending ? "opacity-70" : ""
-                  }`}
+                  className={cn(
+                    "border-accent/40 text-fg-muted border-l-2 pl-3 whitespace-pre-wrap",
+                    e.pending && "opacity-70",
+                  )}
                 >
                   <span className="sr-only">Your answer: </span>
                   {e.answer_text}
                 </p>
-                {e.pending && <p className="text-xs text-zinc-600 dark:text-zinc-400">Sending…</p>}
+                {e.pending && <p className="text-fg-subtle text-xs">Sending…</p>}
               </li>
             ))}
           </ol>

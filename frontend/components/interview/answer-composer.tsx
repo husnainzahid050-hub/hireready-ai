@@ -1,11 +1,22 @@
 "use client";
 
-import { BUTTON_PRIMARY, FOCUS_RING } from "@/components/interview/parts";
+import { buttonClasses } from "@/components/ui/button";
+import { cn } from "@/components/ui/cn";
+import { Textarea } from "@/components/ui/field";
+import { ArrowRight } from "@/components/ui/icons";
+import { Spinner } from "@/components/ui/notice";
 import { ANSWER_MAX } from "@/lib/api";
+
+const Kbd = ({ children }: { children: React.ReactNode }) => (
+  <kbd className="border-border-strong bg-surface rounded border px-1 font-sans">{children}</kbd>
+);
 
 /**
  * Text answer input. The voice recorder (components/interview/voice) is the sibling input; the
  * page switches between them with the Voice / Text mode switch.
+ *
+ * The send button is never silently disabled: when it can't send it uses `aria-disabled` (still
+ * focusable, readable contrast) and the line next to it says why.
  */
 export function AnswerComposer({
   value,
@@ -27,21 +38,27 @@ export function AnswerComposer({
   const empty = value.trim().length === 0;
   const near = length > ANSWER_MAX * 0.9;
   const canSend = !sending && !empty && !blockedReason && length <= ANSWER_MAX;
+  const why = sending
+    ? null
+    : blockedReason
+      ? blockedReason
+      : empty
+        ? "Type your answer to send it"
+        : null;
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
         if (canSend) onSubmit();
+        else if (!sending) textareaRef.current?.focus();
       }}
       className="space-y-3"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <label htmlFor="answer" className="font-medium">
-          Your answer
-        </label>
-      </div>
-      <textarea
+      <label htmlFor="answer" className="block font-medium">
+        Your answer
+      </label>
+      <Textarea
         id="answer"
         ref={textareaRef}
         value={value}
@@ -58,53 +75,51 @@ export function AnswerComposer({
         rows={7}
         aria-describedby="answer-hint answer-count"
         placeholder="Type your answer as you would say it in the interview…"
-        className={`block w-full resize-y rounded-xl border border-zinc-300 bg-white p-3 text-base leading-relaxed placeholder:text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:placeholder:text-zinc-500 ${FOCUS_RING} ${
-          sending ? "opacity-70" : ""
-        }`}
+        className={cn("resize-y text-base!", sending && "opacity-70")}
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="flex flex-wrap gap-x-3 text-xs text-zinc-600 dark:text-zinc-400">
-          <span id="answer-hint">
-            Press{" "}
-            <kbd className="rounded border border-zinc-300 px-1 font-sans dark:border-zinc-700">
-              Ctrl
-            </kbd>{" "}
-            /{" "}
-            <kbd className="rounded border border-zinc-300 px-1 font-sans dark:border-zinc-700">
-              ⌘
-            </kbd>{" "}
-            +{" "}
-            <kbd className="rounded border border-zinc-300 px-1 font-sans dark:border-zinc-700">
-              Enter
-            </kbd>{" "}
-            to send.
+        <p className="text-fg-subtle flex flex-wrap gap-x-3 text-xs">
+          <span id="answer-hint" className="pointer-coarse:sr-only">
+            Press <Kbd>Ctrl</Kbd> / <Kbd>⌘</Kbd> + <Kbd>Enter</Kbd> to send.
           </span>
           <span
             id="answer-count"
-            className={`tabular-nums ${near ? "font-medium text-amber-800 dark:text-amber-300" : ""}`}
+            className={cn("tabular-nums", near && "text-warning-fg font-medium")}
           >
             {length.toLocaleString("en-US")} / {ANSWER_MAX.toLocaleString("en-US")} characters
           </span>
         </p>
-        <div className="flex items-center gap-3">
-          {blockedReason && (
-            <span className="text-xs text-zinc-600 dark:text-zinc-400">{blockedReason}</span>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:gap-3">
+          {why && (
+            <span id="send-why" className="text-fg-subtle text-center text-xs sm:text-right">
+              {why}
+            </span>
           )}
           <button
             type="submit"
-            disabled={!canSend}
-            className={`${BUTTON_PRIMARY} w-full sm:w-auto`}
+            aria-disabled={!canSend}
+            aria-describedby={why ? "send-why" : undefined}
+            className={buttonClasses({
+              size: "lg",
+              className: cn(
+                "w-full sm:w-auto",
+                !canSend &&
+                  !sending &&
+                  "bg-surface-sunken text-fg-muted hover:bg-surface-sunken cursor-not-allowed shadow-none active:translate-y-0",
+                sending && "cursor-progress",
+              ),
+            })}
           >
             {sending ? (
               <>
-                <span
-                  aria-hidden
-                  className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white motion-reduce:animate-none"
-                />
+                <Spinner />
                 Sending…
               </>
             ) : (
-              "Send answer"
+              <>
+                Send answer
+                <ArrowRight className="size-4" />
+              </>
             )}
           </button>
         </div>

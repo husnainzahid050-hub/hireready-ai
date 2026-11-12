@@ -152,3 +152,44 @@ export const LogoMark = ({ className = "size-8", ...p }: IconProps) => (
     />
   </svg>
 );
+
+export const ExternalLink = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M14 4h6v6M20 4l-9 9" />
+    <path d="M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4" />
+  </Svg>
+);
+
+export const ChevronDown = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M6 9l6 6 6-6" />
+  </Svg>
+);
+
+export const Keyboard = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="2.5" y="6" width="19" height="12" rx="2" />
+    <path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M8 14h8" />
+  </Svg>
+);
+
+export const Volume = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M11 5L6 9H3v6h3l5 4z" />
+    <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+  </Svg>
+);
+
+export const VolumeOff = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M11 5L6 9H3v6h3l5 4z" />
+    <path d="M16 9.5l5 5M21 9.5l-5 5" />
+  </Svg>
+);
+
+export const Replay = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" />
+    <path d="M3.5 4v4.5H8" />
+  </Svg>
+);

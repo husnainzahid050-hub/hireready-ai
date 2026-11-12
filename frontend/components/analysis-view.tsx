@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { Badge, type BadgeTone } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card as UiCard } from "@/components/ui/card";
+import { cn, focusRing } from "@/components/ui/cn";
+import { ArrowRight, Check, ChevronDown, ExternalLink } from "@/components/ui/icons";
+import { Notice } from "@/components/ui/notice";
 import { ApiError, getAnalysis, getToken, streamAnalysis } from "@/lib/api";
 import type {
   GapItem,
@@ -38,6 +44,8 @@ type State = {
   plan: PrepDay[] | null;
   roleTitle: string | null;
   done: boolean;
+  /** Loaded from the saved analysis instead of a fresh stream. */
+  restored: boolean;
   error: { code: string; message: string } | null;
 };
 
@@ -52,27 +60,52 @@ const INITIAL: State = {
   plan: null,
   roleTitle: null,
   done: false,
+  restored: false,
   error: null,
 };
 
 // ------------------------------------------------------------------ small pieces
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  id,
+  title,
+  aside,
+  children,
+}: {
+  id: string;
+  title: string;
+  aside?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
-      <h2 className="mb-4 text-lg font-semibold">{title}</h2>
+    <UiCard as="section" aria-labelledby={`${id}-heading`} id={id} className="scroll-mt-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 id={`${id}-heading`} className="text-lg font-semibold tracking-tight">
+          {title}
+        </h2>
+        {aside}
+      </div>
       {children}
-    </section>
+    </UiCard>
   );
 }
 
-function Skeleton({ lines = 3 }: { lines?: number }) {
+/** Loading placeholder while streaming; a static "not available" line once the run stopped. */
+function Pending({ lines = 3, stopped }: { lines?: number; stopped: boolean }) {
+  if (stopped) {
+    return (
+      <p className="text-fg-subtle text-sm">
+        Not available: the analysis stopped before this part finished. Use &ldquo;Try again&rdquo;
+        above.
+      </p>
+    );
+  }
   return (
     <div className="space-y-3" aria-hidden>
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="h-4 animate-pulse rounded bg-zinc-200 motion-reduce:animate-none dark:bg-zinc-800"
+          className="bg-surface-sunken h-4 animate-pulse rounded motion-reduce:animate-none"
           style={{ width: `${90 - i * 12}%` }}
         />
       ))}
@@ -95,16 +128,27 @@ function Progress({ step, done }: { step: string | null; done: boolean }) {
           <li
             key={s.id}
             aria-current={state === "active" ? "step" : undefined}
-            className={`rounded-lg border px-3 py-2 ${
-              state === "done"
-                ? "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                : state === "active"
-                  ? "border-indigo-400 bg-indigo-50 text-indigo-800 dark:border-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                  : "border-zinc-200 text-zinc-500 dark:border-zinc-800"
-            }`}
+            className={cn(
+              "flex items-center gap-2 rounded-lg border px-3 py-2",
+              state === "done" && "border-success-solid/30 bg-success-soft text-success-fg",
+              state === "active" && "border-accent/40 bg-accent-soft text-accent-soft-fg",
+              state === "todo" && "border-border text-fg-subtle",
+            )}
           >
-            {state === "done" ? "✓ " : state === "active" ? "… " : ""}
-            {s.label}
+            {state === "done" ? (
+              <Check className="size-4 shrink-0" />
+            ) : state === "active" ? (
+              <span
+                aria-hidden
+                className="bg-accent size-2 shrink-0 animate-pulse rounded-full motion-reduce:animate-none"
+              />
+            ) : (
+              <span aria-hidden className="bg-border-strong size-2 shrink-0 rounded-full" />
+            )}
+            <span>
+              {s.label}
+              {state === "done" && <span className="sr-only"> (done)</span>}
+            </span>
           </li>
         );
       })}
@@ -112,76 +156,193 @@ function Progress({ step, done }: { step: string | null; done: boolean }) {
   );
 }
 
-function ScoreGauge({ value }: { value: number }) {
+/** A calm 3-band scale: green for strong, indigo for partial, amber (not red) for big gaps. */
+function scoreBand(value: number): { label: string; stroke: string; tone: BadgeTone } {
+  if (value >= 75)
+    return { label: "Strong match", stroke: "stroke-success-solid", tone: "success" };
+  if (value >= 50) return { label: "Partial match", stroke: "stroke-accent", tone: "accent" };
+  return { label: "Big gaps to close", stroke: "stroke-warning-solid", tone: "warning" };
+}
+
+function ScoreGauge({ value, size = "lg" }: { value: number; size?: "sm" | "lg" }) {
   const r = 52;
   const c = 2 * Math.PI * r;
-  const color = value >= 75 ? "#059669" : value >= 50 ? "#d97706" : "#dc2626";
+  const band = scoreBand(value);
   return (
-    <svg
-      viewBox="0 0 120 120"
-      className="h-36 w-36"
-      role="img"
-      aria-label={`Match score ${value} out of 100`}
-    >
-      <circle
-        cx="60"
-        cy="60"
-        r={r}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="10"
-        className="text-zinc-200 dark:text-zinc-800"
-      />
-      <circle
-        cx="60"
-        cy="60"
-        r={r}
-        fill="none"
-        stroke={color}
-        strokeWidth="10"
-        strokeLinecap="round"
-        strokeDasharray={c}
-        strokeDashoffset={c * (1 - value / 100)}
-        transform="rotate(-90 60 60)"
-        className="transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none"
-      />
-      <text x="60" y="66" textAnchor="middle" className="fill-current text-3xl font-semibold">
-        {value}
-      </text>
-    </svg>
+    <div className={cn("relative shrink-0", size === "lg" ? "size-36" : "size-16")}>
+      <svg viewBox="0 0 120 120" className="size-full -rotate-90" aria-hidden>
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          strokeWidth="10"
+          className="stroke-surface-sunken"
+        />
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - value / 100)}
+          className={cn(
+            band.stroke,
+            "transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none",
+          )}
+        />
+      </svg>
+      <span
+        role="img"
+        aria-label={`Match score ${value} out of 100: ${band.label}`}
+        className="absolute inset-0 flex flex-col items-center justify-center"
+      >
+        <span
+          aria-hidden
+          className={cn("font-semibold tabular-nums", size === "lg" ? "text-4xl" : "text-lg")}
+        >
+          {value}
+        </span>
+        {size === "lg" && (
+          <span aria-hidden className="text-fg-subtle text-xs">
+            / 100
+          </span>
+        )}
+      </span>
+    </div>
   );
 }
 
-const VERDICT: Record<Verdict, { label: string; cls: string }> = {
-  strong_evidence: {
-    label: "Strong evidence",
-    cls: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
-  },
-  weak_evidence: {
-    label: "Weak evidence",
-    cls: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300",
-  },
-  no_evidence: { label: "Gap", cls: "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300" },
+const VERDICT: Record<Verdict, { label: string; tone: BadgeTone; rank: number }> = {
+  no_evidence: { label: "Gap", tone: "danger", rank: 0 },
+  weak_evidence: { label: "Weak evidence", tone: "warning", rank: 1 },
+  strong_evidence: { label: "Strong evidence", tone: "success", rank: 2 },
 };
+
+type Filter = "all" | Verdict;
+const FILTERS: { id: Filter; label: string }[] = [
+  { id: "all", label: "All" },
+  { id: "no_evidence", label: "Gaps" },
+  { id: "weak_evidence", label: "Weak" },
+  { id: "strong_evidence", label: "Strong" },
+];
+
+/** The product's differentiator: the quote was found word for word in the uploaded CV. */
+function VerifiedBadge() {
+  return (
+    <span className="bg-success-soft text-success-fg ring-success-solid/25 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset">
+      <Check className="size-3.5" strokeWidth={2.5} />
+      Verified in your CV
+    </span>
+  );
+}
 
 function GapRow({ g }: { g: GapItem }) {
   const v = VERDICT[g.verdict];
   return (
-    <li className="space-y-2 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-      <div className="flex flex-wrap items-center gap-2">
+    <li
+      className={cn(
+        "border-border bg-surface space-y-2.5 rounded-xl border border-l-4 p-4",
+        g.verdict === "no_evidence" && "border-l-danger-solid",
+        g.verdict === "weak_evidence" && "border-l-warning-solid",
+        g.verdict === "strong_evidence" && "border-l-success-solid",
+      )}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="font-medium">{g.skill}</span>
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${v.cls}`}>{v.label}</span>
+        <Badge tone={v.tone}>{v.label}</Badge>
       </div>
       {g.evidence_quote ? (
-        <blockquote className="border-l-4 border-zinc-300 pl-3 text-sm text-zinc-700 italic dark:border-zinc-700 dark:text-zinc-300">
-          “{g.evidence_quote}”
-          <span className="ml-2 text-xs text-zinc-500 not-italic">verified in your CV</span>
-        </blockquote>
+        <figure className="space-y-2">
+          <blockquote className="border-border-strong text-fg-muted border-l-2 pl-3 text-sm italic">
+            &ldquo;{g.evidence_quote}&rdquo;
+          </blockquote>
+          {g.quote_verified && (
+            <figcaption>
+              <VerifiedBadge />
+            </figcaption>
+          )}
+        </figure>
       ) : (
-        <p className="text-sm text-zinc-500">No evidence found in your CV.</p>
+        <p className="text-fg-subtle text-sm">No evidence found in your CV.</p>
       )}
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">{g.reason}</p>
+      <p className="text-fg-muted text-sm">{g.reason}</p>
     </li>
+  );
+}
+
+function sortGaps(items: GapItem[]): GapItem[] {
+  // Gaps first: they are what the user came for. Stable within the same verdict (JD order).
+  return items
+    .map((g, i) => ({ g, i }))
+    .sort((a, b) => VERDICT[a.g.verdict].rank - VERDICT[b.g.verdict].rank || a.i - b.i)
+    .map(({ g }) => g);
+}
+
+function SkillsSection({ gaps }: { gaps: GapItem[] }) {
+  const [filter, setFilter] = useState<Filter>("all");
+  const count = (v: Verdict) => gaps.filter((g) => g.verdict === v).length;
+  const shown = filter === "all" ? gaps : gaps.filter((g) => g.verdict === filter);
+  const groups = [
+    { label: "Must-have", items: sortGaps(shown.filter((g) => g.importance === "must_have")) },
+    {
+      label: "Nice-to-have",
+      items: sortGaps(shown.filter((g) => g.importance === "nice_to_have")),
+    },
+  ];
+
+  return (
+    <div className="space-y-5">
+      <div role="group" aria-label="Filter skills" className="flex flex-wrap gap-2">
+        {FILTERS.map((f) => {
+          const n = f.id === "all" ? gaps.length : count(f.id);
+          const active = filter === f.id;
+          return (
+            <button
+              key={f.id}
+              type="button"
+              aria-pressed={active}
+              onClick={() => setFilter(f.id)}
+              className={cn(
+                "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium transition-colors",
+                active
+                  ? "border-accent bg-accent text-accent-fg"
+                  : "border-border-strong bg-surface text-fg-muted hover:bg-surface-sunken hover:text-fg",
+                focusRing,
+              )}
+            >
+              {f.label}
+              <span className={cn("tabular-nums", active ? "opacity-90" : "text-fg-subtle")}>
+                {n}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {shown.length === 0 ? (
+        <p className="text-fg-subtle text-sm" role="status">
+          Nothing in this group.
+        </p>
+      ) : (
+        groups.map(({ label, items }) =>
+          items.length ? (
+            <div key={label} className="space-y-3">
+              <h3 className="text-fg-subtle text-xs font-semibold tracking-wide uppercase">
+                {label}
+              </h3>
+              <ul className="space-y-3">
+                {items.map((g, i) => (
+                  <GapRow key={`${g.skill}-${g.verdict}-${i}`} g={g} />
+                ))}
+              </ul>
+            </div>
+          ) : null,
+        )
+      )}
+    </div>
   );
 }
 
@@ -191,6 +352,59 @@ function hostname(url: string) {
   } catch {
     return url;
   }
+}
+
+function PlanDay({ d, defaultOpen }: { d: PrepDay; defaultOpen: boolean }) {
+  return (
+    <li>
+      <details open={defaultOpen} className="group border-border rounded-xl border">
+        <summary
+          className={cn(
+            "flex min-h-12 cursor-pointer list-none items-center gap-3 rounded-xl px-3 py-2 [&::-webkit-details-marker]:hidden",
+            "hover:bg-surface-muted",
+            focusRing,
+          )}
+        >
+          <span className="bg-accent-soft text-accent-soft-fg flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
+            <span className="sr-only">Day </span>
+            {d.day}
+          </span>
+          <span className="min-w-0 flex-1 font-medium">{d.focus}</span>
+          <span className="text-fg-subtle hidden text-xs sm:inline">
+            {d.tasks.length} task{d.tasks.length === 1 ? "" : "s"}
+          </span>
+          <ChevronDown className="text-fg-subtle size-4 shrink-0 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+        </summary>
+        <div className="space-y-2 px-4 pt-1 pb-4 sm:pl-14">
+          <ul className="text-fg-muted list-disc space-y-1 pl-5 text-sm">
+            {d.tasks.map((t, i) => (
+              <li key={i}>{t}</li>
+            ))}
+          </ul>
+          {d.resource_urls.length > 0 && (
+            <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {d.resource_urls.map((u, i) => (
+                <a
+                  key={`${u}-${i}`}
+                  href={u}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    "text-link inline-flex items-center gap-1 rounded underline underline-offset-2 hover:no-underline",
+                    focusRing,
+                  )}
+                >
+                  {hostname(u)}
+                  <ExternalLink className="size-3.5" />
+                  <span className="sr-only"> (opens in a new tab)</span>
+                </a>
+              ))}
+            </p>
+          )}
+        </div>
+      </details>
+    </li>
+  );
 }
 
 // ------------------------------------------------------------------ main view
@@ -217,6 +431,7 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
           setS({
             ...INITIAL,
             done: true,
+            restored: true,
             roleTitle: saved.role_title,
             score: { match_score: saved.match_score, breakdown: saved.breakdown },
             gaps: saved.gaps,
@@ -294,24 +509,26 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
 
   if (noToken) {
     return (
-      <div className="rounded-xl bg-amber-50 p-6 text-amber-900 dark:bg-amber-950 dark:text-amber-200">
-        This session belongs to another browser, or it was cleared or has expired. For privacy,
-        sessions can only be opened on the device that created them.{" "}
-        <Link href="/start" className="font-medium underline">
+      <Notice tone="warning" title="We can't open this session here">
+        <p>
+          This session belongs to another browser, or it was cleared or has expired. For privacy,
+          sessions can only be opened on the device that created them.
+        </p>
+        <ButtonLink href="/start" variant="secondary" size="sm" className="mt-2">
           Start a new one
-        </Link>
-        .
-      </div>
+        </ButtonLink>
+      </Notice>
     );
   }
 
-  const must = s.gaps?.filter((g) => g.importance === "must_have") ?? [];
-  const nice = s.gaps?.filter((g) => g.importance === "nice_to_have") ?? [];
+  const stopped = s.error !== null;
+  const interviewHref = `/session/${sessionId}/interview`;
+  const count = (v: Verdict) => s.gaps?.filter((g) => g.verdict === v).length ?? 0;
 
   return (
     <div className="space-y-6">
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight text-balance sm:text-3xl">
           {s.roleTitle
             ? `Your match for ${s.roleTitle}`
             : s.error
@@ -319,34 +536,73 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
               : "Analyzing your CV…"}
         </h1>
         {!s.done && !s.error && (
-          <p className="text-zinc-600 dark:text-zinc-400" aria-live="polite">
+          <p className="text-fg-muted" aria-live="polite">
             {s.message ?? "Starting…"}
           </p>
         )}
-        <Progress step={s.step} done={s.done} />
+        {s.done ? (
+          <p className="text-fg-subtle flex items-center gap-1.5 text-sm" role="status">
+            <Check className="text-success-fg size-4" />
+            Analysis complete
+            {s.restored ? " · reopened from your saved session" : ""}
+          </p>
+        ) : (
+          <Progress step={s.step} done={s.done} />
+        )}
       </header>
 
       {s.error && (
-        <div
-          role="alert"
-          className="rounded-xl bg-red-50 p-4 text-red-800 dark:bg-red-950 dark:text-red-300"
-        >
-          <p className="font-medium">{s.error.message}</p>
-          <button
-            type="button"
+        <Notice tone="error" title={s.error.message}>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="mt-2"
             onClick={() => window.location.reload()}
-            className="mt-2 text-sm font-medium underline"
           >
             Try again
-          </button>
-        </div>
+          </Button>
+        </Notice>
       )}
 
-      <Card title="Match score">
+      {s.done && s.score && (
+        <UiCard
+          tone="raised"
+          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="flex items-center gap-4">
+            <ScoreGauge value={s.score.match_score} size="sm" />
+            <div className="space-y-1">
+              <Badge tone={scoreBand(s.score.match_score).tone}>
+                {scoreBand(s.score.match_score).label}
+              </Badge>
+              <p className="text-fg-muted text-sm">
+                <span className="text-fg font-medium">{count("strong_evidence")} strong</span>
+                {" · "}
+                {count("weak_evidence")} weak
+                {" · "}
+                <span className="text-danger-fg font-medium">
+                  {count("no_evidence")} gap{count("no_evidence") === 1 ? "" : "s"}
+                </span>
+              </p>
+            </div>
+          </div>
+          <ButtonLink href={interviewHref} size="lg" className="w-full sm:w-auto">
+            Start mock interview
+            <ArrowRight className="size-4" />
+          </ButtonLink>
+        </UiCard>
+      )}
+
+      <Section id="score" title="Match score">
         {s.score ? (
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-            <ScoreGauge value={s.score.match_score} />
-            <div className="flex-1 space-y-3 text-sm">
+            <div className="flex flex-col items-center gap-2">
+              <ScoreGauge value={s.score.match_score} />
+              <p className="text-fg-muted text-sm font-medium">
+                {scoreBand(s.score.match_score).label}
+              </p>
+            </div>
+            <div className="flex-1 space-y-4 text-sm">
               {(
                 [
                   ["Must-have skills", s.score.breakdown.must_have],
@@ -355,89 +611,85 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
                 ] as const
               ).map(([label, c]) => (
                 <div key={label}>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between gap-2">
                     <span className="font-medium">
-                      {label} <span className="text-zinc-500">({Math.round(c.weight * 100)}%)</span>
+                      {label}{" "}
+                      <span className="text-fg-subtle font-normal">
+                        ({Math.round(c.weight * 100)}% of score)
+                      </span>
                     </span>
-                    <span>{Math.round(c.score * 100)}%</span>
+                    <span className="tabular-nums">{Math.round(c.score * 100)}%</span>
                   </div>
-                  <div className="mt-1 h-2 rounded bg-zinc-200 dark:bg-zinc-800">
+                  <div className="bg-surface-sunken mt-1.5 h-2 overflow-hidden rounded-full">
                     <div
-                      className="h-2 rounded bg-indigo-600"
+                      className="bg-accent h-full rounded-full"
                       style={{ width: `${c.score * 100}%` }}
                     />
                   </div>
-                  <p className="mt-1 text-zinc-500">{c.detail}</p>
+                  <p className="text-fg-subtle mt-1">{c.detail}</p>
                 </div>
               ))}
-              <details className="text-zinc-500">
-                <summary className="cursor-pointer">How is this calculated?</summary>
-                <p className="mt-2">{s.score.breakdown.formula}</p>
+              <details className="group text-fg-muted">
+                <summary
+                  className={cn(
+                    "text-link inline-flex cursor-pointer list-none items-center gap-1 rounded font-medium [&::-webkit-details-marker]:hidden",
+                    focusRing,
+                  )}
+                >
+                  How is this calculated?
+                  <ChevronDown className="size-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
+                </summary>
+                <p className="bg-surface-sunken text-fg mt-2 rounded-lg px-3 py-2 font-mono text-xs">
+                  {s.score.breakdown.formula}
+                </p>
               </details>
             </div>
           </div>
         ) : (
-          <Skeleton />
+          <Pending stopped={stopped} />
         )}
-      </Card>
+      </Section>
 
-      <Card title="Skills vs. this job">
-        {s.gaps ? (
-          <div className="space-y-6">
-            {[
-              ["Must-have", must],
-              ["Nice-to-have", nice],
-            ].map(([label, items]) =>
-              (items as GapItem[]).length ? (
-                <div key={label as string} className="space-y-3">
-                  <h3 className="text-sm font-semibold text-zinc-500 uppercase">
-                    {label as string}
-                  </h3>
-                  <ul className="space-y-3">
-                    {(items as GapItem[]).map((g, i) => (
-                      <GapRow key={`${g.skill}-${i}`} g={g} />
-                    ))}
-                  </ul>
-                </div>
-              ) : null,
-            )}
-          </div>
-        ) : (
-          <Skeleton lines={5} />
-        )}
-      </Card>
+      <Section id="skills" title="Skills vs. this job">
+        {s.gaps ? <SkillsSection gaps={s.gaps} /> : <Pending lines={5} stopped={stopped} />}
+      </Section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card title="Strengths to highlight">
+        <Section id="strengths" title="Strengths to highlight">
           {s.strengths && s.strengths.length === 0 ? (
-            <p className="text-sm text-zinc-500">
-              We couldn&apos;t find CV evidence for this job&apos;s skills yet. Use the prep plan
-              below to build some, then add it to your CV.
+            <p className="text-fg-muted text-sm">
+              We couldn&apos;t find CV evidence for this job&apos;s skills yet. Use the{" "}
+              <a href="#plan" className={cn("text-link rounded underline", focusRing)}>
+                7-day prep plan
+              </a>{" "}
+              to build some, then add it to your CV.
             </p>
           ) : s.strengths ? (
             <ul className="space-y-4">
               {s.strengths.map((st, i) => (
-                <li key={`${st.title}-${i}`}>
+                <li key={`${st.title}-${i}`} className="space-y-1">
                   <p className="font-medium">{st.title}</p>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">{st.why_it_matters}</p>
+                  <p className="text-fg-muted text-sm">{st.why_it_matters}</p>
                   {st.evidence_quote && (
-                    <p className="mt-1 text-sm text-zinc-500 italic">“{st.evidence_quote}”</p>
+                    <p className="border-border-strong text-fg-subtle border-l-2 pl-3 text-sm italic">
+                      &ldquo;{st.evidence_quote}&rdquo;
+                    </p>
                   )}
                 </li>
               ))}
             </ul>
           ) : (
-            <Skeleton />
+            <Pending stopped={stopped} />
           )}
-        </Card>
+        </Section>
 
-        <Card title="Likely interview questions">
+        <Section id="questions" title="Likely interview questions">
           {s.questions ? (
             <div className="space-y-4">
               {s.questions.map((g, i) => (
                 <div key={`${g.topic}-${i}`}>
                   <p className="font-medium">{g.topic}</p>
-                  <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-zinc-700 dark:text-zinc-300">
+                  <ul className="text-fg-muted mt-1 list-disc space-y-1 pl-5 text-sm">
                     {g.questions.map((q, i) => (
                       <li key={i}>{q}</li>
                     ))}
@@ -446,64 +698,56 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
               ))}
             </div>
           ) : (
-            <Skeleton />
+            <Pending stopped={stopped} />
           )}
-        </Card>
+        </Section>
       </div>
 
-      <Card title="Your 7-day prep plan">
+      <Section
+        id="plan"
+        title="Your 7-day prep plan"
+        aside={
+          s.plan && s.plan.length > 1 ? (
+            <span className="text-fg-subtle text-xs">Open a day to see its tasks</span>
+          ) : undefined
+        }
+      >
         {s.plan ? (
-          <ol className="space-y-4">
-            {s.plan.map((d) => (
-              <li key={d.day} className="flex gap-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">
-                  {d.day}
-                </span>
-                <div className="space-y-1">
-                  <p className="font-medium">{d.focus}</p>
-                  <ul className="list-disc pl-5 text-sm text-zinc-700 dark:text-zinc-300">
-                    {d.tasks.map((t, i) => (
-                      <li key={i}>{t}</li>
-                    ))}
-                  </ul>
-                  {d.resource_urls.length > 0 && (
-                    <p className="flex flex-wrap gap-2 text-sm">
-                      {d.resource_urls.map((u, i) => (
-                        <a
-                          key={`${u}-${i}`}
-                          href={u}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-indigo-600 underline hover:no-underline dark:text-indigo-400"
-                        >
-                          {hostname(u)}
-                        </a>
-                      ))}
-                    </p>
-                  )}
-                </div>
-              </li>
+          <ol className="space-y-2">
+            {s.plan.map((d, i) => (
+              <PlanDay key={d.day} d={d} defaultOpen={i === 0} />
             ))}
           </ol>
         ) : (
-          <Skeleton lines={7} />
+          <Pending lines={7} stopped={stopped} />
         )}
-      </Card>
+      </Section>
 
       {s.done && (
-        <div className="flex flex-col items-start gap-2 rounded-2xl bg-indigo-50 p-6 dark:bg-indigo-950">
-          <p className="font-medium">Ready to practise?</p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Take the AI mock interview: about 6 questions tailored to your CV and this job, with
-            follow-ups.
-          </p>
-          <Link
-            href={`/session/${sessionId}/interview`}
-            className="mt-2 rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-          >
+        <UiCard
+          tone="muted"
+          className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="space-y-1">
+            <p className="font-medium">Ready to practise?</p>
+            <p className="text-fg-muted text-sm">
+              Take the AI mock interview: about 6 questions tailored to your CV and this job, with
+              follow-ups.
+            </p>
+          </div>
+          <ButtonLink href={interviewHref} className="w-full shrink-0 sm:w-auto">
             Start interview
+            <ArrowRight className="size-4" />
+          </ButtonLink>
+        </UiCard>
+      )}
+
+      {(s.done || s.error) && (
+        <p className="text-fg-subtle text-sm">
+          <Link href="/start" className={cn("rounded underline hover:no-underline", focusRing)}>
+            Analyze another CV or job
           </Link>
-        </div>
+        </p>
       )}
     </div>
   );

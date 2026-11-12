@@ -325,7 +325,8 @@ def main() -> int:
     with sync_playwright() as p:
         browser = p.chromium.launch(
             channel="chrome",
-            args=["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
+            args=["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream",
+                  "--mute-audio"],
         )
         for name, fn in [
             ("desktop voice: TTS, keyboard record, meter, upload, metrics, 503 retry, mute, text",

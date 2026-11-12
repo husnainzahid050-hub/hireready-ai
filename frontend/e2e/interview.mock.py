@@ -352,7 +352,7 @@ def no_token(browser) -> None:
 def main() -> int:
     t0 = time.time()
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="chrome")
+        browser = p.chromium.launch(channel="chrome", args=["--mute-audio"])
         for name, fn in [
             ("desktop: start, 6 questions + follow-up, reload, 503, 429, wrong_question",
              desktop_flow),

@@ -169,3 +169,8 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* App pages that opt into focus mode (the interview) hide the marketing footer. */
+body:has([data-focus-mode]) > footer {
+  display: none;
+}

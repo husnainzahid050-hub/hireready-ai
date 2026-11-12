@@ -120,7 +120,7 @@ def expired_token(browser) -> None:
 
 def main() -> int:
     with sync_playwright() as p:
-        browser = p.chromium.launch(channel="chrome")
+        browser = p.chromium.launch(channel="chrome", args=["--mute-audio"])
         for name, fn in [
             ("second tab waits for the running analysis", second_tab_waits),
             ("stream closed without done shows error + retry", stream_cut_short),

@@ -6,10 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { AnswerComposer } from "@/components/interview/answer-composer";
 import {
-  BUTTON_PRIMARY,
-  BUTTON_SECONDARY,
   FeedbackCard,
-  FOCUS_RING,
   InterviewerPanel,
   InterviewSkeleton,
   Notice,
@@ -17,6 +14,12 @@ import {
 } from "@/components/interview/parts";
 import { Transcript } from "@/components/interview/transcript";
 import { ModeSwitch } from "@/components/interview/voice/mode-switch";
+import { Badge } from "@/components/ui/badge";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn, focusRing } from "@/components/ui/cn";
+import { ArrowRight, Check } from "@/components/ui/icons";
+import { Spinner } from "@/components/ui/notice";
 import { SpeechFeedback } from "@/components/interview/voice/speech-feedback";
 import { VoiceControls } from "@/components/interview/voice/voice-controls";
 import { ApiError, getInterview, getToken, startInterview, submitAnswer } from "@/lib/api";
@@ -34,7 +37,7 @@ const VoiceRecorder = dynamic(
     loading: () => (
       <div
         aria-hidden
-        className="h-72 animate-pulse rounded-2xl bg-zinc-100 motion-reduce:animate-none dark:bg-zinc-900"
+        className="bg-surface-sunken h-80 animate-pulse rounded-2xl motion-reduce:animate-none"
       />
     ),
   },
@@ -415,11 +418,12 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
     return (
       <Notice tone="warning">
         This session belongs to another browser, or it was cleared or has expired. For privacy,
-        sessions can only be opened on the device that created them.{" "}
-        <Link href="/start" className={`rounded font-medium underline ${FOCUS_RING}`}>
-          Start a new one
-        </Link>
-        .
+        sessions can only be opened on the device that created them.
+        <div>
+          <ButtonLink href="/start" variant="secondary" size="sm" className="mt-3">
+            Start a new one
+          </ButtonLink>
+        </div>
       </Notice>
     );
   }
@@ -427,14 +431,17 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
   if (phase === "not_analyzed") {
     return (
       <Notice tone="info">
-        Your CV analysis needs to finish before the interview can start.{" "}
-        <Link
-          href={`/session/${sessionId}/analysis`}
-          className={`rounded font-medium underline ${FOCUS_RING}`}
-        >
-          Go to your analysis
-        </Link>
-        .
+        Your CV analysis needs to finish before the interview can start.
+        <div>
+          <ButtonLink
+            href={`/session/${sessionId}/analysis`}
+            variant="secondary"
+            size="sm"
+            className="mt-3"
+          >
+            Go to your analysis
+          </ButtonLink>
+        </div>
       </Notice>
     );
   }
@@ -443,13 +450,14 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
     return (
       <Notice tone="error">
         <p className="font-medium">{loadError}</p>
-        <button
-          type="button"
+        <Button
+          variant="secondary"
+          size="sm"
+          className="mt-3"
           onClick={() => window.location.reload()}
-          className={`mt-2 rounded font-medium underline ${FOCUS_RING}`}
         >
           Try again
-        </button>
+        </Button>
       </Notice>
     );
   }
@@ -461,46 +469,48 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             Ready for your mock interview?
           </h1>
-          <p className="text-zinc-700 dark:text-zinc-300">
+          <p className="text-fg-muted text-pretty">
             About 6 questions tailored to your CV and this job: technical, a project deep-dive, a
             skill check, behavioral and role fit. The interviewer may ask a follow-up when an answer
             is brief. There is no timer, so take your time.
           </p>
         </header>
 
-        <fieldset className="space-y-3 rounded-2xl border border-zinc-200 p-4 sm:p-5 dark:border-zinc-800">
-          <legend className="px-1 text-sm font-medium">Interview style</legend>
-          <label className="flex cursor-pointer items-start justify-between gap-4">
-            <span className="space-y-1">
-              <span className="block font-medium">Practice mode</span>
-              <span id="practice-desc" className="block text-sm text-zinc-600 dark:text-zinc-400">
-                <strong className="font-medium">Off</strong>: realistic, like a real interview; your
-                scores appear only in the report at the end.{" "}
-                <strong className="font-medium">On</strong>: brief feedback and a tip after each
-                answer.
+        <Card>
+          <fieldset className="min-w-0 space-y-3">
+            <legend className="text-fg-muted mb-3 text-sm font-medium">Interview style</legend>
+            <label className="flex cursor-pointer items-start justify-between gap-4">
+              <span className="space-y-1">
+                <span className="block font-medium">Practice mode</span>
+                <span id="practice-desc" className="text-fg-muted block text-sm">
+                  <strong className="font-medium">Off</strong>: realistic, like a real interview;
+                  your scores appear only in the report at the end.{" "}
+                  <strong className="font-medium">On</strong>: brief feedback and a tip after each
+                  answer.
+                </span>
               </span>
-            </span>
-            <input
-              type="checkbox"
-              role="switch"
-              checked={practice}
-              onChange={(e) => setPractice(e.target.checked)}
-              aria-describedby="practice-desc"
-              className="peer sr-only"
-            />
-            <span
-              aria-hidden
-              className="relative mt-1 inline-flex h-7 w-12 shrink-0 items-center rounded-full bg-zinc-300 transition-colors peer-checked:bg-indigo-600 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-indigo-600 motion-reduce:transition-none dark:bg-zinc-700 dark:peer-checked:bg-indigo-500 [&>span]:peer-checked:translate-x-5"
-            >
-              <span className="ml-1 h-5 w-5 rounded-full bg-white shadow transition-transform motion-reduce:transition-none" />
-            </span>
-          </label>
-          <p className="text-sm text-zinc-700 dark:text-zinc-300" aria-live="polite">
-            {practice
-              ? "Practice mode on: you'll see brief feedback after each answer."
-              : "Realistic mode: no feedback until the end."}
-          </p>
-        </fieldset>
+              <input
+                type="checkbox"
+                role="switch"
+                checked={practice}
+                onChange={(e) => setPractice(e.target.checked)}
+                aria-describedby="practice-desc"
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden
+                className="bg-fg-subtle peer-checked:bg-accent peer-focus-visible:outline-ring relative mt-1 inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 motion-reduce:transition-none peer-checked:[&>span]:translate-x-5"
+              >
+                <span className="ml-1 size-5 rounded-full bg-white shadow transition-transform motion-reduce:transition-none" />
+              </span>
+            </label>
+            <p className="text-fg flex items-center gap-1.5 text-sm" aria-live="polite">
+              {practice
+                ? "Practice mode on: you'll see brief feedback after each answer."
+                : "Realistic mode: no feedback until the end."}
+            </p>
+          </fieldset>
+        </Card>
 
         {startError && (
           <Notice tone={startError.kind === "rate" ? "warning" : "error"}>
@@ -512,30 +522,35 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
           </Notice>
         )}
 
-        <button
-          type="button"
-          onClick={start}
-          disabled={starting || waitUntil !== null}
-          className={`${BUTTON_PRIMARY} w-full sm:w-auto`}
-        >
-          {starting ? (
-            <>
-              <span
-                aria-hidden
-                className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white motion-reduce:animate-none"
-              />
-              Preparing your questions…
-            </>
-          ) : startError?.kind === "retry" ? (
-            "Try again"
-          ) : (
-            "Start interview"
-          )}
-        </button>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <Button
+            size="lg"
+            onClick={start}
+            disabled={starting || waitUntil !== null}
+            className="w-full sm:w-auto"
+          >
+            {starting ? (
+              <>
+                <Spinner />
+                Preparing your questions…
+              </>
+            ) : startError?.kind === "retry" ? (
+              "Try again"
+            ) : (
+              <>
+                Start interview
+                <ArrowRight className="size-4" />
+              </>
+            )}
+          </Button>
+          <p className="text-fg-subtle text-sm">
+            Answer by voice or by typing; you can switch at any time.
+          </p>
+        </div>
+        <p className="text-fg-muted text-sm">
           <Link
             href={`/session/${sessionId}/analysis`}
-            className={`rounded underline hover:no-underline ${FOCUS_RING}`}
+            className={cn("rounded underline hover:no-underline", focusRing)}
           >
             Back to your analysis
           </Link>
@@ -561,16 +576,22 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
       <div className="space-y-6">
         {liveRegion}
         <ProgressHeader question={null} total={turn.progress.total_planned} completed />
-        <section className="space-y-3 rounded-2xl bg-indigo-50 p-5 sm:p-6 dark:bg-indigo-950">
+        <Card as="section" tone="raised" className="space-y-3">
+          <span className="bg-success-soft text-success-fg flex size-10 items-center justify-center rounded-full">
+            <Check className="size-5" strokeWidth={2.5} />
+          </span>
           <h1 className="text-2xl font-semibold tracking-tight">Interview complete. Nice work!</h1>
-          <p className="text-zinc-700 dark:text-zinc-300">
+          <p className="text-fg-muted">
             {answeredSummary(turn.history)} Your scored report, with per-answer scores, improved
             example answers and an overall readiness score, arrives in the next update.
           </p>
-          <Link href={`/session/${sessionId}/analysis`} className={`${BUTTON_PRIMARY} mt-1`}>
-            Back to your analysis
-          </Link>
-        </section>
+          {/* Completion actions: the report CTA (Phase 5) goes first in this row. */}
+          <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap">
+            <ButtonLink href={`/session/${sessionId}/analysis`} className="w-full sm:w-auto">
+              Back to your analysis
+            </ButtonLink>
+          </div>
+        </Card>
         {feedback && <FeedbackCard feedback={feedback} />}
         <Transcript history={turn.history} pending={null} defaultOpen />
       </div>
@@ -583,9 +604,9 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
       {liveRegion}
       <header className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Mock interview</h1>
-        <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+        <Badge tone={turn.practice_mode ? "accent" : "neutral"}>
           {turn.practice_mode ? "Practice mode: feedback after each answer" : "Realistic mode"}
-        </span>
+        </Badge>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
@@ -625,17 +646,17 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
                   : sendError.message}
               </p>
               {sendError.kind === "retry" && (
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
                   onClick={() => {
                     if (mode === "voice" && failedRecording) void sendVoice(failedRecording);
                     else void send();
                   }}
                   disabled={sending}
-                  className={`${BUTTON_SECONDARY} mt-3 bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100`}
+                  className="mt-3"
                 >
                   {mode === "voice" && failedRecording ? "Retry upload" : "Retry sending answer"}
-                </button>
+                </Button>
               )}
             </Notice>
           )}
@@ -678,7 +699,10 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
           )}
         </div>
 
-        <aside className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto">
+        <aside
+          aria-label="Interview transcript"
+          className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-3rem)] lg:self-start lg:overflow-y-auto"
+        >
           <Transcript history={turn.history} pending={pending} />
         </aside>
       </div>
