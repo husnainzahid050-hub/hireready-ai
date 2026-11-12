@@ -1,0 +1,153 @@
+{
+ "step": "insights",
+ "result": {
+  "strengths": [
+   {
+    "title": "Proficient Python development",
+    "why_it_matters": "Core to building reliable backend services and writing clean, maintainable code.",
+    "evidence_quote": "Python, Django, FastAPI, PostgreSQL, Docker, pytest, GitHub Actions, Redis, REST APIs"
+   },
+   {
+    "title": "Expertise in FastAPI/Django REST APIs",
+    "why_it_matters": "Directly matches the job’s need to design REST APIs and data models for new features.",
+    "evidence_quote": "Designed REST APIs in Django REST Framework for a shipment tracking product"
+   },
+   {
+    "title": "Strong PostgreSQL performance tuning",
+    "why_it_matters": "Ensures the services you own stay fast and scalable, a key production responsibility.",
+    "evidence_quote": "Optimised slow PostgreSQL queries with indexes, cutting p95 latency from 900 ms to 180 ms."
+   },
+   {
+    "title": "Docker containerisation and CI/CD pipelines",
+    "why_it_matters": "Allows you to ship code reliably and keep services running smoothly in production.",
+    "evidence_quote": "Containerised five services with Docker and set up GitHub Actions CI/CD pipelines with automated deploys."
+   },
+   {
+    "title": "Test‑driven development with pytest",
+    "why_it_matters": "High test coverage reduces bugs and speeds up code reviews, aligning with the mentorship and quality expectations.",
+    "evidence_quote": "Wrote pytest unit and integration tests and raised coverage from 45% to 85%."
+   }
+  ],
+  "likely_questions": [
+   {
+    "topic": "Performance troubleshooting",
+    "questions": [
+     "A query is slow. How do you investigate and improve its performance?",
+     "Can you walk us through the steps you took to reduce PostgreSQL p95 latency from 900 ms to 180 ms?"
+    ]
+   },
+   {
+    "topic": "API design & security",
+    "questions": [
+     "Explain the difference between authentication and authorization, and how you would secure a public REST API you built.",
+     "How do you design your APIs to handle failure when calling external partner services?"
+    ]
+   },
+   {
+    "topic": "Infrastructure & cloud gaps",
+    "questions": [
+     "You have no documented experience with Kubernetes. How would you approach learning it quickly to support a new service deployment?",
+     "What considerations would you make when moving a Docker‑based service to AWS?"
+    ]
+   },
+   {
+    "topic": "Testing & code quality",
+    "questions": [
+     "What is a Python decorator? Describe one you have used in a recent project.",
+     "How do you decide what to test with pytest versus what to rely on integration tests?"
+    ]
+   },
+   {
+    "topic": "Behavioral / leadership",
+    "questions": [
+     "Tell me about a time you mentored a junior engineer through a difficult bug. What was the outcome?",
+     "Describe a situation where you had to take ownership of a production incident. How did you resolve it and what did you learn?"
+    ]
+   }
+  ],
+  "prep_plan": [
+   {
+    "focus": "Close the Kubernetes knowledge gap (nice‑to‑have)",
+    "tasks": [
+     "Read the introductory sections of the Kubernetes documentation (official site) to understand core concepts.",
+     "Watch a 30‑minute tutorial on deploying a simple FastAPI app to a local Kind cluster.",
+     "Create a mini‑project: containerise a FastAPI service, write a Helm chart, and deploy it locally."
+    ],
+    "resource_urls": []
+   },
+   {
+    "focus": "Build AWS fundamentals (nice‑to‑have)",
+    "tasks": [
+     "Complete the AWS free tier “Getting Started” guide for EC2 and ECR.",
+     "Deploy the Docker image from yesterday to AWS Elastic Container Service (ECS) using the console.",
+     "Write a short README summarising the steps you took and any challenges faced."
+    ],
+    "resource_urls": []
+   },
+   {
+    "focus": "Polish API design & security knowledge",
+    "tasks": [
+     "Review OWASP Top Ten and note the items most relevant to REST APIs.",
+     "Draft a security checklist for a new API endpoint (auth, rate‑limiting, input validation).",
+     "Practice explaining your checklist out loud as if interviewing."
+    ],
+    "resource_urls": [
+     "https://owasp.org/projects/top-ten"
+    ]
+   },
+   {
+    "focus": "Deepen PostgreSQL performance skills",
+    "tasks": [
+     "Read the PostgreSQL “Using EXPLAIN” and “Indexes” docs.",
+     "Re‑run EXPLAIN on a sample slow query and identify missing indexes.",
+     "Write a short blog‑style post describing the optimisation you performed for the shipment tracking product."
+    ],
+    "resource_urls": [
+     "https://www.postgresql.org/docs/current/using-explain.html",
+     "https://www.postgresql.org/docs/current/indexes.html"
+    ]
+   },
+   {
+    "focus": "Strengthen testing narrative",
+    "tasks": [
+     "Prepare a 2‑minute story about raising pytest coverage from 45 % to 85 % (challenge, actions, results).",
+     "Create a cheat‑sheet of common pytest fixtures you use and why.",
+     "Run a quick pair‑programming session with a friend to explain your testing approach."
+    ],
+    "resource_urls": []
+   },
+   {
+    "focus": "Behavioral interview prep",
+    "tasks": [
+     "Select two STAR stories (mentoring & incident ownership) and write them on index cards.",
+     "Practice delivering each story in under 90 seconds, focusing on impact.",
+     "Review the Amazon Leadership Principles and map your stories to at least two principles."
+    ],
+    "resource_urls": [
+     "https://www.amazon.jobs/content/en/our-workplace/leadership-principles"
+    ]
+   },
+   {
+    "focus": "Mock interview rehearsal",
+    "tasks": [
+     "Do a full‑length mock interview with a peer or coach covering all topic groups above.",
+     "Record the session, then watch it to note any filler words or unclear explanations.",
+     "Refine your answers based on feedback and finalize a one‑page cheat sheet for the real interview."
+    ],
+    "resource_urls": []
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "InsightsDraft",
+   "latency_s": 3.739,
+   "ok": true,
+   "prompt_tokens": 1968,
+   "completion_tokens": 1509,
+   "error": null
+  }
+ ]
+}

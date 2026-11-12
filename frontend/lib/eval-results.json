@@ -1,0 +1,309 @@
+{
+ "meta": {
+  "date": "2026-11-12 10:21 UTC",
+  "commit": "d114d97",
+  "mode": "live (cache only)",
+  "models": {
+   "groq_fast": "openai/gpt-oss-20b",
+   "groq_strong": "openai/gpt-oss-120b",
+   "gemini_text": "gemini-3.5-flash",
+   "embedding": "gemini-embedding-001",
+   "embedding_dim": "768"
+  },
+  "kb": {
+   "files": 14,
+   "chunks": 157
+  },
+  "dataset_sizes": {
+   "cv_jd_pairs": 10,
+   "jds": 5,
+   "cvs": 10,
+   "retrieval_queries": 30,
+   "answers": 30,
+   "injection_cases": 8
+  },
+  "llm_calls_total": 85
+ },
+ "summary": [
+  {
+   "eval": "JD extraction",
+   "metric": "Must-have skill recall",
+   "result": "100% (32/32; 95% CI 89-100%)",
+   "n": "5 JDs",
+   "target": "≥ 90%",
+   "kind": "measured"
+  },
+  {
+   "eval": "CV extraction",
+   "metric": "Skill recall",
+   "result": "100% (67/67; 95% CI 95-100%)",
+   "n": "10 CVs",
+   "target": "≥ 90%",
+   "kind": "measured"
+  },
+  {
+   "eval": "Gap detection",
+   "metric": "Recall (missing skills)",
+   "result": "100% (37/37; 95% CI 91-100%)",
+   "n": "92 skills / 10 pairs",
+   "target": "≥ 80%",
+   "kind": "measured"
+  },
+  {
+   "eval": "Gap detection",
+   "metric": "Precision (missing skills)",
+   "result": "92% (37/40; 95% CI 80-97%)",
+   "n": "92 skills",
+   "target": "≥ 80%",
+   "kind": "measured"
+  },
+  {
+   "eval": "Gap detection",
+   "metric": "Verdict agreement (strong / weak / none)",
+   "result": "97% (89/92; 95% CI 91-99%)",
+   "n": "92 skills",
+   "target": "—",
+   "kind": "measured"
+  },
+  {
+   "eval": "Evidence faithfulness",
+   "metric": "Quotes verbatim in the CV, raw model → after validation",
+   "result": "100% (52/52) → 100% (52/52)",
+   "n": "52 quotes",
+   "target": "100% (enforced by code)",
+   "kind": "guarantee"
+  },
+  {
+   "eval": "Retrieval",
+   "metric": "Hit rate@5, vector-only → hybrid",
+   "result": "100% (30/30) → 100% (30/30)",
+   "n": "30 queries",
+   "target": "—",
+   "kind": "measured"
+  },
+  {
+   "eval": "Retrieval",
+   "metric": "MRR@5, vector-only → hybrid",
+   "result": "0.90 → 0.88",
+   "n": "30 queries",
+   "target": "—",
+   "kind": "measured"
+  },
+  {
+   "eval": "Scoring calibration",
+   "metric": "Average score inside the expected range",
+   "result": "100% (30/30; 95% CI 89-100%)",
+   "n": "30 answers",
+   "target": "≥ 80%",
+   "kind": "measured"
+  },
+  {
+   "eval": "Scoring consistency",
+   "metric": "Mean SD of the average over 3 runs",
+   "result": "0.18 (same band 83% (5/6))",
+   "n": "6 answers × 3",
+   "target": "≤ 0.25",
+   "kind": "measured"
+  },
+  {
+   "eval": "Injection resistance",
+   "metric": "Adversarial CVs / answers handled safely",
+   "result": "88% (7/8; 95% CI 53-98%)",
+   "n": "8 cases",
+   "target": "100%",
+   "kind": "measured"
+  },
+  {
+   "eval": "Latency",
+   "metric": "Answer scoring call p50 / p95",
+   "result": "1.4 s / 5.8 s",
+   "n": "47 calls",
+   "target": "< 4 s p50",
+   "kind": "measured"
+  },
+  {
+   "eval": "Cost",
+   "metric": "Tokens per full session (analysis + 6-question interview)",
+   "result": "24,978 tokens ≈ $0.0047 at list price ($0 on free tiers)",
+   "n": "12 LLM calls",
+   "target": "—",
+   "kind": "measured"
+  }
+ ],
+ "retrieval": [
+  {
+   "mode": "vector",
+   "hit_at_5": {
+    "k": 30,
+    "n": 30,
+    "value": 1.0,
+    "ci95": [
+     0.886,
+     1.0
+    ]
+   },
+   "mrr_at_5": 0.903,
+   "failure_rate_at_5": 0.0
+  },
+  {
+   "mode": "keyword",
+   "hit_at_5": {
+    "k": 16,
+    "n": 30,
+    "value": 0.5333333333333333,
+    "ci95": [
+     0.361,
+     0.698
+    ]
+   },
+   "mrr_at_5": 0.376,
+   "failure_rate_at_5": 0.467
+  },
+  {
+   "mode": "hybrid",
+   "hit_at_5": {
+    "k": 30,
+    "n": 30,
+    "value": 1.0,
+    "ci95": [
+     0.886,
+     1.0
+    ]
+   },
+   "mrr_at_5": 0.881,
+   "failure_rate_at_5": 0.0
+  }
+ ],
+ "latency": {
+  "steps": {
+   "jd_extract": {
+    "ok": 5,
+    "p50_s": 0.965,
+    "p95_s": 1.417,
+    "providers": {
+     "groq": 5
+    },
+    "mean_prompt_tokens": 896,
+    "mean_completion_tokens": 394
+   },
+   "cv_extract": {
+    "ok": 10,
+    "p50_s": 0.822,
+    "p95_s": 22.278,
+    "providers": {
+     "gemini": 1,
+     "groq": 9
+    },
+    "mean_prompt_tokens": 730,
+    "mean_completion_tokens": 274
+   },
+   "judge": {
+    "ok": 13,
+    "p50_s": 1.914,
+    "p95_s": 2.67,
+    "providers": {
+     "groq": 13
+    },
+    "mean_prompt_tokens": 776,
+    "mean_completion_tokens": 675
+   },
+   "score_answer": {
+    "ok": 47,
+    "p50_s": 1.402,
+    "p95_s": 5.839,
+    "providers": {
+     "groq": 44,
+     "gemini": 3
+    },
+    "mean_prompt_tokens": 1707,
+    "mean_completion_tokens": 543
+   },
+   "insights": {
+    "ok": 3,
+    "p50_s": 4.074,
+    "p95_s": 4.565,
+    "providers": {
+     "groq": 3
+    },
+    "mean_prompt_tokens": 2091,
+    "mean_completion_tokens": 1691
+   },
+   "plan": {
+    "ok": 3,
+    "p50_s": 1.413,
+    "p95_s": 2.503,
+    "providers": {
+     "groq": 3
+    },
+    "mean_prompt_tokens": 1203,
+    "mean_completion_tokens": 498
+   }
+  },
+  "per_session": {
+   "llm_calls": 12,
+   "assumed_answers": 7,
+   "tokens": 24978,
+   "cost_usd_list_price": 0.00471,
+   "missing_steps": []
+  },
+  "endpoint_llm_time": {
+   "analysis": {
+    "p50_s": 6.95,
+    "p95_s": 29.51
+   },
+   "interview_start": {
+    "p50_s": 1.413,
+    "p95_s": 2.503
+   },
+   "answer_turn": {
+    "p50_s": 1.402,
+    "p95_s": 5.839
+   }
+  },
+  "prices_checked": "2026-11-12",
+  "fallback_calls": 4
+ },
+ "headline": {
+  "retrieval": {
+   "vector": {
+    "k": 30,
+    "n": 30,
+    "value": 1.0,
+    "ci95": [
+     0.886,
+     1.0
+    ]
+   },
+   "hybrid": {
+    "k": 30,
+    "n": 30,
+    "value": 1.0,
+    "ci95": [
+     0.886,
+     1.0
+    ]
+   }
+  },
+  "evidence": {
+   "raw_verbatim": {
+    "k": 52,
+    "n": 52,
+    "value": 1.0,
+    "ci95": [
+     0.931,
+     1.0
+    ]
+   },
+   "final_verbatim": {
+    "k": 52,
+    "n": 52,
+    "value": 1.0,
+    "ci95": [
+     0.931,
+     1.0
+    ]
+   },
+   "downgraded_by_validator": 0
+  }
+ }
+}

@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly addresses the difference between WHERE and HAVING.",
+   "evidence_quote": "WHERE filters individual rows before any grouping happens, and HAVING filters groups after GROUP BY and the aggregates are computed."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "Correct explanation of execution order and aggregate restrictions.",
+   "evidence_quote": "You cannot use an aggregate like COUNT in WHERE because the groups do not exist yet at that point."
+  },
+  "depth": {
+   "score": "4",
+   "justification": "Provides example scenario and performance note, but could include more trade‑offs.",
+   "evidence_quote": "Filtering early in WHERE is also cheaper because fewer rows reach the grouping step."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "Logical flow: definition, example, constraints, performance.",
+   "evidence_quote": "So if I want customers with more than five orders in 2025, I put the date condition in WHERE, group by customer id, and then use HAVING count of orders greater than five."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "Clear, concise, well‑phrased sentences.",
+   "evidence_quote": "WHERE filters individual rows before any grouping happens, and HAVING filters groups after GROUP BY and the aggregates are computed."
+  },
+  "what_interviewer_wanted": "Explain the functional difference between WHERE and HAVING, including execution order and aggregate usage.",
+  "improved_answer": "WHERE filters rows before grouping, so you can use column predicates like a date filter. HAVING applies after GROUP BY, letting you filter on aggregates such as COUNT; you can’t use COUNT in WHERE because groups don’t exist yet. Using WHERE first reduces the row set, which is usually more efficient.",
+  "one_tip": "Mention that WHERE is evaluated before GROUP BY, while HAVING is evaluated after, and that aggregates are only available in HAVING.",
+  "feedback_summary": "Great explanation—clear, accurate, and includes a useful performance note.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.137,
+   "ok": true,
+   "prompt_tokens": 1755,
+   "completion_tokens": 462,
+   "error": null
+  }
+ ]
+}

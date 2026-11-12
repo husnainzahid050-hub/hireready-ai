@@ -1,0 +1,79 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "Python",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV excerpts contain no mention of Python."
+   },
+   {
+    "skill": "FastAPI or Django",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV excerpts do not reference FastAPI or Django."
+   },
+   {
+    "skill": "PostgreSQL",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "There is no mention of PostgreSQL in the provided excerpts."
+   },
+   {
+    "skill": "Docker",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Docker is not referenced in the CV excerpts."
+   },
+   {
+    "skill": "REST API design",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No evidence of REST API design is present."
+   },
+   {
+    "skill": "pytest",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The excerpts do not mention pytest."
+   },
+   {
+    "skill": "CI/CD",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "CI/CD is not referenced in the provided text."
+   },
+   {
+    "skill": "Redis",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of Redis appears in the excerpts."
+   },
+   {
+    "skill": "Kubernetes",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Kubernetes is not mentioned in the CV excerpts."
+   },
+   {
+    "skill": "AWS",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV excerpts contain no reference to AWS."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 1.416,
+   "ok": true,
+   "prompt_tokens": 708,
+   "completion_tokens": 492,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer fully addresses the question by listing and explaining the HTTP status codes used in an API.",
+   "evidence_quote": "I use 200 for a successful read, 201 when something is created, and 204 when there is nothing to return, like after a delete. For client errors, 400 is a malformed request, 422 is valid JSON that fails validation, which FastAPI returns automatically, 401 means not authenticated and 403 means authenticated but not allowed, 404 is not found, and 429 is for rate limiting with a Retry-After header. 500 is an unexpected server error, and 503 means a dependency is down. Using the right codes lets clients decide whether to retry, for example retrying a 503 but never a 400."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "All listed status codes are correct and appropriately described for their typical use cases.",
+   "evidence_quote": "I use 200 for a successful read, 201 when something is created, and 204 when there is nothing to return, like after a delete. For client errors, 400 is a malformed request, 422 is valid JSON that fails validation, which FastAPI returns automatically, 401 means not authenticated and 403 means authenticated but not allowed, 404 is not found, and 429 is for rate limiting with a Retry-After header. 500 is an unexpected server error, and 503 means a dependency is down."
+  },
+  "depth": {
+   "score": "5",
+   "justification": "The answer includes specific codes, their meanings, and practical considerations such as retry logic.",
+   "evidence_quote": "Using the right codes lets clients decide whether to retry, for example retrying a 503 but never a 400."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "The response is logically grouped by success, client error, and server error categories.",
+   "evidence_quote": "I use 200 for a successful read, 201 when something is created, and 204 when there is nothing to return, like after a delete. For client errors, 400 is a malformed request, 422 is valid JSON that fails validation, which FastAPI returns automatically, 401 means not authenticated and 403 means authenticated but not allowed, 404 is not found, and 429 is for rate limiting with a Retry-After header. 500 is an unexpected server error, and 503 means a dependency is down."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "The answer is concise, clear, and free of jargon.",
+   "evidence_quote": "I use 200 for a successful read, 201 when something is created, and 204 when there is nothing to return, like after a delete."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a comprehensive list of common HTTP status codes used in APIs, with explanations of when each should be returned and how they guide client behavior.",
+  "improved_answer": "I use 200 for a successful read, 201 when something is created, and 204 when there is nothing to return, like after a delete. For client errors, 400 is a malformed request, 422 is valid JSON that fails validation, which FastAPI returns automatically, 401 means not authenticated and 403 means authenticated but not allowed, 404 is not found, and 429 is for rate limiting with a Retry-After header. 500 is an unexpected server error, and 503 means a dependency is down. Using the right codes lets clients decide whether to retry, for example retrying a 503 but never a 400.",
+  "one_tip": "Mention how you handle edge cases, such as custom error envelopes or logging, to show deeper API design awareness.",
+  "feedback_summary": "Great job covering all the key status codes and explaining their use cases clearly.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 2.364,
+   "ok": true,
+   "prompt_tokens": 1837,
+   "completion_tokens": 939,
+   "error": null
+  }
+ ]
+}

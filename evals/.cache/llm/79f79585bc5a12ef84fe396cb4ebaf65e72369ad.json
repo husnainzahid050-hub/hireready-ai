@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "Answer does not address the difference between WHERE and HAVING.",
+   "evidence_quote": "They are basically the same thing, HAVING is just the newer way to write WHERE."
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "Incorrect statement that WHERE and HAVING are the same; ignores aggregation context.",
+   "evidence_quote": "HAVING is just the newer way to write WHERE."
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No specifics, no examples, no mention of aggregation or execution order.",
+   "evidence_quote": "You can use either one."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No logical structure, just a single sentence.",
+   "evidence_quote": "They are basically the same thing, HAVING is just the newer way to write WHERE."
+  },
+  "communication": {
+   "score": "2",
+   "justification": "Answer is concise but lacks clarity and detail.",
+   "evidence_quote": "You can use either one."
+  },
+  "what_interviewer_wanted": "Explain that WHERE filters rows before GROUP BY, while HAVING filters groups after aggregation and cannot reference aggregates in WHERE.",
+  "improved_answer": "In SQL, the WHERE clause filters rows before any GROUP BY or aggregation occurs, so it can reference only columns from the base tables. The HAVING clause is applied after grouping and can filter on aggregate functions like COUNT or SUM, e.g., HAVING COUNT(*) > 5. I’ve used both in projects that required summarizing data, such as filtering user activity logs by date before grouping them by user ID.",
+  "one_tip": "Remember that WHERE cannot use aggregates, whereas HAVING can.",
+  "feedback_summary": "Your answer missed the key differences; focus on execution order and aggregate usage next time.",
+  "answer_quality": "off_topic",
+  "follow_up_question": "Can you give an example of a query where you would need to use HAVING instead of WHERE?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.612,
+   "ok": true,
+   "prompt_tokens": 1681,
+   "completion_tokens": 544,
+   "error": null
+  }
+ ]
+}

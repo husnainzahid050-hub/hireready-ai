@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The answer does not explain retrieval-augmented generation and instead incorrectly describes fine-tuning.",
+   "evidence_quote": "RAG is when you train a new model from scratch on your documents."
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "The statement that RAG involves training a new model is factually incorrect.",
+   "evidence_quote": "RAG is when you train a new model from scratch on your documents."
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No details, no mention of chunking, vector store, retrieval, or prompt design.",
+   "evidence_quote": null
+  },
+  "structure": {
+   "score": "1",
+   "justification": "Single sentence, no logical flow or components.",
+   "evidence_quote": null
+  },
+  "communication": {
+   "score": "2",
+   "justification": "Answer is concise but lacks clarity and contains a factual error.",
+   "evidence_quote": "RAG is when you train a new model from scratch on your documents."
+  },
+  "what_interviewer_wanted": "They wanted a clear explanation of retrieval-augmented generation, including how documents are chunked, embedded, retrieved, and fed into the LLM, plus a brief outline of building a pipeline with vector store, retrieval, and prompt design.",
+  "improved_answer": "Retrieval‑augmented generation (RAG) is a pipeline where documents are first split into manageable chunks, each chunk is embedded into a vector store (e.g., FAISS), and at query time the user’s question is embedded and the most similar chunks are retrieved. Those chunks are then inserted into the prompt so the LLM can answer based on that context, reducing hallucinations and allowing fresh or private data without retraining. In my Campus Policy Assistant project I used LangChain with FAISS and FastAPI to build such a pipeline, which cut hallucinated answers by 40%.",
+  "one_tip": "Focus on the core components—chunking, embedding, retrieval, and prompt injection—when explaining RAG.",
+  "feedback_summary": "Your answer missed the key concepts of RAG; try to describe the retrieval and prompt steps clearly next time.",
+  "answer_quality": "off_topic",
+  "follow_up_question": "Can you describe how you would split documents into chunks and choose the chunk size for a RAG system?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.674,
+   "ok": true,
+   "prompt_tokens": 1748,
+   "completion_tokens": 569,
+   "error": null
+  }
+ ]
+}

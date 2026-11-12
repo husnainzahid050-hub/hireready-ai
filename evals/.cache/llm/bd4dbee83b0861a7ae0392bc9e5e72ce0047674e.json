@@ -1,0 +1,81 @@
+{
+ "step": "jd_extract",
+ "result": {
+  "title": "Backend Engineer (Python)",
+  "seniority": "mid",
+  "must_have_skills": [
+   {
+    "name": "Python",
+    "competency": "python"
+   },
+   {
+    "name": "FastAPI or Django",
+    "competency": "apis_backend"
+   },
+   {
+    "name": "PostgreSQL",
+    "competency": "sql"
+   },
+   {
+    "name": "Docker",
+    "competency": "cloud_devops"
+   },
+   {
+    "name": "REST API design",
+    "competency": "apis_backend"
+   },
+   {
+    "name": "Automated testing with pytest",
+    "competency": "other"
+   },
+   {
+    "name": "CI/CD pipelines",
+    "competency": "cloud_devops"
+   }
+  ],
+  "nice_to_have_skills": [
+   {
+    "name": "Redis",
+    "competency": "other"
+   },
+   {
+    "name": "Kubernetes",
+    "competency": "cloud_devops"
+   },
+   {
+    "name": "AWS",
+    "competency": "cloud_devops"
+   }
+  ],
+  "responsibilities": [
+   "Design REST APIs and data models for new product features.",
+   "Own services in production: monitoring, incidents, performance.",
+   "Review code and mentor junior engineers."
+  ],
+  "tools": [
+   "Python",
+   "FastAPI or Django",
+   "PostgreSQL",
+   "Docker",
+   "REST API design",
+   "pytest",
+   "CI/CD pipelines",
+   "Redis",
+   "Kubernetes",
+   "AWS"
+  ],
+  "soft_skills": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "JobProfile",
+   "latency_s": 0.965,
+   "ok": true,
+   "prompt_tokens": 877,
+   "completion_tokens": 433,
+   "error": null
+  }
+ ]
+}

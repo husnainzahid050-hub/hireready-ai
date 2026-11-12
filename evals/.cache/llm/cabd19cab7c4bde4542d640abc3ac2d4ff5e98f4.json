@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly describes a team disagreement and how it was resolved.",
+   "evidence_quote": "In my final-year project, two of us disagreed about whether to use a vector database service or a local FAISS index, and it was blocking our sprint."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "The technical details about FAISS, vector database, latency measurement are accurate and relevant.",
+   "evidence_quote": "I measured retrieval latency for both and shared a short comparison in our group chat."
+  },
+  "depth": {
+   "score": "5",
+   "justification": "The response includes specific actions, trade-offs, and measurable data.",
+   "evidence_quote": "I suggested we list the requirements, cost, offline use and setup time, and each of us built a one-day prototype."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "The answer follows STAR: Situation, Task, Action, Result.",
+   "evidence_quote": "In my final-year project, two of us disagreed about whether to use a vector database service or a local FAISS index, and it was blocking our sprint... We delivered on time, and I learned that a small experiment ends a debate faster than arguing opinions."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "The response is concise, clear, and well‑organized.",
+   "evidence_quote": "I suggested we list the requirements, cost, offline use and setup time, and each of us built a one-day prototype."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a concrete example of a team disagreement, the steps taken to resolve it, and a reflection on the outcome.",
+  "improved_answer": "In my final‑year project, my teammate and I disagreed on using a vector database service versus a local FAISS index. I proposed we list our requirements, cost, offline use, and setup time, then each built a one‑day prototype. We measured retrieval latency and compared the results in our group chat. The data showed FAISS was fast enough and free, so we chose it and my teammate took ownership of the indexing code. We delivered on time, and I learned that quick, shared experiments resolve technical debates faster than prolonged arguments.",
+  "one_tip": "When describing a conflict, emphasize the concrete actions you took to gather data and make a decision.",
+  "feedback_summary": "Your answer is a strong, well‑structured example that clearly shows how you handled a disagreement.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.543,
+   "ok": true,
+   "prompt_tokens": 1874,
+   "completion_tokens": 655,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,63 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Maryam Iqbal",
+  "education": [
+   {
+    "degree": "BS Data Science",
+    "institution": "Fictional University of Rawalpindi",
+    "year": "2026"
+   }
+  ],
+  "skills": [
+   "Python",
+   "scikit-learn",
+   "pandas",
+   "TensorFlow",
+   "SQL",
+   "matplotlib"
+  ],
+  "projects": [
+   {
+    "title": "House Price Prediction (Kaggle)",
+    "stack": [
+     "Python",
+     "scikit-learn",
+     "pandas"
+    ],
+    "outcome": "Trained gradient boosting models with scikit-learn and engineered features with pandas; top 20% on the leaderboard."
+   },
+   {
+    "title": "Sentiment Analysis of Product Reviews",
+    "stack": [
+     "Python",
+     "scikit-learn"
+    ],
+    "outcome": "Built a TF-IDF and logistic regression classifier in Python for 10,000 Urdu and English reviews."
+   }
+  ],
+  "experience": [
+   {
+    "role": "Teaching Assistant",
+    "org": "Fictional University of Rawalpindi",
+    "duration": "2025",
+    "bullets": [
+     "Helped run Python lab sessions for 60 first-year students."
+    ]
+   }
+  ],
+  "certifications": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 0.65,
+   "ok": true,
+   "prompt_tokens": 753,
+   "completion_tokens": 251,
+   "error": null
+  }
+ ]
+}

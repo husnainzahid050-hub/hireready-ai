@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The answer does not address overfitting or its prevention.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "The explanation is incorrect; overfitting is not about overheating or laptop size.",
+   "evidence_quote": "train the model for too long and the computer overheats"
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No specifics, reasoning, or examples provided.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats"
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No logical structure or STAR format; answer is a single sentence.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "communication": {
+   "score": "1",
+   "justification": "Answer is unclear and contains misinformation.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats"
+  },
+  "what_interviewer_wanted": "Explain what overfitting is and list practical ways to detect and prevent it, with reasoning and examples.",
+  "improved_answer": "Overfitting happens when a model learns noise in the training data, so it performs well on training but poorly on unseen data. I would detect it by looking for a large gap between training and validation metrics, and prevent it by adding more data, simplifying the model, applying regularization (L1/L2), using early stopping, or employing dropout in neural nets. In my internship, I used cross‑validation to confirm that a simpler architecture reduced the gap and improved generalization.",
+  "one_tip": "Focus on the definition, detection, and multiple remedies, and back them up with concrete examples.",
+  "feedback_summary": "Your answer missed the core concept and included incorrect details; try to explain overfitting clearly and mention real prevention techniques.",
+  "answer_quality": "off_topic",
+  "follow_up_question": "Can you describe a time during your internship when you noticed a training/validation gap and how you addressed it?",
+  "transition": "Thanks for sharing your thoughts."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.444,
+   "ok": true,
+   "prompt_tokens": 1753,
+   "completion_tokens": 487,
+   "error": null
+  }
+ ]
+}

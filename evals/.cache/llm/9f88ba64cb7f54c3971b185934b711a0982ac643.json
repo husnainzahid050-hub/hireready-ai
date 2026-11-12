@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "3",
+   "justification": "Answer addresses the project but omits the problem context and impact, which are key to the question.",
+   "evidence_quote": "It is a chatbot that answers questions about university policies."
+  },
+  "technical_accuracy": {
+   "score": "3",
+   "justification": "The description is technically correct but lacks detail; no errors identified.",
+   "evidence_quote": "It uses LangChain and FAISS and FastAPI."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "Minimal specifics; no trade‑offs, examples, or concrete results mentioned.",
+   "evidence_quote": "It uses AI to search the documents and then gives you an answer."
+  },
+  "structure": {
+   "score": "2",
+   "justification": "No clear logical order or analogy; just a list of facts.",
+   "evidence_quote": "It uses LangChain and FAISS and FastAPI."
+  },
+  "communication": {
+   "score": "2",
+   "justification": "Language is simple but too brief and contains jargon without explanation.",
+   "evidence_quote": "It uses LangChain and FAISS and FastAPI."
+  },
+  "what_interviewer_wanted": "Explain the project’s purpose, the problem it solves, an everyday analogy, and its impact, all in plain language.",
+  "improved_answer": "My final‑year project was a chatbot that helps students find answers to university policy questions. I noticed that students often waste time scrolling through long PDFs or asking staff for help. The bot pulls the relevant policy documents, searches them with AI, and gives a concise answer—like a personal assistant that knows the campus rules. In the end, it cut the time students spent searching by about 40 %.",
+  "one_tip": "Start with the problem and who benefits before diving into the tech stack.",
+  "feedback_summary": "You got the basics right, but adding context and a simple analogy would make your explanation clearer.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you give an example of a specific policy question the chatbot answered and how it improved the student’s experience?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.859,
+   "ok": true,
+   "prompt_tokens": 1680,
+   "completion_tokens": 540,
+   "error": null
+  }
+ ]
+}

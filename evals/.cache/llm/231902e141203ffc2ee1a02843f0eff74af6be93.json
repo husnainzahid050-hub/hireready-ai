@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The answer does not address the question about Docker’s definition or usefulness.",
+   "evidence_quote": "Docker is a cloud company like AWS where you host websites."
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "The answer incorrectly states Docker is a cloud company and claims no usage, which is factually wrong.",
+   "evidence_quote": "Docker is a cloud company like AWS where you host websites."
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No depth, no specifics, no reasoning or examples.",
+   "evidence_quote": "I have not used it."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No logical structure, no introduction or explanation.",
+   "evidence_quote": null
+  },
+  "communication": {
+   "score": "1",
+   "justification": "Very brief, unclear, and lacks clarity.",
+   "evidence_quote": "Docker is a cloud company like AWS where you host websites."
+  },
+  "what_interviewer_wanted": "They wanted a clear definition of Docker, explanation of containerization, and why it solves deployment issues, with mention of images, containers, Dockerfile, and benefits over VMs.",
+  "improved_answer": "Docker is a platform that packages an application and its dependencies into a lightweight, portable image. When you run that image, you get a container that behaves the same on any host, solving the “works on my machine” problem. A Dockerfile defines how the image is built, and containers share the host kernel, making them lighter than full virtual machines.",
+  "one_tip": "Start with a concise definition and then explain the key benefits and components.",
+  "feedback_summary": "Your answer missed the core concepts; focus on what Docker actually does and why it matters.",
+  "answer_quality": "off_topic",
+  "follow_up_question": null,
+  "transition": "Thanks for sharing your thoughts."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.29,
+   "ok": true,
+   "prompt_tokens": 1685,
+   "completion_tokens": 415,
+   "error": null
+  }
+ ]
+}

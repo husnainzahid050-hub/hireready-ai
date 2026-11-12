@@ -1,0 +1,67 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "SQL",
+    "verdict": "weak_evidence",
+    "evidence_quote": "SQL for Beginners (online course, in progress)",
+    "reason": "Only a learning course is mentioned, no concrete usage."
+   },
+   {
+    "skill": "Excel",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Tracked campaign results in Excel spreadsheets with pivot tables and charts.",
+    "reason": "Candidate actively used Excel for data tracking and analysis."
+   },
+   {
+    "skill": "Python with pandas",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of Python or pandas in the excerpt."
+   },
+   {
+    "skill": "Power BI or Tableau",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Neither Power BI nor Tableau is referenced."
+   },
+   {
+    "skill": "Statistics",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No evidence of statistical work or concepts."
+   },
+   {
+    "skill": "Communication with non-technical stakeholders",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Presented monthly campaign reports to the marketing director and the sales team.",
+    "reason": "Candidate communicated results to non‑technical leadership."
+   },
+   {
+    "skill": "A/B testing",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "A/B testing is not mentioned."
+   },
+   {
+    "skill": "dbt",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No reference to dbt."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 1.914,
+   "ok": true,
+   "prompt_tokens": 727,
+   "completion_tokens": 665,
+   "error": null
+  }
+ ]
+}
