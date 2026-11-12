@@ -33,7 +33,7 @@ Authorization = Annotated[str | None, Header()]
 
 def require_cron_secret(authorization: str | None) -> None:
     secret = get_settings().cron_secret
-    if secret is None:
+    if secret is None or not secret.get_secret_value():
         raise AppError("cron_not_configured", "Cron jobs are not configured.", status_code=503)
     expected = f"Bearer {secret.get_secret_value()}".encode()
     if not authorization or not hmac.compare_digest(authorization.encode(), expected):

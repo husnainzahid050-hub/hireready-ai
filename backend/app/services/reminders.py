@@ -325,6 +325,10 @@ async def subscribe(
             "token_nonce": nonce,
             "token_hash": hash_token(token),
             "status": "pending",
+            "day_index": 0,
+            "last_click_day": 0,
+            "next_send_date": None,
+            "confirmed_at": None,
             "expires_at": (_now() + PENDING_TTL).isoformat(),
         },
     )
