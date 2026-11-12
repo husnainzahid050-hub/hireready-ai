@@ -4,6 +4,58 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### Phase 8: Evals and observability (2026-11-12)
+
+#### Added
+- `evals/` with synthetic, fictional data only (`evals/datasets/`): 10 CVs, 5 JDs, 10 hand-labelled
+  CV/JD pairs (92 skill verdicts), 30 retrieval queries with expected rubric chunks, 30 graded answers
+  (10 questions × good/medium/bad) and 8 injection cases (3 CVs, 5 answers).
+- `evals/run_evals.py`: CV/JD extraction, gap detection (precision/recall, 3×3 confusion, over-claims,
+  match-score error), evidence faithfulness before → after validation, retrieval vector-only /
+  keyword-only / hybrid (hit@1/3/5, MRR@5, failure rate, by query type) through the production
+  `hybrid_search` SQL function, scoring calibration (per class, confusion, follow-up rate),
+  consistency (3 samples), injection resistance, and per-step latency / tokens / list-price cost.
+  It reuses the production code (`judge_skills`, `score_answer`, `build_insights`,
+  `plan_interview`, prompts). Every proportion shows k/n and a Wilson 95% interval; the report
+  has run date, commit, models, KB size, known failures and caveats.
+  - `--mode fake`: deterministic heuristic LLM + hashed embeddings, no network (CI plumbing check,
+    writes to the git-ignored `evals/out-fake/`).
+  - `--mode live`: real Groq/Gemini/Supabase via `LLMClient`, every response cached in
+    `evals/.cache/` (committed, ~1.4 MB, synthetic data only) so re-runs cost nothing;
+    `--cache-only` re-renders without any API call; fresh calls are paced under Groq's 8K TPM.
+  - Outputs `evals/results.md`, `evals/results.json` and `frontend/lib/eval-results.json`.
+- `.github/workflows/evals.yml`: manual (`workflow_dispatch`) fake/live run, secrets by name only,
+  results in the job summary and as an artifact. CI also lints `evals/` and runs the fake mode.
+- `app/core/tracing.py`: every provider attempt in `LLMClient.structured()` is recorded (provider,
+  model, step, tokens, latency, ok, estimated list-price cost). Optional Langfuse export over its
+  OpenTelemetry endpoint (OTLP/HTTP JSON, no SDK dependency), on only when `LANGFUSE_PUBLIC_KEY`,
+  `LANGFUSE_SECRET_KEY` and `LANGFUSE_HOST` are all set; fire-and-forget, every error swallowed.
+  Spans carry metadata only (no prompts, outputs, CV/JD or transcript text); all calls of one HTTP
+  request share a trace id derived from the request id. `llm.py` change: 4 lines.
+- Engineering page: the eval placeholder is replaced by the committed results (run date + commit
+  badge, headline strip, summary table, vector vs hybrid table) read from JSON at build time; the
+  measured-numbers table gains eval-suite latency, tokens and cost per session. Still static.
+
+#### Results (live, 2026-11-12, `openai/gpt-oss-20b` / `openai/gpt-oss-120b`, Gemini fallback)
+- JD must-have recall 32/32, CV skill recall 67/67 (synthetic CVs are cleanly formatted).
+- Gap detection: missing-skill recall 37/37, precision 37/40 (the 3 errors: skills only listed or
+  closely related, labelled weak, judged missing); verdict agreement 89/92; 0 over-claims.
+- Evidence quotes verbatim: 52/52 raw, 52/52 after validation (0 downgrades needed this run).
+- Retrieval hit@5: vector-only 30/30, hybrid 30/30, keyword-only 16/30; MRR@5 0.90 vs 0.88. Hybrid
+  did **not** beat vector-only on this set (mostly paraphrased queries); the Engineering page says so.
+- Scoring: 30/30 inside the expected ranges; strict bands 27/30; consistency mean SD 0.18 over 3
+  runs, 5/6 answers kept their band (max spread 1.4).
+- Injection: 7/8 safe. **Open:** an answer that is only a pasted JSON object in our score format
+  (`{"relevance": {"score": "5"}, ...}`) scored 5.0 on every criterion.
+- Latency (LLM only): answer scoring p50 1.4 s / p95 5.8 s (n = 47); judge p50 1.9 s; analysis
+  ≈ 7.0 s p50; ≈ 25K tokens per full session ≈ $0.0047 at Groq list prices; $0 on free tiers.
+
+#### Not done / open
+- No Langfuse keys were available, so the exporter is tested against a mock transport only, and
+  there is no public demo trace yet.
+- The JSON-shaped answer injection above (scoring lives in `agents/interviewer/tools.py`, which
+  Phase 5 is changing; left for that merge).
+
 ### Phase 6: UI/UX, landing, engineering and privacy pages (2026-11-08)
 
 #### Added

@@ -570,3 +570,72 @@ one number means little: run it several times, look at the metrics (LCP, CLS, TB
 score, and confirm on the deployed site. A blurred glow (`filter: blur`) behind the hero card was a
 measurable paint cost on a throttled phone, so it became a plain radial gradient that looks the
 same.
+
+---
+
+## Phase 8: Evals and observability (2026-11-12)
+
+### 1. An eval is a test with a number instead of pass/fail
+Unit tests check that code does what we wrote. Evals check that the *model-driven* parts do what we
+*want*, on inputs we labelled by hand before running anything. The suite lives in
+[evals/run_evals.py](../evals/run_evals.py) with fictional data in
+[evals/datasets/](../evals/datasets/). It calls the real production functions (`judge_skills`,
+`score_answer`, `build_insights`, `plan_interview`) so it measures the app, not a copy of it.
+
+### 2. Precision, recall and the confusion matrix
+For gap detection the "positive" class is *missing skill*. **Recall** = of the skills that really
+are missing, how many we flagged (37/37). **Precision** = of the skills we flagged as missing, how
+many really are (37/40). A 3×3 **confusion matrix** (label × prediction) shows *which* mistakes
+happen: here all three errors were "weak" skills (only listed, or a close cousin like Flask for
+FastAPI) judged "missing". The cell that would hurt users most is "said strong, actually missing"
+(over-claiming): it was 0.
+
+### 3. Hit rate@k and MRR for retrieval
+**Hit rate@5**: did at least one correct chunk appear in the top 5? **MRR** (mean reciprocal rank):
+1 if the first correct chunk is ranked 1st, 1/2 if 2nd, 1/3 if 3rd... averaged over queries. We
+ran the same `hybrid_search` SQL function three ways by changing its weights: vector-only
+(`full_text_weight = 0`), keyword-only (`semantic_weight = 0`) and hybrid. Result: hybrid did not
+beat vector-only on these 30 queries, because most are paraphrases where embeddings already win.
+That is a real finding, not a failure of the eval: a baseline is what makes the claim checkable.
+
+### 4. Small n needs intervals
+With 30 items, "90%" could easily be anywhere from about 74% to 97%. The **Wilson score interval**
+([evals/metrics.py](../evals/metrics.py) `wilson`) gives that range and, unlike the textbook
+± 1.96 × SE, stays sensible at 0% and 100%. Every proportion in the report shows k/n and the
+interval. Items that share a CV are correlated, so even these intervals are a bit optimistic.
+
+### 5. Calibration and consistency for an LLM judge
+Calibration: does a "good" answer get a high score and a "bad" one a low score? We check each
+graded answer's average against an expected range *per class*, because a judge that gives
+everything a 3 can look fine overall. Consistency: score the same answer three times and measure the
+standard deviation (0.18 on a 1-5 scale at temperature 0.1). Low temperature reduces variation; it
+does not remove it.
+
+### 6. Guarantees vs measurements
+"100% of shown evidence quotes are verbatim in the CV" is a **guarantee**: code checks every quote
+and drops the ones it cannot find. "Gap recall 100%" is a **measurement** on 92 labelled items and
+can change with the model. The report labels which is which.
+
+### 7. Caching makes evals cheap enough to re-run
+Each LLM request is hashed (prompt, schema, temperature, model names) and its validated answer
+stored in `evals/.cache/`. Re-running the suite with nothing changed costs zero API calls;
+changing one prompt only re-pays for the requests that prompt touches. `--cache-only` turns a
+missing cache entry into an error, which is how CI can re-render results without secrets. Fresh
+calls are paced under Groq's free-tier 8K tokens/minute ([evals/harness.py](../evals/harness.py)
+`TokenPacer`), so a cold run takes about 40 minutes instead of failing with 429s.
+
+### 8. Fakes for plumbing, live for quality
+`--mode fake` swaps in a heuristic "LLM" and hashed bag-of-words embeddings. Its numbers mean
+nothing, but it proves in CI, in a few seconds and without keys, that the runner, metrics and
+report still work after a refactor.
+
+### 9. Tracing without leaking data
+[backend/app/core/tracing.py](../backend/app/core/tracing.py) wraps every provider attempt in a
+context manager that records model, step, token usage and latency. A **ContextVar** carries the
+token counts from deep inside the Groq/Gemini adapter back to the wrapper, which is safe even when
+several calls run at once with `asyncio.gather` (each task has its own copy). If all three Langfuse
+variables are set, each record becomes an OpenTelemetry span sent to Langfuse in the background.
+We send **metadata only**: no prompt, no output, because both contain CV and transcript text. The
+trade-off is that a trace shows *that* a call was slow or failed, not *what* it said. All calls in
+one HTTP request share a trace id derived from the request id, so an analysis shows up as one trace
+with its 3-4 LLM spans. Any tracing error is swallowed: observability must never break a request.

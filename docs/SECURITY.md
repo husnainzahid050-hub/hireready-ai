@@ -120,7 +120,7 @@ injections. Even if it had obeyed, the first line is rejected by the quote check
 | Guest data auto-deleted after 7 days | Partial | `expires_at` enforced on read; cleanup cron pending |
 | "Delete my data" button | Pending (Phase 5) | |
 | Shared reports exclude raw CV text and email | Pending (Phase 5) | |
-| No CV text in logs (IDs only) | Done | Enforced by redacting formatter as well |
+| No CV text in logs (IDs only) | Done | Enforced by redacting formatter as well; optional Langfuse traces carry metadata only (`app/core/tracing.py`) |
 | `/privacy` page | Pending (Phase 6) | |
 | HMAC-signed outbound webhooks | Pending (Phase 7) | |
 | Cron endpoints require `CRON_SECRET` | Pending (Phase 7) | |
