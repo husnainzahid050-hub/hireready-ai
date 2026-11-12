@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     # Set automatically by Vercel ("production" | "preview" | "development").
     vercel_env: str | None = None
 
+    # Optional Langfuse tracing (Phase 8): on only when all three are set. See core/tracing.py.
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: SecretStr | None = None
+    langfuse_host: str | None = None
+
     @field_validator("embedding_dim")
     @classmethod
     def _positive_dim(cls, v: int) -> int:

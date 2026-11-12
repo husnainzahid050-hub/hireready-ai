@@ -27,6 +27,7 @@ from pydantic import BaseModel, ValidationError
 from app.core.config import Settings, get_settings
 from app.core.http import get_http_client, request_with_retry
 from app.core.logging import get_logger
+from app.core.tracing import note_usage, trace_llm_call
 
 log = get_logger(__name__)
 
@@ -176,6 +177,7 @@ class LLMClient:
             raise LLMError(f"Groq status {resp.status_code}")
         data = resp.json()
         usage = data.get("usage", {})
+        note_usage(usage.get("prompt_tokens"), usage.get("completion_tokens"))
         log.info(
             "llm_usage",
             extra={
@@ -229,6 +231,7 @@ class LLMClient:
             raise LLMError(f"Gemini status {resp.status_code}")
         data = resp.json()
         usage = data.get("usageMetadata", {})
+        note_usage(usage.get("promptTokenCount"), usage.get("candidatesTokenCount"))
         log.info(
             "llm_usage",
             extra={
@@ -268,7 +271,10 @@ class LLMClient:
         if self._s.groq_api_key and model:
             try:
                 async with asyncio.timeout(self._timeout_s):
-                    return await self._groq(model, system, user, schema, temperature, max_tokens)
+                    with trace_llm_call("groq", model, schema.__name__):
+                        return await self._groq(
+                            model, system, user, schema, temperature, max_tokens
+                        )
             except _PROVIDER_ERRORS as exc:
                 errors.append(f"groq: {describe_error(exc)}")
                 log.warning("llm_fallback", extra={"extra_fields": {"reason": errors[-1]}})
@@ -278,7 +284,8 @@ class LLMClient:
                 self.fallbacks += 1
             try:
                 async with asyncio.timeout(self._timeout_s):
-                    return await self._gemini(system, user, schema, temperature, max_tokens)
+                    with trace_llm_call("gemini", self._s.gemini_text_model, schema.__name__):
+                        return await self._gemini(system, user, schema, temperature, max_tokens)
             except _PROVIDER_ERRORS as exc:
                 errors.append(f"gemini: {describe_error(exc)}")
 
