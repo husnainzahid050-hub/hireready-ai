@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly addresses the difference between WHERE and HAVING.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "The explanation correctly states that WHERE filters rows before grouping and HAVING filters groups after aggregation.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "The answer lacks detail on execution order, aggregate restrictions, and examples.",
+   "evidence_quote": "I mostly use WHERE in my queries."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "The answer is logically ordered and concise.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "The response is clear and concise.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "what_interviewer_wanted": "They wanted a clear explanation of when each clause is used, the order of execution, and that HAVING can reference aggregates while WHERE cannot.",
+  "improved_answer": "WHERE filters rows before any GROUP BY or aggregation, so it can only use columns that exist in the source table. HAVING runs after GROUP BY and can filter on aggregate functions like COUNT, SUM, or AVG. For example, to get departments with more than 10 employees, you’d write: SELECT dept_id, COUNT(*) FROM employees GROUP BY dept_id HAVING COUNT(*) > 10. If you need to filter on a non‑aggregate column, you’d use WHERE instead.",
+  "one_tip": "Add a brief example to illustrate the execution order and aggregate usage.",
+  "feedback_summary": "Good start—just add a bit more detail and an example to show you understand the execution flow.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you explain why HAVING can reference aggregates but WHERE cannot, perhaps with a short example?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 2.916,
+   "ok": true,
+   "prompt_tokens": 1693,
+   "completion_tokens": 549,
+   "error": null
+  }
+ ]
+}

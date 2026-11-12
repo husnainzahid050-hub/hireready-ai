@@ -1,0 +1,64 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Bilal Ahmed",
+  "education": [
+   {
+    "degree": "BS Computer Science",
+    "institution": "Fictional Institute of Computing",
+    "year": "2026"
+   }
+  ],
+  "skills": [
+   "HTML",
+   "CSS",
+   "JavaScript",
+   "PHP",
+   "MySQL",
+   "Python",
+   "WordPress"
+  ],
+  "projects": [
+   {
+    "title": "Restaurant Website",
+    "stack": [
+     "WordPress"
+    ],
+    "outcome": "Built a WordPress website with an online menu and a booking form for a local restaurant."
+   },
+   {
+    "title": "Student Attendance Portal",
+    "stack": [
+     "PHP",
+     "MySQL"
+    ],
+    "outcome": "Developed a PHP and MySQL web app to record attendance for 200 students and wrote SQL queries for monthly attendance reports."
+   }
+  ],
+  "experience": [
+   {
+    "role": "Web Development Intern",
+    "org": "Fictional Web Studio",
+    "duration": "Jul 2025 - Sep 2025",
+    "bullets": [
+     "Updated landing pages with HTML and CSS for three client websites."
+    ]
+   }
+  ],
+  "certifications": [
+   "Introduction to Python (online course)"
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 0.822,
+   "ok": true,
+   "prompt_tokens": 756,
+   "completion_tokens": 255,
+   "error": null
+  }
+ ]
+}

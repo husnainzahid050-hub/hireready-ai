@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "Answer does not address overfitting or prevention methods.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "Incorrect technical explanation; overfitting is not about overheating.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No depth, no examples or reasoning.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No logical structure, no STAR or clear flow.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "communication": {
+   "score": "1",
+   "justification": "Answer is vague, unclear, and contains misinformation.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "what_interviewer_wanted": "Explain what overfitting is, how to detect it, and list practical prevention techniques with reasoning.",
+  "improved_answer": "Overfitting happens when a model learns noise in the training data, so it performs well on training but poorly on unseen data. I would detect it by looking for a large gap between training and validation metrics. To prevent it, I’d try adding more data or data augmentation, use regularization like L1/L2, simplify the model, apply dropout for neural nets, and employ early stopping or cross‑validation to confirm the improvement.",
+  "one_tip": "Focus on the definition, detection, and concrete remedies rather than unrelated hardware advice.",
+  "feedback_summary": "Your answer missed the core concepts; try to explain overfitting clearly and mention specific prevention strategies.",
+  "answer_quality": "off_topic",
+  "follow_up_question": null,
+  "transition": "Thanks for sharing your thoughts."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.402,
+   "ok": true,
+   "prompt_tokens": 1753,
+   "completion_tokens": 488,
+   "error": null
+  }
+ ]
+}

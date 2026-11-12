@@ -1,0 +1,73 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "JavaScript",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Implemented UI components in React and JavaScript from Figma designs.",
+    "reason": "The candidate explicitly used JavaScript in a project."
+   },
+   {
+    "skill": "React",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a responsive study planner with React, TypeScript and Tailwind CSS.",
+    "reason": "React is directly mentioned as a technology used."
+   },
+   {
+    "skill": "HTML and CSS",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a statically generated portfolio with Next.js and semantic HTML and CSS.",
+    "reason": "HTML and CSS are explicitly listed as used."
+   },
+   {
+    "skill": "TypeScript",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a responsive study planner with React, TypeScript and Tailwind CSS.",
+    "reason": "TypeScript is clearly stated as part of the implementation."
+   },
+   {
+    "skill": "Git",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Opened pull requests on GitHub and resolved merge conflicts with Git.",
+    "reason": "The candidate directly mentions using Git."
+   },
+   {
+    "skill": "Web accessibility",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Audited the app with Lighthouse and fixed accessibility issues: labels, colour contrast and keyboard navigation.",
+    "reason": "Explicit work on accessibility issues is described."
+   },
+   {
+    "skill": "Next.js",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a statically generated portfolio with Next.js and semantic HTML and CSS.",
+    "reason": "Next.js is explicitly used in the portfolio project."
+   },
+   {
+    "skill": "Frontend testing (Jest or Playwright)",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Wrote Jest tests for the scheduling logic and React components.",
+    "reason": "Jest testing is directly mentioned."
+   },
+   {
+    "skill": "Tailwind CSS",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a responsive study planner with React, TypeScript and Tailwind CSS.",
+    "reason": "Tailwind CSS is explicitly listed as a technology used."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 2.67,
+   "ok": true,
+   "prompt_tokens": 833,
+   "completion_tokens": 767,
+   "error": null
+  }
+ ]
+}

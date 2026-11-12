@@ -1,0 +1,45 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The answer does not address the question about a team disagreement.",
+   "evidence_quote": "I don't really have disagreements."
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "1",
+   "justification": "No specifics, reasoning, or examples provided.",
+   "evidence_quote": "I don't really have disagreements."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No STAR structure, just a single sentence.",
+   "evidence_quote": "I don't really have disagreements."
+  },
+  "communication": {
+   "score": "1",
+   "justification": "Answer is brief, unclear, and lacks detail.",
+   "evidence_quote": "I don't really have disagreements."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a specific example of a team disagreement, how it was handled, and the outcome, following the STAR method.",
+  "improved_answer": "I haven’t had a formal disagreement in a team setting yet, but I’ve learned to avoid conflict by listening to others and following the group’s decisions. In future projects, I would seek to understand differing viewpoints and propose data‑driven solutions to reach a consensus.",
+  "one_tip": "Provide a concrete example and describe your actions and the outcome.",
+  "feedback_summary": "Your answer was too brief; try to give a specific story that shows how you handled a disagreement.",
+  "answer_quality": "off_topic",
+  "follow_up_question": null,
+  "transition": "Thanks for sharing."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.982,
+   "ok": true,
+   "prompt_tokens": 1761,
+   "completion_tokens": 306,
+   "error": null
+  }
+ ]
+}

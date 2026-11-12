@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly explains what RAG is and outlines how to build a pipeline.",
+   "evidence_quote": "RAG means you retrieve relevant documents first and give them to the language model as context, so it answers from your data instead of only its training data."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "All technical details are correct and align with the rubric.",
+   "evidence_quote": "I split documents into chunks, embed each chunk, and store the vectors in an index."
+  },
+  "depth": {
+   "score": "5",
+   "justification": "The response covers chunking, embedding, vector store, retrieval, prompt design, citation, evaluation, and trade‑offs.",
+   "evidence_quote": "I evaluated faithfulness on 50 questions. The main trade-offs are chunk size, retrieval quality, and the risk the model ignores the context, so I would also add hybrid keyword search and an evaluation set."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "The answer follows a clear, logical sequence from definition to implementation steps.",
+   "evidence_quote": "To build one, I split documents into chunks, embed each chunk, and store the vectors in an index. At query time I embed the question, retrieve the top chunks, and put them in the prompt with an instruction to answer only from the context and cite sources."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "The response is concise, well‑organized, and easy to understand.",
+   "evidence_quote": "RAG means you retrieve relevant documents first and give them to the language model as context, so it answers from your data instead of only its training data."
+  },
+  "what_interviewer_wanted": "They wanted a clear explanation of RAG and a concrete, step‑by‑step plan for building a pipeline, including chunking, embedding, retrieval, prompt design, and evaluation.",
+  "improved_answer": "RAG is a pipeline where you first chunk documents, embed each chunk, and store the vectors in a vector index. At query time you embed the user’s question, retrieve the top‑scoring chunks, and feed them into the LLM prompt with a rule to answer only from that context and to cite the source IDs. In my Campus Policy Assistant I used LangChain with FAISS over 300 PDFs, reduced hallucinations by 40%, and validated faithfulness on a 50‑question test set. I also added a hybrid keyword search to improve recall and plan to track faithfulness over time.",
+  "one_tip": "Mention the importance of chunk size and retrieval quality early to show you understand the trade‑offs.",
+  "feedback_summary": "Great job covering all the key components of a RAG pipeline and backing it up with a real project example.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.426,
+   "ok": true,
+   "prompt_tokens": 1863,
+   "completion_tokens": 759,
+   "error": null
+  }
+ ]
+}

@@ -24,6 +24,9 @@ import {
   Upload,
 } from "@/components/ui/icons";
 import { Container, SectionHeading } from "@/components/ui/section";
+import { evalResults, pct } from "@/lib/evals";
+
+const EVIDENCE = evalResults.headline.evidence;
 
 // The landing page must stay fully prerendered (SPEC 8.1): the build fails if anything here
 // starts reading request data.
@@ -75,12 +78,12 @@ const FEATURES: { icon: ReactNode; title: string; body: string; status: Status }
   {
     icon: <Share />,
     title: "Scored report, email and share link",
-    body: "Per-question scores with reasons, an improved sample answer, a read-only share link and a printable PDF.",
-    status: "soon",
+    body: "Per-question scores with quotes from what you said, an improved sample answer, a simulated hiring-manager reaction, a read-only share link, email and a printable PDF.",
+    status: "live",
   },
 ];
 
-const STEPS = [
+const STEPS: { icon: ReactNode; title: string; body: string; soon?: boolean }[] = [
   {
     icon: <Upload />,
     title: "Upload",
@@ -100,7 +103,6 @@ const STEPS = [
     icon: <Chart />,
     title: "Report",
     body: "Scores, what the interviewer was looking for, and a better sample answer.",
-    soon: true,
   },
 ];
 
@@ -109,6 +111,68 @@ const PROOF = [
   { value: "~0.5 s", label: "until the first analysis result appears" },
   { value: "17–22 s", label: "for a complete analysis of the sample CV" },
   { value: "3–4", label: "LLM calls per analysis, so it stays fast on free tiers" },
+];
+
+// Trust strip under the hero CTAs. Only claims that are true on main ("auto-deletes": the daily
+// cleanup cron, backend/app/routers/cron.py, deletes expired sessions).
+const TRUST = [
+  "Free",
+  "No sign-up",
+  "Audio never stored",
+  "Auto-deletes in 7 days",
+  "Practice only",
+];
+
+// "Shows its working": the three things competitors don't show. Keep each one checkable.
+const WORKING: { icon: ReactNode; title: string; body: ReactNode; detail: ReactNode }[] = [
+  {
+    icon: <Quote />,
+    title: "Quotes, verified in code",
+    body: "Every skill verdict quotes your CV. Code then checks the quote really is in your CV; if it isn't, the skill says “no evidence found”.",
+    detail: (
+      <figure className="border-success-solid/20 bg-success-soft rounded-xl border p-3 text-sm">
+        <blockquote className="text-fg">
+          “Built a RAG assistant in Python and FastAPI that answers support tickets”
+        </blockquote>
+        <figcaption className="text-success-fg mt-2 flex items-center gap-1.5 font-medium">
+          <Check className="size-4" /> Found word for word in the CV
+        </figcaption>
+      </figure>
+    ),
+  },
+  {
+    icon: <Chart />,
+    title: "Scores with their maths",
+    body: "The model gives verdicts and feedback; the number is computed in code from a published formula, and the page shows each part of the sum.",
+    detail: (
+      <details className="border-border bg-surface-muted rounded-xl border p-3 text-sm">
+        <summary className={cn("text-fg cursor-pointer rounded font-medium", focusRing)}>
+          How is the match score calculated?
+        </summary>
+        <p className="text-fg-muted mt-2 font-mono text-xs leading-relaxed">
+          100 × (0.7 × must-have + 0.2 × nice-to-have + 0.1 × seniority fit), where strong evidence
+          = 1, weak = 0.5, none = 0
+        </p>
+      </details>
+    ),
+  },
+  {
+    icon: <Scan />,
+    title: "Evals published, misses included",
+    // Read from lib/eval-results.json at build time, so the number can't drift from the evals.
+    body: `Gap detection, scoring, retrieval, injection resistance, latency and cost are tested on a synthetic set. In the last run, ${pct(EVIDENCE?.final_verbatim)} of ${EVIDENCE?.final_verbatim.n ?? "the"} evidence quotes were verbatim in the CV.`,
+    detail: (
+      <Link
+        href="/engineering#evals"
+        className={cn(
+          "text-link inline-flex items-center gap-1.5 rounded text-sm font-medium hover:underline",
+          focusRing,
+        )}
+      >
+        See the eval results <ArrowRight className="size-4" />
+      </Link>
+    ),
+  },
 ];
 
 const STACK = [
@@ -156,6 +220,10 @@ const FAQ: { q: string; a: ReactNode }[] = [
     a: "No. You can do the whole interview in text mode. Voice mode uses your microphone only while you are recording an answer, and the recording is discarded after transcription.",
   },
   {
+    q: "Can I use it during a real interview?",
+    a: "No, and we won't build that. HireReady is for practice before the interview: it never listens to a live interview and never suggests answers in real time. The point is that you can answer on your own.",
+  },
+  {
     q: "Which jobs does it work for?",
     a: "Any job description you paste (200 to 8,000 characters). Its interview rubric is strongest for tech roles: software, data and AI engineering at junior and mid level.",
   },
@@ -181,7 +249,7 @@ export default function Home() {
         <Container className="grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:gap-16 lg:py-24">
           <div className="space-y-7">
             <Badge tone="accent" className="px-3 py-1">
-              Free AI interview prep · no sign-up
+              A mock interview that shows its working
             </Badge>
             <h1
               id="hero-title"
@@ -190,8 +258,9 @@ export default function Home() {
               {TAGLINE}
             </h1>
             <p className="text-fg-muted max-w-xl text-lg text-pretty">
-              HireReady compares your CV with one specific job, shows which required skills you can
-              prove (with quotes from your CV), and then interviews you on exactly those.
+              HireReady checks your CV against one specific job and interviews you on it. Every
+              verdict comes with a quote from your CV, checked word for word, and every score comes
+              with the formula behind it.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
               <ButtonLink href="/start" size="lg">
@@ -199,12 +268,11 @@ export default function Home() {
               </ButtonLink>
               <DemoButton />
             </div>
-            <ul className="text-fg-muted flex flex-wrap gap-x-5 gap-y-2 text-sm">
-              {[
-                "Results in about 20 seconds",
-                "Audio is never stored",
-                "Data expires in 7 days",
-              ].map((t) => (
+            <ul
+              aria-label="At a glance"
+              className="text-fg-muted flex flex-wrap gap-x-5 gap-y-2 text-sm"
+            >
+              {TRUST.map((t) => (
                 <li key={t} className="flex items-center gap-1.5">
                   <Check className="text-success-fg size-4" />
                   {t}
@@ -229,6 +297,37 @@ export default function Home() {
               </div>
             ))}
           </dl>
+        </Container>
+      </section>
+
+      {/* ------------------------------------------------------------ shows its working */}
+      <section
+        aria-labelledby="shows-its-working"
+        className="border-border border-b py-16 sm:py-24"
+      >
+        <Container className="space-y-12">
+          <SectionHeading
+            id="shows-its-working"
+            eyebrow="Why trust it"
+            title="Feedback that shows its working"
+          >
+            Most AI interview tools give you a score with no &ldquo;why&rdquo;. HireReady shows the
+            evidence and the maths, so you can check every piece of feedback yourself.
+          </SectionHeading>
+          <ul className="grid gap-4 lg:grid-cols-3">
+            {WORKING.map((w) => (
+              <li key={w.title}>
+                <Card className="flex h-full flex-col gap-3">
+                  <span className="bg-accent-soft text-accent-soft-fg flex size-10 items-center justify-center rounded-xl">
+                    {w.icon}
+                  </span>
+                  <h3 className="text-base font-semibold">{w.title}</h3>
+                  <p className="text-fg-muted text-sm">{w.body}</p>
+                  <div className="mt-auto pt-2">{w.detail}</div>
+                </Card>
+              </li>
+            ))}
+          </ul>
         </Container>
       </section>
 

@@ -1,0 +1,79 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "Python",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Helped run Python lab sessions for 60 first-year students.",
+    "reason": "Candidate actively used Python in teaching labs."
+   },
+   {
+    "skill": "PyTorch",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "PyTorch is not mentioned anywhere in the excerpt."
+   },
+   {
+    "skill": "Deep learning",
+    "verdict": "weak_evidence",
+    "evidence_quote": "SKILLS\nPython, scikit-learn, pandas, TensorFlow, SQL, matplotlib",
+    "reason": "TensorFlow is listed but no specific deep‑learning project is described."
+   },
+   {
+    "skill": "Deploying models to production",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of model deployment or production environments."
+   },
+   {
+    "skill": "MLflow",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "MLflow is not referenced in the provided text."
+   },
+   {
+    "skill": "Docker",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Docker is not mentioned."
+   },
+   {
+    "skill": "SQL",
+    "verdict": "weak_evidence",
+    "evidence_quote": "SKILLS\nPython, scikit-learn, pandas, TensorFlow, SQL, matplotlib",
+    "reason": "SQL appears only in the skill list, with no demonstrated usage."
+   },
+   {
+    "skill": "Kubernetes",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Kubernetes is not referenced."
+   },
+   {
+    "skill": "Distributed training",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No evidence of distributed training is present."
+   },
+   {
+    "skill": "NLP",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Sentiment Analysis of Product Reviews - Built a TF-IDF and logistic regression classifier in Python for 10,000 Urdu and English reviews.",
+    "reason": "Candidate built an NLP classifier for sentiment analysis."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 2.669,
+   "ok": true,
+   "prompt_tokens": 767,
+   "completion_tokens": 745,
+   "error": null
+  }
+ ]
+}

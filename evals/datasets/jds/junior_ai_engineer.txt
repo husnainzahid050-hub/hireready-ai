@@ -1,0 +1,25 @@
+Junior AI Engineer - Northwind Analytics (fictional company), Lahore (hybrid)
+
+About the role
+Northwind Analytics builds AI assistants for logistics companies. As a Junior AI Engineer you will
+help build retrieval-augmented chat features, evaluate model quality and ship small backend
+services. This is an entry-level role for recent graduates (0-1 years of experience).
+
+What you will do
+- Build and improve RAG pipelines over customer documents.
+- Write Python services that expose models through REST APIs.
+- Evaluate model outputs and track quality metrics.
+- Collaborate with the team through code review on GitHub.
+
+Requirements (must have)
+- Python
+- Machine learning fundamentals (training, validation, overfitting)
+- Experience with LLMs and RAG pipelines
+- Building REST APIs with FastAPI
+- SQL
+- Git
+
+Nice to have
+- Docker
+- AWS or GCP
+- Vector databases (pgvector, Pinecone or similar)

@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { buttonClasses, type ButtonSize, type ButtonVariant } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { ApiError, createSession } from "@/lib/api";
+import { getTurnstileToken, TURNSTILE_FAILED_MESSAGE, turnstileEnabled } from "@/lib/turnstile";
 
 export function DemoButton({
   className = "",
@@ -19,10 +20,23 @@ export function DemoButton({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Turnstile renders here invisibly ("interaction-only"): the 30-second recruiter path stays
+  // one click unless Cloudflare really needs a human check.
+  const challenge = useRef<HTMLDivElement>(null);
 
   async function start() {
     setBusy(true);
     setError(null);
+    let token: string | null = null;
+    if (turnstileEnabled && challenge.current) {
+      try {
+        token = await getTurnstileToken(challenge.current);
+      } catch {
+        setError(TURNSTILE_FAILED_MESSAGE);
+        setBusy(false);
+        return;
+      }
+    }
     try {
       const { session_id } = await createSession(
         {
@@ -31,9 +45,11 @@ export function DemoButton({
           interview_type: "mixed",
           email: null,
           email_opt_in: false,
+          reminders_opt_in: false,
           consent: true,
         },
         true,
+        token,
       );
       router.push(`/session/${session_id}/analysis`);
     } catch (e) {
@@ -59,6 +75,7 @@ export function DemoButton({
         )}
         {busy ? "Starting demo…" : "Try with a sample CV"}
       </button>
+      {turnstileEnabled && <div ref={challenge} />}
       {error && (
         <p role="alert" className={cn("text-danger-fg max-w-xs text-sm")}>
           {error}

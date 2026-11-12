@@ -1,0 +1,20 @@
+Maryam Iqbal
+Rawalpindi, Pakistan | maryam.iqbal@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BS Data Science, Fictional University of Rawalpindi, 2026
+
+SKILLS
+Python, scikit-learn, pandas, TensorFlow, SQL, matplotlib
+
+PROJECTS
+House Price Prediction (Kaggle)
+- Trained gradient boosting models with scikit-learn and engineered features with pandas; top 20% on the leaderboard.
+
+Sentiment Analysis of Product Reviews
+- Built a TF-IDF and logistic regression classifier in Python for 10,000 Urdu and English reviews.
+
+EXPERIENCE
+Teaching Assistant, Fictional University of Rawalpindi (2025)
+- Helped run Python lab sessions for 60 first-year students.

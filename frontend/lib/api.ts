@@ -1,4 +1,13 @@
-import type { Analysis, AnalysisEvent, InterviewTurn, SessionOptions } from "./types";
+import type {
+  Analysis,
+  AnalysisEvent,
+  InterviewTurn,
+  ReportEvent,
+  ReportResponse,
+  SessionOptions,
+  SharedReportResponse,
+  ShareInfo,
+} from "./types";
 import { saveSessionMode } from "./prefs";
 
 const BASE = "/api/v1";
@@ -57,10 +66,15 @@ export function authHeaders(sessionId: string): HeadersInit {
 export async function createSession(
   options: SessionOptions,
   demo = false,
+  turnstileToken: string | null = null,
 ): Promise<{ session_id: string }> {
   const res = await fetch(`${BASE}/sessions${demo ? "?demo=true" : ""}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      // Single-use bot-check token (lib/turnstile.ts); omitted while Turnstile is off.
+      ...(turnstileToken ? { "X-Turnstile-Token": turnstileToken } : {}),
+    },
     body: JSON.stringify(options),
   });
   if (!res.ok) throw await parseError(res);
@@ -91,21 +105,9 @@ export async function getAnalysis(sessionId: string): Promise<Analysis | null> {
   return ((await res.json()) as { analysis: Analysis | null }).analysis;
 }
 
-/**
- * Stream the analysis as Server-Sent Events. EventSource only supports GET without headers,
- * so we POST with fetch and parse the `event:` / `data:` lines from the response stream.
- */
-export async function* streamAnalysis(
-  sessionId: string,
-  signal?: AbortSignal,
-): AsyncGenerator<AnalysisEvent> {
-  const res = await fetch(`${BASE}/sessions/${sessionId}/analyze`, {
-    method: "POST",
-    headers: authHeaders(sessionId),
-    signal,
-  });
-  if (!res.ok || !res.body) throw await parseError(res);
-
+/** Parse `event:` / `data:` blocks from an SSE response body. */
+async function* readEvents<T>(res: Response): AsyncGenerator<T> {
+  if (!res.body) return;
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = "";
   for (;;) {
@@ -122,9 +124,26 @@ export async function* streamAnalysis(
         if (line.startsWith("event:")) event = line.slice(6).trim();
         else if (line.startsWith("data:")) data += line.slice(5).trim();
       }
-      if (data) yield { event, data: JSON.parse(data) } as AnalysisEvent;
+      if (data) yield { event, data: JSON.parse(data) } as T;
     }
   }
+}
+
+/**
+ * Stream the analysis as Server-Sent Events. EventSource only supports GET without headers,
+ * so we POST with fetch and parse the `event:` / `data:` lines from the response stream.
+ */
+export async function* streamAnalysis(
+  sessionId: string,
+  signal?: AbortSignal,
+): AsyncGenerator<AnalysisEvent> {
+  const res = await fetch(`${BASE}/sessions/${sessionId}/analyze`, {
+    method: "POST",
+    headers: authHeaders(sessionId),
+    signal,
+  });
+  if (!res.ok || !res.body) throw await parseError(res);
+  yield* readEvents<AnalysisEvent>(res);
 }
 
 // ------------------------------------------------------------------ interview (Phase 3)
@@ -166,4 +185,129 @@ export function submitAnswer(
   text: string,
 ): Promise<InterviewTurn> {
   return interviewRequest(sessionId, "/answer", { question_id: questionId, text });
+}
+
+// ------------------------------------------------------------------ report (Phase 5)
+
+async function sessionJson<T>(
+  sessionId: string,
+  path: string,
+  init: { method?: string; body?: unknown } = {},
+): Promise<T> {
+  const res = await fetch(`${BASE}/sessions/${sessionId}${path}`, {
+    method: init.method ?? "GET",
+    headers: {
+      ...authHeaders(sessionId),
+      ...(init.body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
+    body: init.body === undefined ? undefined : JSON.stringify(init.body),
+    cache: "no-store",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as T;
+}
+
+/** Saved report + share / email state. 409 `interview_not_completed` before the interview ends. */
+export function getReport(sessionId: string): Promise<ReportResponse> {
+  return sessionJson<ReportResponse>(sessionId, "/report");
+}
+
+/** Build the report (SSE: status → overview → done). A cached report comes back as one `done`. */
+export async function* streamReport(
+  sessionId: string,
+  signal?: AbortSignal,
+): AsyncGenerator<ReportEvent> {
+  const res = await fetch(`${BASE}/sessions/${sessionId}/report`, {
+    method: "POST",
+    headers: authHeaders(sessionId),
+    signal,
+  });
+  if (!res.ok || !res.body) throw await parseError(res);
+  yield* readEvents<ReportEvent>(res);
+}
+
+export function setShareLink(sessionId: string, action: "create" | "revoke"): Promise<ShareInfo> {
+  return sessionJson<ShareInfo>(sessionId, "/report/share", { method: "POST", body: { action } });
+}
+
+/** Email the report summary. 503 `email_not_configured` when the server has no provider. */
+export function emailReport(
+  sessionId: string,
+  email: string | null,
+): Promise<{ sent: boolean; emailed_at: string; sent_to: string }> {
+  return sessionJson(sessionId, "/email", { method: "POST", body: email ? { email } : {} });
+}
+
+/** Delete the session and everything in it; forgets the guest token in this browser. */
+export async function deleteSession(sessionId: string): Promise<void> {
+  const res = await fetch(`${BASE}/sessions/${sessionId}`, {
+    method: "DELETE",
+    headers: authHeaders(sessionId),
+  });
+  if (!res.ok && res.status !== 404) throw await parseError(res);
+  try {
+    localStorage.removeItem(TOKEN_KEY(sessionId));
+  } catch {
+    /* storage blocked: nothing to forget */
+  }
+}
+
+/** Public read-only report behind a share token (no guest token needed). */
+export async function getSharedReport(token: string): Promise<SharedReportResponse> {
+  const res = await fetch(`${BASE}/reports/shared/${encodeURIComponent(token)}`, {
+    cache: "no-store",
+    referrerPolicy: "no-referrer",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as SharedReportResponse;
+}
+
+// ------------------------------------------------------------------ reminders (Phase 7)
+
+export type ReminderStatus = {
+  status: "pending" | "active" | "paused" | "finished";
+  day: number;
+  days_total: number;
+  last_done_day: number;
+  role_title: string;
+  plan: { day: number; focus: string }[];
+};
+
+/** Token-only calls from reminder emails: no guest token, never sent as a Referer. */
+async function reminderCall<T>(path: string, method = "GET", body?: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers: body === undefined ? {} : { "Content-Type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+    cache: "no-store",
+    referrerPolicy: "no-referrer",
+  });
+  if (!res.ok) throw await parseError(res);
+  return (await res.json()) as T;
+}
+
+const enc = encodeURIComponent;
+
+export function getReminder(token: string): Promise<ReminderStatus> {
+  return reminderCall(`/reminders/${enc(token)}`);
+}
+
+export function reminderAction(
+  token: string,
+  action: "confirm" | "done" | "resume",
+  day?: number,
+): Promise<ReminderStatus> {
+  return reminderCall(
+    `/reminders/${enc(token)}/${action}`,
+    "POST",
+    action === "done" ? { day } : undefined,
+  );
+}
+
+export function unsubscribeStatus(token: string): Promise<{ subscribed: boolean }> {
+  return reminderCall(`/unsubscribe/${enc(token)}`);
+}
+
+export function unsubscribe(token: string): Promise<{ unsubscribed: boolean }> {
+  return reminderCall(`/unsubscribe/${enc(token)}`, "POST");
 }

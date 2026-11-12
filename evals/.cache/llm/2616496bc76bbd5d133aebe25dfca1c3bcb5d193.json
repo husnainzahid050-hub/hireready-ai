@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "4",
+   "justification": "The answer directly addresses the difference between WHERE and HAVING.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "technical_accuracy": {
+   "score": "4",
+   "justification": "The explanation correctly states that WHERE filters rows before grouping and HAVING is used with GROUP BY, which is accurate.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "The answer lacks detail, examples, or discussion of aggregates and execution order.",
+   "evidence_quote": "I mostly use WHERE in my queries."
+  },
+  "structure": {
+   "score": "2",
+   "justification": "The response is a single sentence without a clear logical flow or breakdown.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "communication": {
+   "score": "3",
+   "justification": "The answer is clear and concise but very brief.",
+   "evidence_quote": "WHERE is used to filter rows and HAVING is used with GROUP BY."
+  },
+  "what_interviewer_wanted": "Explain that WHERE filters rows before grouping, while HAVING filters groups after aggregation, and that WHERE cannot reference aggregates.",
+  "improved_answer": "WHERE filters rows before any GROUP BY operation, so it can only use column values. HAVING is applied after grouping and can reference aggregate functions like COUNT or SUM. For example, `WHERE age > 30` runs first, then `HAVING COUNT(*) > 5` filters the resulting groups.",
+  "one_tip": "Add a brief example to illustrate the execution order.",
+  "feedback_summary": "Good start—just add a bit more detail to show deeper understanding.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you give an example of a query where you would need to use HAVING instead of WHERE?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.319,
+   "ok": true,
+   "prompt_tokens": 1693,
+   "completion_tokens": 551,
+   "error": null
+  }
+ ]
+}

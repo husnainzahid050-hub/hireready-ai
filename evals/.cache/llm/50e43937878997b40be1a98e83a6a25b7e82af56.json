@@ -1,0 +1,45 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "Answer does not address the question about a mistake.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "1",
+   "justification": "No details, no example, no depth.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No STAR structure, just a single sentence.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "communication": {
+   "score": "1",
+   "justification": "Very brief, lacks clarity on what was asked.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a specific example of a mistake, ownership, actions taken, and lessons learned, structured with STAR.",
+  "improved_answer": "I once missed a deadline on a project because I underestimated the time needed for data cleaning. I took responsibility, communicated the delay to my manager, and then created a more realistic timeline with buffer time. Since then, I always build in extra time for data prep and double-check my estimates before committing to a schedule.",
+  "one_tip": "Provide a concrete example and follow the STAR format.",
+  "feedback_summary": "Your answer was too brief; try to give a real story with details.",
+  "answer_quality": "off_topic",
+  "follow_up_question": null,
+  "transition": "Thanks for sharing."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 2.645,
+   "ok": true,
+   "prompt_tokens": 1735,
+   "completion_tokens": 339,
+   "error": null
+  }
+ ]
+}

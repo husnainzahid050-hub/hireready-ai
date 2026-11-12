@@ -30,6 +30,7 @@ from app.core.config import Settings, get_settings
 from app.core.errors import AppError
 from app.core.http import get_http_client, request_with_retry
 from app.core.logging import get_logger
+from app.services.audio_duration import UnsupportedCodecError, estimate_duration_s
 
 log = get_logger(__name__)
 
@@ -131,12 +132,32 @@ def validate_audio(data: bytes, content_type: str | None) -> AudioFormat:
     declared = _ALLOWED_MIME.get(mime)
     sniffed = sniff_container(data)
     if declared is None or sniffed is None or declared != sniffed:
-        raise AppError(
-            "unsupported_audio",
-            "Unsupported audio format. Please record again, or switch to typing.",
-            status_code=415,
-        )
+        raise _unsupported()
+    # Whisper is billed per audio SECOND: refuse files whose headers declare more than the limit
+    # before anything is charged or sent (a 3 MB low-bitrate file can hold an hour of audio).
+    try:
+        seconds = estimate_duration_s(data, sniffed)
+    except UnsupportedCodecError as exc:
+        raise _unsupported() from exc
+    if seconds is not None and seconds > MAX_AUDIO_SECONDS + DURATION_TOLERANCE_S:
+        raise audio_too_long()
     return _FORMATS[sniffed]
+
+
+def _unsupported() -> AppError:
+    return AppError(
+        "unsupported_audio",
+        "Unsupported audio format. Please record again, or switch to typing.",
+        status_code=415,
+    )
+
+
+def audio_too_long() -> AppError:
+    return AppError(
+        "audio_too_long",
+        "That recording is longer than 2 minutes. Please give a shorter answer.",
+        status_code=422,
+    )
 
 
 # --------------------------------------------------------------- response models

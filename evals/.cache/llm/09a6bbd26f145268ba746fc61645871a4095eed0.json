@@ -1,0 +1,154 @@
+{
+ "step": "insights",
+ "result": {
+  "strengths": [
+   {
+    "title": "Proficient Python programming",
+    "why_it_matters": "Python is the core language for building, training, and serving ML models, and strong Python skills let you implement data pipelines and model logic efficiently.",
+    "evidence_quote": "Built demand forecasting models in Python."
+   },
+   {
+    "title": "Hands‑on deep‑learning with PyTorch",
+    "why_it_matters": "PyTorch is the primary framework for developing the CNN models the role requires, and your experience scaling to 200k images shows you can handle large‑scale image training.",
+    "evidence_quote": "Trained PyTorch CNN models for fruit grading on 200,000 images"
+   },
+   {
+    "title": "Production‑grade model deployment using Docker",
+    "why_it_matters": "Deploying models as containerised REST services is a core responsibility; Docker expertise ensures you can ship reliable, reproducible services.",
+    "evidence_quote": "Deployed models to production as Docker containers behind a REST service."
+   },
+   {
+    "title": "Experiment tracking with MLflow",
+    "why_it_matters": "MLflow provides reproducibility and version control for experiments, a must‑have for building trustworthy training pipelines.",
+    "evidence_quote": "Tracked experiments and model versions with MLflow."
+   },
+   {
+    "title": "SQL data‑wrangling for training sets",
+    "why_it_matters": "Creating high‑quality labelled datasets from metadata stores is essential for image‑based models; solid SQL skills let you extract and clean data reliably.",
+    "evidence_quote": "Wrote SQL queries to build labelled training sets from the image metadata database."
+   }
+  ],
+  "likely_questions": [
+   {
+    "topic": "Model training & debugging",
+    "questions": [
+     "Your training loss is not decreasing. How do you systematically debug the issue?",
+     "What techniques do you use to prevent overfitting when training a CNN on 200,000 images?"
+    ]
+   },
+   {
+    "topic": "Deployment and production reliability",
+    "questions": [
+     "A deployment broke production. What steps do you take to diagnose and restore service?",
+     "Explain how you would containerise a PyTorch model and expose it via a REST API."
+    ]
+   },
+   {
+    "topic": "Experiment management",
+    "questions": [
+     "How do you use MLflow to keep experiments reproducible and shareable across a team?",
+     "Describe a situation where you had to roll back to a previous model version in production."
+    ]
+   },
+   {
+    "topic": "Nice‑to‑have skill gap – Kubernetes & distributed training",
+    "questions": [
+     "The team is considering moving model serving to a Kubernetes cluster. What factors would you evaluate before adopting it?",
+     "If you needed to train a model across multiple GPUs or nodes, how would you set up distributed training in PyTorch?"
+    ]
+   },
+   {
+    "topic": "Behavioral",
+    "questions": [
+     "Tell me about a time you had to balance speed of delivery with model quality. How did you decide what to prioritize?",
+     "Give an example of how you handled ambiguous requirements when building a data pipeline for training."
+    ]
+   }
+  ],
+  "prep_plan": [
+   {
+    "focus": "Kubernetes basics and when to use it",
+    "tasks": [
+     "Read the Kubernetes overview on the official docs (use any free intro you have).",
+     "Map your current Docker deployment workflow to a simple k8s manifest (Deployment + Service).",
+     "Identify three pros and three cons of moving your model serving to Kubernetes."
+    ],
+    "resource_urls": []
+   },
+   {
+    "focus": "Distributed training fundamentals",
+    "tasks": [
+     "Study the “Distributed Training” chapter in Dive into Deep Learning (D2L).",
+     "Create a minimal PyTorch script that uses DistributedDataParallel on two GPUs (can be simulated locally).",
+     "Write a short note on how you would monitor training across nodes."
+    ],
+    "resource_urls": [
+     "https://d2l.ai/"
+    ]
+   },
+   {
+    "focus": "Intro to NLP / LLM basics (nice‑to‑have)",
+    "tasks": [
+     "Complete the first two lessons of the Hugging Face LLM Course to grasp transformer basics.",
+     "Sketch how you could adapt your image‑grading pipeline to an NLP classification task.",
+     "Prepare a one‑minute explanation of the difference between fine‑tuning and RAG."
+    ],
+    "resource_urls": [
+     "https://huggingface.co/learn/llm-course/chapter1/1"
+    ]
+   },
+   {
+    "focus": "Strengthen Docker & deployment storytelling",
+    "tasks": [
+     "Review Docker Get Started guide and add a multi‑stage build to your existing Dockerfile.",
+     "Practice explaining the end‑to‑end flow: from PyTorch model to Docker container to REST service.",
+     "Write a concise bullet‑point summary of your production deployment metrics and monitoring."
+    ],
+    "resource_urls": [
+     "https://docs.docker.com/get-started/"
+    ]
+   },
+   {
+    "focus": "Deepen MLflow & experiment reproducibility",
+    "tasks": [
+     "Add a custom MLflow tag for dataset version to one of your past experiments.",
+     "Create a one‑page cheat sheet of MLflow commands you use most often.",
+     "Re‑run a previous experiment from scratch using only the MLflow run ID."
+    ],
+    "resource_urls": []
+   },
+   {
+    "focus": "Mock interview rehearsal",
+    "tasks": [
+     "Do a 30‑minute timed mock interview covering the five question topics above.",
+     "Record yourself and note any hesitations or gaps in detail.",
+     "Refine your STAR stories for the behavioral questions using the MIT STAR guide."
+    ],
+    "resource_urls": [
+     "https://capd.mit.edu/resources/the-star-method-for-behavioral-interviews/"
+    ]
+   },
+   {
+    "focus": "Review & polish",
+    "tasks": [
+     "Review feedback from the mock interview and adjust answers where needed.",
+     "Finalize a one‑page cheat sheet covering Kubernetes pros/cons, distributed training steps, and key MLflow commands.",
+     "Get a good night’s rest and visualize a confident interview performance."
+    ],
+    "resource_urls": []
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "InsightsDraft",
+   "latency_s": 4.074,
+   "ok": true,
+   "prompt_tokens": 1980,
+   "completion_tokens": 1649,
+   "error": null
+  }
+ ]
+}

@@ -8,6 +8,7 @@ from fastapi import APIRouter, File, Form, Header, Query, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.core.budget import reserve_llm_calls
 from app.core.errors import AI_UNAVAILABLE_MESSAGE, AppError
 from app.core.logging import get_logger
 from app.core.quotas import consume_quota
@@ -15,7 +16,7 @@ from app.core.rate_limit import client_ip, enforce_rate_limit
 from app.core.security import content_hash, hash_token, new_guest_token
 from app.core.sse import BudgetExceededError, Event, paced, sse
 from app.core.turnstile import require_human
-from app.db.client import get_db
+from app.db.client import SupabaseRest, get_db
 from app.db.repositories import get_owned_session, save_document
 from app.demo.samples import DEMO_CV, DEMO_JD
 from app.services.analysis import (
@@ -43,7 +44,10 @@ class CreateSessionRequest(BaseModel):
     interview_type: Literal["technical", "behavioral", "mixed"] = "mixed"
     # Simple shape check (no extra dependency); real validation happens when we send email.
     email: str | None = Field(default=None, max_length=320, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+    # Two separate, unticked consents (Phase 7): "Email me my report when it's ready" and
+    # "Send me 7 daily prep emails". Both need an email address and default to False.
     email_opt_in: bool = False
+    reminders_opt_in: bool = False
     consent: bool = Field(description="User accepted the privacy terms")
 
 
@@ -68,18 +72,19 @@ async def create_session(
     await require_human(turnstile_token, client_ip(request))
     db = get_db()
     token = new_guest_token()
-    row = await db.insert_returning(
-        "sessions",
-        {
-            "guest_token_hash": hash_token(token),
-            "mode": body.mode,
-            "difficulty": body.difficulty,
-            "interview_type": body.interview_type,
-            "email": body.email,
-            "email_opt_in": bool(body.email and body.email_opt_in),
-            "is_demo": demo,
-        },
-    )
+    values: dict[str, Any] = {
+        "guest_token_hash": hash_token(token),
+        "mode": body.mode,
+        "difficulty": body.difficulty,
+        "interview_type": body.interview_type,
+        "email": body.email,
+        "email_opt_in": bool(body.email and body.email_opt_in),
+        "is_demo": demo,
+    }
+    if body.email and body.reminders_opt_in:
+        # Only sent when ticked, so session creation keeps working before migration 07 is applied.
+        values["reminders_opt_in"] = True
+    row = await db.insert_returning("sessions", values)
     sid = UUID(row["id"])
     if demo:
         await save_document(db, sid, "cv", DEMO_CV, content_hash(DEMO_CV))
@@ -166,6 +171,15 @@ async def _single(event: str, payload: dict[str, Any]) -> AsyncIterator[Event]:
     yield event, payload
 
 
+async def copy_demo_analysis(db: SupabaseRest, session_id: UUID) -> bool:
+    """Demo cache (migration 07). Any failure (e.g. migration not applied) = cache miss."""
+    try:
+        return await db.rpc("copy_demo_analysis", {"p_session_id": str(session_id)}) is True
+    except Exception:
+        log.exception("demo_cache_failed")
+        return False
+
+
 @router.post("/{session_id}/analyze")
 async def analyze(
     session_id: UUID, request: Request, token: GuestToken = NO_TOKEN
@@ -177,6 +191,13 @@ async def analyze(
     saved = await saved_analysis(db, session_id)
     if saved:
         return _sse_response(_single("done", saved.model_dump()))
+
+    # Demo sessions reuse an earlier demo session's analysis (same CV + JD): no LLM calls at all.
+    if session.get("is_demo") and await copy_demo_analysis(db, session_id):
+        cached = await saved_analysis(db, session_id)
+        if cached:
+            log.info("demo_cache_hit", extra={"extra_fields": {"session_id": str(session_id)}})
+            return _sse_response(_single("done", cached.model_dump()))
 
     # One run per session (QA bug B3): a second tab or a double click waits for the first run.
     if not await claim_run(db, session_id):
@@ -191,6 +212,7 @@ async def analyze(
     try:
         # Only a fresh run costs LLM calls, so only it is limited (429 as JSON).
         await enforce_rate_limit(request, "analyze")
+        await reserve_llm_calls("analysis", demo=bool(session.get("is_demo")))
         await consume_quota(db, session_id, "analysis")
     except Exception:
         await release()

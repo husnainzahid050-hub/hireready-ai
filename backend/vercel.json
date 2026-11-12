@@ -4,5 +4,9 @@
     "app/main.py": {
       "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    { "path": "/api/v1/cron/cleanup", "schedule": "0 2 * * *" },
+    { "path": "/api/v1/cron/reminders", "schedule": "0 3 * * *" }
+  ]
 }

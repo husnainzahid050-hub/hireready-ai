@@ -27,6 +27,9 @@ SESSION_QUOTAS: Final[dict[str, int]] = {
     "interview_answer": 40,  # answers incl. follow-ups (~6 questions x 2 per interview x 3)
     "report": 3,  # report generations
     "email": 3,  # report emails
+    # Not a budget but a strike counter: voice uploads Whisper reported as over 2 minutes
+    # (app.services.voice_answer). At the limit the session can only type its answers.
+    "audio_overlong": 2,
 }
 
 

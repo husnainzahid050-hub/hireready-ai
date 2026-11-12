@@ -1,0 +1,45 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The response contains no content addressing the question.",
+   "evidence_quote": null
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "1",
+   "justification": "No details, reasoning, or examples provided.",
+   "evidence_quote": null
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No logical order or STAR structure present.",
+   "evidence_quote": null
+  },
+  "communication": {
+   "score": "1",
+   "justification": "Answer is empty; not clear or concise.",
+   "evidence_quote": null
+  },
+  "what_interviewer_wanted": "The interviewer wanted a specific example of a team disagreement, describing the situation, actions taken, and outcome using the STAR method.",
+  "improved_answer": "I’m sorry, I don’t have a specific example to share right now.",
+  "one_tip": "Ask the candidate to recall a concrete project and walk through the disagreement step by step.",
+  "feedback_summary": "It looks like the answer was missing; a brief example would help illustrate your teamwork skills.",
+  "answer_quality": "off_topic",
+  "follow_up_question": "Could you describe a specific project where you and a teammate disagreed on a technical decision, and how you resolved it?",
+  "transition": "Thanks for sharing that."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.138,
+   "ok": true,
+   "prompt_tokens": 1765,
+   "completion_tokens": 366,
+   "error": null
+  }
+ ]
+}

@@ -14,7 +14,7 @@ from uuid import UUID
 
 from app.core.errors import AppError, ai_unavailable
 from app.core.logging import get_logger
-from app.db.client import SupabaseRest
+from app.db.client import DatabaseError, SupabaseRest
 from app.schemas.analysis import CVProfile, GapItem, JobProfile
 from app.schemas.interview import (
     FeedbackOut,
@@ -83,6 +83,17 @@ def _question_row(session_id: str, q: Any, parent_id: str | None) -> dict[str, A
     }
 
 
+class TurnConflictError(AppError):
+    """Another request committed a turn for this interview first (double submit, two tabs)."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "turn_conflict",
+            "This question was already answered (maybe in another tab). Reload to continue.",
+            status_code=409,
+        )
+
+
 async def persist(
     db: SupabaseRest, before: "InterviewState | None", after: "InterviewState"
 ) -> None:
@@ -90,6 +101,11 @@ async def persist(
 
     Writes run in parallel where foreign keys allow it: an answer always belongs to a question
     inserted by an EARLIER request, so new questions and the answer can go together.
+
+    The state write is a compare-and-swap: a first turn is a plain INSERT (the primary key
+    rejects a parallel start), later turns only update the row while it still waits for the
+    question this turn answered. The loser removes its own rows and raises TurnConflictError,
+    so two parallel submits of one answer can't both be recorded (security re-audit S2-2).
     """
     sid = after.session_id
     rows = [_question_row(sid, q, None) for q in after.new_planned]
@@ -114,23 +130,45 @@ async def persist(
         )
     await asyncio.gather(db.insert("questions", rows), db.insert("answers", answer_rows))
     saved = after.clear_transient()
-    writes = [
-        db.insert(
-            "interview_state",
-            [
-                {
-                    "session_id": sid,
-                    "state": saved.model_dump(mode="json"),
-                    "updated_at": datetime.now(UTC).isoformat(),
-                }
-            ],
-            on_conflict="session_id",
-        )
-    ]
+    values = {"state": saved.model_dump(mode="json"), "updated_at": datetime.now(UTC).isoformat()}
+    if not await _commit_state(db, sid, before, values):
+        await _discard(db, [str(r["id"]) for r in rows], [str(r["id"]) for r in answer_rows])
+        log.warning("interview_turn_conflict", extra={"extra_fields": {"session_id": sid}})
+        raise TurnConflictError()
     if before is None or before.status != after.status:
         status = "completed" if after.status == "completed" else "interviewing"
-        writes.append(db.update("sessions", {"id": f"eq.{sid}"}, {"status": status}))
-    await asyncio.gather(*writes)
+        await db.update("sessions", {"id": f"eq.{sid}"}, {"status": status})
+
+
+async def _commit_state(
+    db: SupabaseRest, sid: str, before: "InterviewState | None", values: dict[str, Any]
+) -> bool:
+    if before is None:
+        try:
+            await db.insert("interview_state", [{"session_id": sid, **values}])
+        except DatabaseError as exc:
+            if exc.status_code == 409:  # unique violation: a parallel start committed first
+                return False
+            raise
+        return True
+    params = {"session_id": f"eq.{sid}"}
+    if before.current is not None:
+        params["state->current->>id"] = f"eq.{before.current.id}"
+    changed = await db.update_returning("interview_state", params, values, select="session_id")
+    return bool(changed)
+
+
+async def _discard(db: SupabaseRest, question_ids: list[str], answer_ids: list[str]) -> None:
+    """Best effort: remove the rows a losing turn inserted (answers first: they reference
+    questions). Leftovers are harmless: the state is the source of truth and nothing reads
+    rows it does not point to."""
+    try:
+        if answer_ids:
+            await db.delete("answers", {"id": f"in.({','.join(answer_ids)})"})
+        if question_ids:
+            await db.delete("questions", {"id": f"in.({','.join(question_ids)})"})
+    except DatabaseError:
+        log.warning("interview_conflict_cleanup_failed")
 
 
 # ------------------------------------------------------------------ response
@@ -245,7 +283,14 @@ async def start_interview(
         event="start",
     )
     result = await _run(db, llm, embedder, state, sid, inputs)
-    await persist(db, None, result)
+    try:
+        await persist(db, None, result)
+    except TurnConflictError:
+        # A parallel start (double click, second tab) planned first: keep start idempotent.
+        existing = await load_state(db, sid)
+        if existing is None:
+            raise
+        return to_turn(existing, history=False, last_answer=False)
     return to_turn(result, history=False, last_answer=False)
 
 

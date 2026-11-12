@@ -570,3 +570,208 @@ one number means little: run it several times, look at the metrics (LCP, CLS, TB
 score, and confirm on the deployed site. A blurred glow (`filter: blur`) behind the hero card was a
 measurable paint cost on a throttled phone, so it became a plain radial gradient that looks the
 same.
+
+---
+
+## Phase 8: Evals and observability (2026-11-12)
+
+### 1. An eval is a test with a number instead of pass/fail
+Unit tests check that code does what we wrote. Evals check that the *model-driven* parts do what we
+*want*, on inputs we labelled by hand before running anything. The suite lives in
+[evals/run_evals.py](../evals/run_evals.py) with fictional data in
+[evals/datasets/](../evals/datasets/). It calls the real production functions (`judge_skills`,
+`score_answer`, `build_insights`, `plan_interview`) so it measures the app, not a copy of it.
+
+### 2. Precision, recall and the confusion matrix
+For gap detection the "positive" class is *missing skill*. **Recall** = of the skills that really
+are missing, how many we flagged (37/37). **Precision** = of the skills we flagged as missing, how
+many really are (37/40). A 3×3 **confusion matrix** (label × prediction) shows *which* mistakes
+happen: here all three errors were "weak" skills (only listed, or a close cousin like Flask for
+FastAPI) judged "missing". The cell that would hurt users most is "said strong, actually missing"
+(over-claiming): it was 0.
+
+### 3. Hit rate@k and MRR for retrieval
+**Hit rate@5**: did at least one correct chunk appear in the top 5? **MRR** (mean reciprocal rank):
+1 if the first correct chunk is ranked 1st, 1/2 if 2nd, 1/3 if 3rd... averaged over queries. We
+ran the same `hybrid_search` SQL function three ways by changing its weights: vector-only
+(`full_text_weight = 0`), keyword-only (`semantic_weight = 0`) and hybrid. Result: hybrid did not
+beat vector-only on these 30 queries, because most are paraphrases where embeddings already win.
+That is a real finding, not a failure of the eval: a baseline is what makes the claim checkable.
+
+### 4. Small n needs intervals
+With 30 items, "90%" could easily be anywhere from about 74% to 97%. The **Wilson score interval**
+([evals/metrics.py](../evals/metrics.py) `wilson`) gives that range and, unlike the textbook
+± 1.96 × SE, stays sensible at 0% and 100%. Every proportion in the report shows k/n and the
+interval. Items that share a CV are correlated, so even these intervals are a bit optimistic.
+
+### 5. Calibration and consistency for an LLM judge
+Calibration: does a "good" answer get a high score and a "bad" one a low score? We check each
+graded answer's average against an expected range *per class*, because a judge that gives
+everything a 3 can look fine overall. Consistency: score the same answer three times and measure the
+standard deviation (0.18 on a 1-5 scale at temperature 0.1). Low temperature reduces variation; it
+does not remove it.
+
+### 6. Guarantees vs measurements
+"100% of shown evidence quotes are verbatim in the CV" is a **guarantee**: code checks every quote
+and drops the ones it cannot find. "Gap recall 100%" is a **measurement** on 92 labelled items and
+can change with the model. The report labels which is which.
+
+### 7. Caching makes evals cheap enough to re-run
+Each LLM request is hashed (prompt, schema, temperature, model names) and its validated answer
+stored in `evals/.cache/`. Re-running the suite with nothing changed costs zero API calls;
+changing one prompt only re-pays for the requests that prompt touches. `--cache-only` turns a
+missing cache entry into an error, which is how CI can re-render results without secrets. Fresh
+calls are paced under Groq's free-tier 8K tokens/minute ([evals/harness.py](../evals/harness.py)
+`TokenPacer`), so a cold run takes about 40 minutes instead of failing with 429s.
+
+### 8. Fakes for plumbing, live for quality
+`--mode fake` swaps in a heuristic "LLM" and hashed bag-of-words embeddings. Its numbers mean
+nothing, but it proves in CI, in a few seconds and without keys, that the runner, metrics and
+report still work after a refactor.
+
+### 9. Tracing without leaking data
+[backend/app/core/tracing.py](../backend/app/core/tracing.py) wraps every provider attempt in a
+context manager that records model, step, token usage and latency. A **ContextVar** carries the
+token counts from deep inside the Groq/Gemini adapter back to the wrapper, which is safe even when
+several calls run at once with `asyncio.gather` (each task has its own copy). If all three Langfuse
+variables are set, each record becomes an OpenTelemetry span sent to Langfuse in the background.
+We send **metadata only**: no prompt, no output, because both contain CV and transcript text. The
+trade-off is that a trace shows *that* a call was slow or failed, not *what* it said. All calls in
+one HTTP request share a trace id derived from the request id, so an analysis shows up as one trace
+with its 3-4 LLM spans. Any tracing error is swallowed: observability must never break a request.
+
+## Phase 5: Scoring and report (2026-11-12)
+
+### 1. Let code do the maths, let the model do the words
+Every number in the report is computed in
+[backend/app/services/report.py](../backend/app/services/report.py) from scores that were already
+saved during the interview: a weighted mean per answer, a 70/30 blend when there was a follow-up,
+and readiness = 0.75 × interview + 0.25 × CV match. The model writes only text (the hiring-manager
+reaction, flags, themes and the plan). Why: numbers from an LLM drift between runs and can be talked
+into anything by a transcript; numbers from code are repeatable, testable and can be shown to the
+user as a formula ("How is this calculated?"). The model's one judgement, the verdict, is
+**clamped** to at most one step away from what the score implies.
+
+### 2. Calibration lives in the rubric, not the report
+"Calibrated scoring" happens per answer, in the interviewer's `evaluate_answer` node: the prompt
+includes the rubric's 1/3/5 **anchor answers** (few-shot examples of a weak, an average and a strong
+answer) and runs at low temperature. The report doesn't re-score; it aggregates. Two scorers
+disagreeing would be worse than one consistent one.
+
+### 3. Rounding is a design decision
+Python's `round(82.5)` is `82` ("banker's rounding": halves go to the even number). Users expect
+`83`. Floats add a second trap: `4.3` is stored as `4.2999…`. `round_half_up` first rounds to 6
+decimals (removing the float noise), then adds 0.5 and floors. A unit test pins both cases.
+
+### 4. Evidence quotes again, now for transcripts
+The same anti-hallucination guard as the CV analysis: a flag's quote must appear in the transcript
+of the answer it points at ([evidence.py](../backend/app/services/evidence.py) normalizes spacing,
+quotes and case first). If not, the quote is dropped and the UI never shows it. On the page,
+verified quotes are highlighted inside the transcript with `<mark>`, so you can see exactly which
+words earned the score.
+
+### 5. Stream what is ready
+The report stream sends an `overview` event (readiness, question cards, speech) the moment the code
+finishes, before the one slow LLM call. The page renders those sections at once and shows
+placeholders only for the AI-written parts. If the LLM step fails, the placeholders turn into a
+static message (never a skeleton that pulses forever) and the computed parts stay.
+
+### 6. A database row as a lock
+Two tabs could both start a report. Instead of a new SQL function, the `reports` primary key is the
+lock: the first request inserts a placeholder `{"state": "generating"}`; the second insert fails with
+a unique violation (HTTP 409 from PostgREST) and that request waits for the first one's result. A
+placeholder older than 120 s belongs to a crashed run and is replaced. The lesson from the
+integration pass applies again: check-and-act in one atomic step, and give every lock an expiry.
+
+### 7. Share links: unguessable, revocable, unindexed
+A share token is 32 random bytes (`secrets.token_urlsafe(32)`, 256 bits): guessing one is hopeless.
+Revoking sets it to null, so the old URL returns 404. The public endpoint returns a **redacted**
+copy (no session id, CV text or email; emails and phone numbers spoken in answers are masked).
+Hiding a page from search engines needs `noindex` (meta tag and `X-Robots-Tag` header), **not** a
+`robots.txt` Disallow: a crawler that may not fetch the page never sees its noindex, and can still
+index the bare URL if someone links it. `Referrer-Policy: no-referrer` stops the token leaking to
+the learning-resource sites the plan links to, and the Open Graph text stays generic because link
+previews are cached after a link is revoked.
+
+### 8. Email behind an interface, off by default
+[email.py](../backend/app/services/email.py) defines a tiny `EmailProvider` protocol (`send(...)`)
+and one implementation that calls Resend's HTTP API with httpx: no SDK, one less dependency. Until
+`RESEND_API_KEY` and `EMAIL_FROM` exist, the endpoint answers 503 `email_not_configured` and the
+button explains why it is disabled. The email is a summary (band, top fixes, day 1) because emails
+get forwarded and Gmail clips long ones; transcripts never go in. An `Idempotency-Key` (session +
+hashed address + report version) makes a double click send one email.
+
+### 9. Print CSS instead of a PDF library
+"Save as PDF" is the browser's print dialog plus `@media print` rules in
+[globals.css](../frontend/app/globals.css): force the light theme, hide the header, footer and
+buttons, open every `<details>` on `beforeprint`, avoid page breaks inside small blocks, print link
+URLs after resource links. Chromium ignores `break-inside: avoid` on flex/grid children, so the
+cards are made blocks in print. The e2e test asserts a 6-question report fits on 5 A4 pages.
+
+### 10. Deleting is one statement
+Every table references `sessions(id) ON DELETE CASCADE`, so "Delete my data" is a single
+`DELETE FROM sessions WHERE id = …` and Postgres removes documents, chunks, analysis, questions,
+answers, interview state, the report (and with it the share link), reminders and quota counters.
+The migration smoke test checks the cascade on a real Postgres.
+
+## Phase 7: Security hardening and automation (2026-11-12)
+
+### 1. Defence in layers, cheapest first
+No single control stops abuse of a free AI app. HireReady stacks them: Turnstile on session
+creation (stops scripts), per-IP limits (slow a single source), per-session quotas (cap one guest
+token), a per-recipient email limit (stops flooding one inbox), and a **global daily LLM budget**
+(`backend/app/core/budget.py`) as the circuit breaker when everything else is beaten by a proxy
+pool. The budget is checked per *action* before any work starts, so a refused request costs
+nothing, and the demo is the first thing to pause because it is the cheapest to give up.
+
+### 2. Fail open or fail closed is a per-endpoint decision
+When Redis is down, should the app stop? For LLM endpoints we fall back to an in-process counter:
+availability first, and the database quotas still cap spending. For email we fail closed, because
+a form that emails any address is a spam relay and email is never essential. Cron endpoints fail
+closed when `CRON_SECRET` is missing. The full table is in `docs/SECURITY.md`; the code is the
+`on_outage` field of each `Policy` in `backend/app/core/rate_limit.py`.
+
+### 3. "Which IP am I seeing?" behind a proxy
+The browser talks to the frontend; the Next.js rewrite then calls the backend from Vercel's
+network, so the backend's `x-forwarded-for` may describe that hop and every user would share one
+bucket. `frontend/proxy.ts` (Next.js 16's new name for middleware) copies the real browser IP into
+a custom header plus a shared secret; the backend trusts the header only when the secret matches
+(compared in constant time). Always verify on the real deployment: `/api/v1/health/client-ip`.
+
+### 4. Cron jobs must be safe to run twice
+Vercel Hobby runs a cron once a day with about an hour of jitter and may retry. So both jobs are
+idempotent. Cleanup (`cleanup_expired()` in migration 07) deletes in bounded batches and records
+counts in `cron_runs`. The reminder job moves the day counter with a **compare-and-swap** (update
+only `where day_index = n`) *before* sending, so a second run finds nothing to do, and Resend's
+`Idempotency-Key` backs that up.
+
+### 5. Data with two lifetimes
+The 7-day prep plan starts after the interview, so it runs past the 7-day guest expiry. Instead of
+keeping the whole session longer, the reminder is a separate, minimal row (email, job title, plan,
+token hash) with its own `expires_at`. The cleanup job *detaches* it from the session before the
+cascade; "Delete my data" still deletes it. Keep only what each purpose needs, for only as long
+as it needs it.
+
+### 6. Email consent that protects other people
+Two unticked boxes (one email vs a 7-day series), then **double opt-in**: the first email only
+asks to confirm, so nobody can sign someone else up. Each reminder carries RFC 8058 headers
+(`List-Unsubscribe` + `List-Unsubscribe-Post: List-Unsubscribe=One-Click`) so Gmail shows an
+"Unsubscribe" button that POSTs to us. A GET of any link never changes anything, because mail
+security scanners open links automatically. The link token is an HMAC of a random nonce, stored
+only as a hash: it can unsubscribe or mark a day done, never open the session.
+
+### 7. Signing webhooks the standard way
+Instead of inventing headers, the outbound webhook follows Standard Webhooks: the receiver
+recomputes `HMAC-SHA256(secret, "{id}.{timestamp}.{body}")`, compares it in constant time, rejects
+timestamps older than 5 minutes (replay) and dedupes on `webhook-id`. The payload is minimal (no
+CV text, transcripts or email), and delivery runs after the report is saved so a slow receiver can
+never break it (`backend/app/services/webhook.py`, `automation.py`).
+
+### 8. Testing injection with a model that obeys
+Testing prompt-injection defences with a well-behaved model proves little. The tests in
+`backend/tests/test_prompt_injection.py` use a fake model that does exactly what each attack asks
+(mark every skill strong, score 5/5, quote the injected sentence) and check that the code still
+wins: fences survive forged tags, instruction-like quotes don't count as evidence, scores without
+real evidence are capped, the match score is arithmetic, and out-of-schema output is rejected. The
+attack list is shared with the Phase 8 evals (`evals/datasets/adversarial.json`), which run the
+same cases against the real model.

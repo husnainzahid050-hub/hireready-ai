@@ -1,0 +1,80 @@
+{
+ "step": "jd_extract",
+ "result": {
+  "title": "Junior AI Engineer",
+  "seniority": "junior",
+  "must_have_skills": [
+   {
+    "name": "Python",
+    "competency": "python"
+   },
+   {
+    "name": "Machine learning fundamentals",
+    "competency": "machine_learning"
+   },
+   {
+    "name": "LLMs and RAG pipelines",
+    "competency": "nlp_llms"
+   },
+   {
+    "name": "FastAPI",
+    "competency": "apis_backend"
+   },
+   {
+    "name": "SQL",
+    "competency": "sql"
+   },
+   {
+    "name": "Git",
+    "competency": "git_collaboration"
+   }
+  ],
+  "nice_to_have_skills": [
+   {
+    "name": "Docker",
+    "competency": "cloud_devops"
+   },
+   {
+    "name": "AWS or GCP",
+    "competency": "cloud_devops"
+   },
+   {
+    "name": "Vector databases (pgvector, Pinecone)",
+    "competency": "data_handling"
+   }
+  ],
+  "responsibilities": [
+   "Build and improve RAG pipelines over customer documents",
+   "Write Python services that expose models through REST APIs",
+   "Evaluate model outputs and track quality metrics",
+   "Collaborate with the team through code review on GitHub"
+  ],
+  "tools": [
+   "Python",
+   "FastAPI",
+   "SQL",
+   "Git",
+   "Docker",
+   "AWS",
+   "GCP",
+   "pgvector",
+   "Pinecone"
+  ],
+  "soft_skills": [
+   "Collaboration",
+   "Code review"
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "JobProfile",
+   "latency_s": 1.417,
+   "ok": true,
+   "prompt_tokens": 938,
+   "completion_tokens": 320,
+   "error": null
+  }
+ ]
+}

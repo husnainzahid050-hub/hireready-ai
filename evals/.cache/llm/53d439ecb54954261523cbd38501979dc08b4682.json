@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly addresses the question about overfitting and prevention.",
+   "evidence_quote": "Overfitting is when the model is too good on the training data and not good on test data."
+  },
+  "technical_accuracy": {
+   "score": "3",
+   "justification": "Correctly identifies overfitting and mentions regularization and more data, but lacks depth on detection and other remedies.",
+   "evidence_quote": "You can prevent it with regularization or by getting more data."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "Minimal detail; no discussion of validation gaps, cross-validation, or specific techniques beyond regularization.",
+   "evidence_quote": "I used a validation set in my project."
+  },
+  "structure": {
+   "score": "3",
+   "justification": "Answer follows a simple structure: definition, prevention, example, but lacks clear separation of points.",
+   "evidence_quote": "Overfitting is when the model is too good on the training data and not good on test data. You can prevent it with regularization or by getting more data. I used a validation set in my project."
+  },
+  "communication": {
+   "score": "4",
+   "justification": "Clear and concise language, easy to understand.",
+   "evidence_quote": "Overfitting is when the model is too good on the training data and not good on test data."
+  },
+  "what_interviewer_wanted": "They wanted a clear definition of overfitting, methods to detect it (train/validation gap), and a range of prevention techniques with an example from a project.",
+  "improved_answer": "Overfitting happens when a model performs well on training data but poorly on unseen data, usually because it has learned noise. I detect it by looking for a large gap between training and validation accuracy. To prevent it, I use regularization (L1/L2), add more training data or augment it, simplify the model, and apply early stopping or dropout in neural nets. In my campus policy assistant project, I monitored the validation loss and stopped training when it stopped improving, which reduced overfitting and improved generalization.",
+  "one_tip": "Add a brief mention of how you verify that the remedy works, such as checking the validation curve.",
+  "feedback_summary": "Good start—clear definition and mention of regularization, but add more detail on detection and a broader set of techniques.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you explain how you monitored the validation loss in your campus policy assistant project to detect overfitting?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.014,
+   "ok": true,
+   "prompt_tokens": 1765,
+   "completion_tokens": 526,
+   "error": null
+  }
+ ]
+}

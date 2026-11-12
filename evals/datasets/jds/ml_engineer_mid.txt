@@ -1,0 +1,23 @@
+Machine Learning Engineer, Mid-level - Ravi Vision Labs (fictional company), Lahore
+
+Ravi Vision Labs builds computer-vision models for agriculture. We are hiring an ML Engineer with
+3+ years of experience to train deep learning models and take them to production.
+
+Responsibilities
+- Train and evaluate deep learning models on image data.
+- Package and deploy models as services and monitor them in production.
+- Build reproducible training pipelines and track experiments.
+
+Must have
+- Python
+- PyTorch
+- Deep learning (CNNs, training and tuning)
+- Deploying models to production
+- MLOps tooling such as MLflow
+- Docker
+- SQL
+
+Nice to have
+- Kubernetes
+- Distributed training
+- NLP

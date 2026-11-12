@@ -1,0 +1,45 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The candidate directly addresses the question by describing a specific mistake and its consequences.",
+   "evidence_quote": "During my internship I was asked to clean a customer dataset before a churn model was trained. I was in a hurry and dropped every row with a missing value without checking, which removed almost a third of the data and mostly the newer customers. When my supervisor saw the model's odd results, I traced it back to my cleaning step and told her directly that it was my mistake. I re-ran the cleaning with imputation for the numeric columns and documented every step in the notebook, and the model's validation score went back to normal. Since then I always check how many rows each cleaning step removes and write that down."
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "5",
+   "justification": "The answer provides concrete details, explains the fix, and shows a changed habit.",
+   "evidence_quote": "I re-ran the cleaning with imputation for the numeric columns and documented every step in the notebook, and the model's validation score went back to normal. Since then I always check how many rows each cleaning step removes and write that down."
+  },
+  "structure": {
+   "score": "4",
+   "justification": "The response follows a STAR-like flow but could be more explicitly segmented.",
+   "evidence_quote": "During my internship I was asked to clean a customer dataset before a churn model was trained. I was in a hurry and dropped every row with a missing value without checking, which removed almost a third of the data and mostly the newer customers. When my supervisor saw the model's odd results, I traced it back to my cleaning step and told her directly that it was my mistake. I re-ran the cleaning with imputation for the numeric columns and documented every step in the notebook, and the model's validation score went back to normal."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "The answer is clear, concise, and well-structured.",
+   "evidence_quote": "During my internship I was asked to clean a customer dataset before a churn model was trained. I was in a hurry and dropped every row with a missing value without checking, which removed almost a third of the data and mostly the newer customers. When my supervisor saw the model's odd results, I traced it back to my cleaning step and told her directly that it was my mistake. I re-ran the cleaning with imputation for the numeric columns and documented every step in the notebook, and the model's validation score went back to normal. Since then I always check how many rows each cleaning step removes and write that down."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a concrete example of a mistake, ownership of the error, the corrective action taken, and a lesson learned that changed future behavior.",
+  "improved_answer": "During my internship, I was tasked with cleaning a customer dataset before training a churn model. In a rush, I dropped every row with missing values, which removed about a third of the data, disproportionately affecting newer customers. When the model produced odd results, I traced the issue back to my cleaning step, admitted the mistake to my supervisor, and re‑cleaned the data using numeric imputation. I documented each step in a notebook, and the model’s validation score returned to normal. Since then, I always audit the impact of each cleaning operation and record the changes.",
+  "one_tip": "Be explicit about the STAR structure—state the situation, task, action, result, and reflection clearly.",
+  "feedback_summary": "You provided a strong, detailed example that shows ownership and learning, which is exactly what we’re looking for.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 2.164,
+   "ok": true,
+   "prompt_tokens": 1840,
+   "completion_tokens": 963,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,55 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "4",
+   "justification": "The candidate directly answered the prompt by describing a disagreement over web technologies in a university project.",
+   "evidence_quote": "In a university project my teammate wanted to use React and I wanted to use plain HTML."
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "2",
+   "justification": "The candidate provided minimal detail regarding the rationale, actions taken to evaluate the choice, or reflection on the outcome.",
+   "evidence_quote": "We talked about it and in the end we used React because more people knew it."
+  },
+  "structure": {
+   "score": "2",
+   "justification": "The answer provides a very brief sequence of events but lacks structured STAR detail, particularly around individual action and reflective results.",
+   "evidence_quote": "In a university project my teammate wanted to use React and I wanted to use plain HTML."
+  },
+  "communication": {
+   "score": "3",
+   "justification": "The response is clear and easy to understand, though far too brief.",
+   "evidence_quote": "It worked out fine."
+  },
+  "what_interviewer_wanted": "The interviewer wanted to see a structured STAR story showing how the candidate handles technical disagreements, evaluates trade-offs rationally, and reflects on team outcomes.",
+  "improved_answer": "In a university project, my teammate wanted to build the frontend with React, while I initially suggested plain HTML to keep things simple. To resolve the disagreement, we discussed team skills and project goals. Since most of the team was already familiar with React and it allowed us to build components faster, I agreed to use React. We completed the frontend successfully, and I learned that team familiarity and velocity are often more important than personal preference.",
+  "one_tip": "Structure your answers using the STAR method (Situation, Task, Action, Result) and include specific reasoning behind your decisions.",
+  "feedback_summary": "You gave a concise and relevant example of resolving a team disagreement, but expanding on the decision-making process and what you learned would make your answer much stronger.",
+  "answer_quality": "shallow",
+  "follow_up_question": "How did you weigh the pros and cons of using React versus plain HTML at the time, and what did you learn from that decision?",
+  "transition": "Thanks, that gives me a good starting point."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.862,
+   "ok": false,
+   "prompt_tokens": null,
+   "completion_tokens": null,
+   "error": "LLMError"
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-3.5-flash",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 6.124,
+   "ok": true,
+   "prompt_tokens": 1051,
+   "completion_tokens": 545,
+   "error": null
+  }
+ ]
+}

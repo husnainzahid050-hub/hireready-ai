@@ -582,12 +582,20 @@ export function InterviewView({ sessionId }: { sessionId: string }) {
           </span>
           <h1 className="text-2xl font-semibold tracking-tight">Interview complete. Nice work!</h1>
           <p className="text-fg-muted">
-            {answeredSummary(turn.history)} Your scored report, with per-answer scores, improved
-            example answers and an overall readiness score, arrives in the next update.
+            {answeredSummary(turn.history)} Your scored report is ready to build: per-answer scores
+            with quotes from what you said, improved example answers, an overall readiness score and
+            a fresh 7-day plan.
           </p>
-          {/* Completion actions: the report CTA (Phase 5) goes first in this row. */}
           <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:flex-wrap">
-            <ButtonLink href={`/session/${sessionId}/analysis`} className="w-full sm:w-auto">
+            <ButtonLink href={`/session/${sessionId}/report`} className="w-full sm:w-auto">
+              See your report
+              <ArrowRight className="size-4" />
+            </ButtonLink>
+            <ButtonLink
+              href={`/session/${sessionId}/analysis`}
+              variant="secondary"
+              className="w-full sm:w-auto"
+            >
               Back to your analysis
             </ButtonLink>
           </div>

@@ -10,10 +10,12 @@ Voice answers (multipart) are charged BEFORE transcription, because Whisper is t
 call there; the answerable-question check runs first so a stale upload is still free.
 """
 
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Request
 
+from app.core.budget import reserve_llm_calls
 from app.core.quotas import consume_quota
 from app.core.rate_limit import enforce_rate_limit
 from app.db.client import SupabaseRest, get_db
@@ -30,10 +32,13 @@ from app.services.stt import get_stt
 router = APIRouter(prefix="/sessions/{session_id}/interview", tags=["interview"])
 
 
-def _charge(request: Request, db: SupabaseRest, session_id: UUID, action: str) -> service.Charge:
+def _charge(
+    request: Request, db: SupabaseRest, session: dict[str, Any], action: str
+) -> service.Charge:
     async def charge() -> None:
         await enforce_rate_limit(request, action)
-        await consume_quota(db, session_id, action)
+        await reserve_llm_calls(action, demo=bool(session.get("is_demo")))
+        await consume_quota(db, UUID(str(session["id"])), action)
 
     return charge
 
@@ -54,7 +59,7 @@ async def start(
         get_embedder(),
         session,
         practice,
-        charge=_charge(request, db, session_id, "interview_start"),
+        charge=_charge(request, db, session, "interview_start"),
     )
 
 
@@ -71,7 +76,7 @@ async def current(session_id: UUID, token: GuestToken = NO_TOKEN) -> InterviewTu
 async def answer(session_id: UUID, request: Request, token: GuestToken = NO_TOKEN) -> InterviewTurn:
     db = get_db()
     session = await get_owned_session(db, session_id, token)
-    charge = _charge(request, db, session_id, "interview_answer")  # one budget for both modes
+    charge = _charge(request, db, session, "interview_answer")  # one budget for both modes
     if is_multipart(request):
         question_id, audio, mime = await voice.read_audio_form(request)
         return await voice.submit_voice_answer(

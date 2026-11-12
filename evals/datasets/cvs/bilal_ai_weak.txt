@@ -1,0 +1,24 @@
+Bilal Ahmed
+Karachi, Pakistan | bilal.ahmed@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BS Computer Science, Fictional Institute of Computing, 2026
+
+SKILLS
+HTML, CSS, JavaScript, PHP, MySQL, Python (basic), WordPress
+
+PROJECTS
+Restaurant Website
+- Built a WordPress website with an online menu and a booking form for a local restaurant.
+
+Student Attendance Portal
+- Developed a PHP and MySQL web app to record attendance for 200 students.
+- Wrote SQL queries for monthly attendance reports.
+
+EXPERIENCE
+Web Development Intern, Fictional Web Studio (Jul 2025 - Sep 2025)
+- Updated landing pages with HTML and CSS for three client websites.
+
+CERTIFICATIONS
+Introduction to Python (online course)

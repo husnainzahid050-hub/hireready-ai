@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "3",
+   "justification": "Answer addresses the question by describing a disagreement in a team setting.",
+   "evidence_quote": "In a university project my teammate wanted to use React and I wanted to use plain HTML."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "No technical inaccuracies; the answer is about a front-end choice.",
+   "evidence_quote": null
+  },
+  "depth": {
+   "score": "2",
+   "justification": "Lacks detail on actions, reasoning, and outcome; only mentions a brief discussion and final decision.",
+   "evidence_quote": "We talked about it and in the end we used React because more people knew it."
+  },
+  "structure": {
+   "score": "2",
+   "justification": "Minimal STAR structure; missing clear Situation, Task, Action, Result breakdown.",
+   "evidence_quote": "We talked about it and in the end we used React because more people knew it."
+  },
+  "communication": {
+   "score": "3",
+   "justification": "Clear but concise; could be more descriptive.",
+   "evidence_quote": "In a university project my teammate wanted to use React and I wanted to use plain HTML."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a specific example of a team disagreement, the steps taken to resolve it, and the outcome, following the STAR method.",
+  "improved_answer": "In a university project, my teammate preferred React while I favored plain HTML. I listened to his concerns about team familiarity, and we decided to adopt React to ensure smoother collaboration. The project finished on schedule, and I learned the value of aligning technical choices with team skill sets.",
+  "one_tip": "Provide more detail on the decision process and reflect on what you learned.",
+  "feedback_summary": "Your answer shows you can handle disagreements, but adding more specifics would strengthen it.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you describe a specific step you took to evaluate whether React was the better choice for that project?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.129,
+   "ok": true,
+   "prompt_tokens": 1781,
+   "completion_tokens": 404,
+   "error": null
+  }
+ ]
+}

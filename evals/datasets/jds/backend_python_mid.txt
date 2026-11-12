@@ -1,0 +1,23 @@
+Backend Engineer (Python), Mid-level - Indus Payments (fictional company), Remote (Pakistan)
+
+You will design and run the APIs behind our payments dashboard. We expect 3+ years of professional
+backend experience and ownership of services from design to production.
+
+Responsibilities
+- Design REST APIs and data models for new product features.
+- Own services in production: monitoring, incidents, performance.
+- Review code and mentor junior engineers.
+
+Must have
+- Python
+- FastAPI or Django
+- PostgreSQL
+- Docker
+- REST API design
+- Automated testing with pytest
+- CI/CD pipelines
+
+Nice to have
+- Redis
+- Kubernetes
+- AWS

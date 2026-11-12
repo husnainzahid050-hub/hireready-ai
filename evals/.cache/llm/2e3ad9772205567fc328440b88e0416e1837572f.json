@@ -1,0 +1,70 @@
+{
+ "step": "jd_extract",
+ "result": {
+  "title": "Data Analyst",
+  "seniority": "junior",
+  "must_have_skills": [
+   {
+    "name": "SQL",
+    "competency": "sql"
+   },
+   {
+    "name": "Excel",
+    "competency": "other"
+   },
+   {
+    "name": "Python with pandas",
+    "competency": "data_handling"
+   },
+   {
+    "name": "Power BI or Tableau",
+    "competency": "other"
+   },
+   {
+    "name": "Statistics fundamentals",
+    "competency": "other"
+   },
+   {
+    "name": "Clear communication with non-technical stakeholders",
+    "competency": "communication"
+   }
+  ],
+  "nice_to_have_skills": [
+   {
+    "name": "A/B testing",
+    "competency": "other"
+   },
+   {
+    "name": "dbt",
+    "competency": "other"
+   }
+  ],
+  "responsibilities": [
+   "Write SQL queries to pull and clean data from our warehouse.",
+   "Build and maintain dashboards for the sales and marketing teams.",
+   "Analyse trends and present insights in weekly meetings."
+  ],
+  "tools": [
+   "SQL",
+   "Excel",
+   "Python",
+   "Power BI or Tableau",
+   "dbt"
+  ],
+  "soft_skills": [
+   "communication"
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "JobProfile",
+   "latency_s": 0.739,
+   "ok": true,
+   "prompt_tokens": 894,
+   "completion_tokens": 342,
+   "error": null
+  }
+ ]
+}

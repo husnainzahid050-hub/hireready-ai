@@ -1,0 +1,44 @@
+{
+ "step": "plan",
+ "result": {
+  "opening": "Hi Sana, thanks for joining us today. I'm excited to learn more about your experiences and how they align with our Junior AI Engineer role.",
+  "questions": [
+   {
+    "text": "You’ve listed Python as a core skill—can you describe how you organize a Python codebase for a service like the FastAPI API you built, and why you chose that structure?",
+    "follow_up_hint": "If the answer is vague, ask about use of virtual environments, package management, and module separation."
+   },
+   {
+    "text": "What is overfitting in machine learning, and what steps did you take in your projects to prevent it?",
+    "follow_up_hint": "Probe for specific techniques such as validation splits, early stopping, regularization, or data augmentation."
+   },
+   {
+    "text": "Tell me about your Campus Policy Assistant project—what were the key design decisions you made when choosing LangChain, FAISS, and FastAPI, and how did you tackle the challenge of reducing hallucinated answers?",
+    "follow_up_hint": "If the response is shallow, dig into evaluation methodology, data preprocessing, and any trade‑offs you considered."
+   },
+   {
+    "text": "I see you haven’t highlighted SQL experience on your CV—what exposure have you had to working with relational databases, and how would you approach writing a query to retrieve the latest policy documents for the RAG pipeline?",
+    "follow_up_hint": "Encourage them to discuss basic SELECT statements, filtering, ordering, and any ORM tools they might use."
+   },
+   {
+    "text": "Can you share a specific example of a time you worked in a team and faced a disagreement, describing the situation, your actions, and the outcome?",
+    "follow_up_hint": "If the story lacks detail, ask for the context of the disagreement, how they communicated, and what they learned."
+   },
+   {
+    "text": "What excites you about the Junior AI Engineer role at our company, and how do you see your background helping you contribute to building and improving RAG pipelines?",
+    "follow_up_hint": "If the motivation is generic, probe for alignment with the company’s focus on RAG, REST APIs, and collaborative code review."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "InterviewPlanDraft",
+   "latency_s": 2.503,
+   "ok": true,
+   "prompt_tokens": 1202,
+   "completion_tokens": 634,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,59 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The candidate directly listed HTTP status codes and when they are used.",
+   "evidence_quote": "200 means OK, 404 means not found, and 500 is a server error."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "The explanations provided for 200, 404, 500, and 401 are accurate.",
+   "evidence_quote": "I think 401 is for when you are not logged in."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "The response covers only basic codes and lacks details on common status codes like 201 Created, 204 No Content, 403 Forbidden, or 422 Validation Error.",
+   "evidence_quote": "In my FastAPI project I mostly returned 200."
+  },
+  "structure": {
+   "score": "3",
+   "justification": "The answer lists the codes in a brief, unstructured sequence without grouping by success/client/server categories.",
+   "evidence_quote": "200 means OK, 404 means not found, and 500 is a server error."
+  },
+  "communication": {
+   "score": "4",
+   "justification": "The response is clear and easy to understand.",
+   "evidence_quote": "200 means OK, 404 means not found, and 500 is a server error."
+  },
+  "what_interviewer_wanted": "The interviewer wanted to see a well-rounded understanding of common HTTP status codes across different scenarios (success, client errors like validation and auth, server errors) and how they are used in REST APIs.",
+  "improved_answer": "In REST APIs like the ones I built with FastAPI, I use specific status codes to signal response states clearly: 200 OK for successful requests, 201 Created when a resource is added, and 204 No Content for successful deletions. For client errors, I use 400 Bad Request or 422 for validation failures, 401 Unauthorized when unauthenticated, 403 Forbidden when authenticated but lacking permissions, and 404 Not Found. Finally, 500 Internal Server Error is reserved for unexpected backend failures.",
+  "one_tip": "Expand your knowledge of REST response conventions beyond 200 and 404 to include creation (201), authorization (403), and validation (422) codes.",
+  "feedback_summary": "You covered the standard status codes correctly, but expanding on creation, authorization, and validation codes will make your backend answers much stronger.",
+  "answer_quality": "shallow",
+  "follow_up_question": "In your FastAPI project, how would you handle request validation errors or differentiate between an unauthenticated user (401) and an unauthorized user (403)?",
+  "transition": "Thanks, that gives me a clear idea of how you handle basic HTTP status codes."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.864,
+   "ok": false,
+   "prompt_tokens": null,
+   "completion_tokens": null,
+   "error": "LLMError"
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-3.5-flash",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 5.839,
+   "ok": true,
+   "prompt_tokens": 1052,
+   "completion_tokens": 712,
+   "error": null
+  }
+ ]
+}

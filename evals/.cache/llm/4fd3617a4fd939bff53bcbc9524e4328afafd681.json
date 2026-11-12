@@ -1,0 +1,55 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Usman Tariq",
+  "education": [
+   {
+    "degree": "BS Computer Science",
+    "institution": "Fictional Agricultural University",
+    "year": "2025"
+   }
+  ],
+  "skills": [
+   "Python",
+   "Flask",
+   "SQLite",
+   "Git",
+   "Linux",
+   "Docker"
+  ],
+  "projects": [
+   {
+    "title": "Library Management API",
+    "stack": [
+     "Flask",
+     "SQLite"
+    ],
+    "outcome": "Built a Flask REST API with SQLite for book loans, with endpoints for search and returns."
+   }
+  ],
+  "experience": [
+   {
+    "role": "Software Intern",
+    "org": "Fictional Tech Solutions",
+    "duration": "Jun 2024 - Aug 2024",
+    "bullets": [
+     "Fixed bugs in a Python Flask application",
+     "wrote documentation for its endpoints"
+    ]
+   }
+  ],
+  "certifications": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 0.729,
+   "ok": true,
+   "prompt_tokens": 712,
+   "completion_tokens": 203,
+   "error": null
+  }
+ ]
+}

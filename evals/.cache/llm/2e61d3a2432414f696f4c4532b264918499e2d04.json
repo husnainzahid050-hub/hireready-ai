@@ -1,0 +1,73 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "JavaScript",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a weather widget in JavaScript with HTML and CSS that calls a public weather API.",
+    "reason": "The candidate explicitly built a project using JavaScript."
+   },
+   {
+    "skill": "React",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of React in the provided excerpt."
+   },
+   {
+    "skill": "HTML and CSS",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a weather widget in JavaScript with HTML and CSS that calls a public weather API.",
+    "reason": "The candidate explicitly used HTML and CSS in a project."
+   },
+   {
+    "skill": "TypeScript",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "TypeScript is not referenced in the excerpt."
+   },
+   {
+    "skill": "Git",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of Git usage."
+   },
+   {
+    "skill": "Web accessibility",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Accessibility is not discussed."
+   },
+   {
+    "skill": "Next.js",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Next.js is not mentioned."
+   },
+   {
+    "skill": "Frontend testing (Jest or Playwright)",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No testing tools are referenced."
+   },
+   {
+    "skill": "Tailwind CSS",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Tailwind CSS is not mentioned."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 2.221,
+   "ok": true,
+   "prompt_tokens": 700,
+   "completion_tokens": 617,
+   "error": null
+  }
+ ]
+}

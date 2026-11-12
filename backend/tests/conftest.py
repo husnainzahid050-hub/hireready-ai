@@ -1,6 +1,25 @@
-"""Shared test helpers: tiny real PDF/DOCX builders (no extra dependencies)."""
+"""Shared test helpers: tiny real PDF/DOCX builders (no extra dependencies), and per-test resets
+of process-wide state (the in-process rate limiter and the global LLM budget counter)."""
 
 import io
+from collections.abc import Iterator
+
+import pytest
+
+import app.core.rate_limit as rate_limit
+from app.core.budget import reset_local_budget
+from app.core.redis import reset_redis
+
+
+@pytest.fixture(autouse=True)
+def _fresh_limits() -> Iterator[None]:
+    """Every test starts with empty in-memory counters (the fallback when Upstash is unset)."""
+    rate_limit._limiter = None
+    reset_redis()
+    reset_local_budget()
+    yield
+    rate_limit._limiter = None
+    reset_redis()
 
 
 def make_pdf(pages: list[str]) -> bytes:

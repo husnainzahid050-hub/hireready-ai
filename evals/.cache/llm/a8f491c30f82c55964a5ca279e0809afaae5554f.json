@@ -1,0 +1,59 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Hamza Qureshi",
+  "education": [
+   {
+    "degree": "MS Computer Science",
+    "institution": "Fictional Institute of Science",
+    "year": "2021"
+   }
+  ],
+  "skills": [
+   "Python",
+   "PyTorch",
+   "TensorFlow",
+   "MLflow",
+   "Docker",
+   "Kubernetes",
+   "SQL",
+   "computer vision"
+  ],
+  "projects": [],
+  "experience": [
+   {
+    "role": "Machine Learning Engineer",
+    "org": "Fictional AgriTech",
+    "duration": "2022 - Present",
+    "bullets": [
+     "Trained PyTorch CNN models for fruit grading on 200,000 images and improved F1 from 0.81 to 0.90.",
+     "Deployed models to production as Docker containers behind a REST service.",
+     "Tracked experiments and model versions with MLflow.",
+     "Wrote SQL queries to build labelled training sets from the image metadata database."
+    ]
+   },
+   {
+    "role": "Data Scientist",
+    "org": "Fictional Insights",
+    "duration": "2021 - 2022",
+    "bullets": [
+     "Fine-tuned convolutional networks with transfer learning and tuned hyperparameters.",
+     "Built demand forecasting models in Python."
+    ]
+   }
+  ],
+  "certifications": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 0.761,
+   "ok": true,
+   "prompt_tokens": 786,
+   "completion_tokens": 318,
+   "error": null
+  }
+ ]
+}

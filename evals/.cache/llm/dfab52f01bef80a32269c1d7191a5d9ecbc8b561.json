@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "3",
+   "justification": "Answer addresses the question but lacks depth and specifics.",
+   "evidence_quote": "Docker lets you put your app in a container so it runs the same everywhere."
+  },
+  "technical_accuracy": {
+   "score": "3",
+   "justification": "Correctly states containers run the same everywhere and are lightweight, but omits kernel sharing detail.",
+   "evidence_quote": "It is like a lightweight virtual machine."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "Minimal explanation, no mention of images, Dockerfile, or benefits beyond “runs the same everywhere.”",
+   "evidence_quote": "I have used it to run a database locally."
+  },
+  "structure": {
+   "score": "3",
+   "justification": "Logical flow but no clear segmentation of concepts.",
+   "evidence_quote": "Docker lets you put your app in a container so it runs the same everywhere."
+  },
+  "communication": {
+   "score": "3",
+   "justification": "Clear but overly brief and lacks technical nuance.",
+   "evidence_quote": "Docker lets you put your app in a container so it runs the same everywhere."
+  },
+  "what_interviewer_wanted": "Explain what Docker is, how it packages applications, why it solves environment consistency, and mention key concepts like images, containers, Dockerfile, and kernel sharing.",
+  "improved_answer": "Docker is a platform that packages an application and its dependencies into a lightweight image, which can be run as a container on any host. A container is a running instance of that image, and because it shares the host’s kernel, it’s much lighter than a full virtual machine. This solves the “works on my machine” problem by ensuring the same environment everywhere. I’ve used Docker to containerize a FastAPI service and run a local PostgreSQL instance for development.",
+  "one_tip": "Include the key terms—image, container, Dockerfile, and kernel sharing—to demonstrate a solid grasp of Docker’s fundamentals.",
+  "feedback_summary": "Your answer shows you understand the basics, but adding more detail will strengthen it.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you describe how you would create a Dockerfile for a FastAPI application and what steps you’d take to ensure secrets aren’t baked into the image?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.154,
+   "ok": true,
+   "prompt_tokens": 1701,
+   "completion_tokens": 518,
+   "error": null
+  }
+ ]
+}

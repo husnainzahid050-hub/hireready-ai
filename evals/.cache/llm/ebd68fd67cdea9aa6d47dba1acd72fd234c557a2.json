@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The answer does not address overfitting or its prevention.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "The explanation is incorrect; overfitting is not about overheating or laptop size.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No details, reasoning, or examples provided.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "Answer is a single sentence with no logical structure.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "communication": {
+   "score": "1",
+   "justification": "Answer is unclear and contains misinformation.",
+   "evidence_quote": "Overfitting is when you train the model for too long and the computer overheats, so you should train on a smaller laptop or use the cloud."
+  },
+  "what_interviewer_wanted": "Explain what overfitting is, how to detect it, and list practical methods to prevent it, ideally with an example.",
+  "improved_answer": "Overfitting happens when a model learns noise in the training data, so it performs well on training but poorly on unseen data. I would detect it by looking for a large gap between training and validation metrics. To prevent it, I’d try adding more data or data augmentation, use regularization (L1/L2), simplify the model, apply dropout for neural nets, or use early stopping and cross‑validation. In my internship, I reduced overfitting on a classification task by adding L2 regularization and performing 5‑fold cross‑validation, which improved validation accuracy by 8%.",
+  "one_tip": "Focus on the definition, detection, and concrete remedies when answering overfitting questions.",
+  "feedback_summary": "Your answer missed the core concepts; try to explain what overfitting really means and how you would address it.",
+  "answer_quality": "off_topic",
+  "follow_up_question": null,
+  "transition": "Thanks for sharing your thoughts."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.346,
+   "ok": true,
+   "prompt_tokens": 1753,
+   "completion_tokens": 534,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,23 @@
+Junior Frontend Developer - Saffron Learning (fictional company), Islamabad
+
+Saffron Learning builds online courses for school students. Join our small web team to build fast,
+accessible pages used by thousands of students on low-end phones. Junior role, fresh graduates
+welcome.
+
+What you'll do
+- Build UI components and pages from Figma designs.
+- Make pages responsive and accessible.
+- Fix bugs and improve page load performance.
+
+Must have
+- JavaScript
+- React
+- HTML and CSS
+- TypeScript
+- Git
+- Web accessibility basics
+
+Bonus points
+- Next.js
+- Frontend testing (Jest or Playwright)
+- Tailwind CSS

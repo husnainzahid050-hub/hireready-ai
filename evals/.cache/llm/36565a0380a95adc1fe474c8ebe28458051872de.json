@@ -1,0 +1,76 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Sana Malik",
+  "education": [
+   {
+    "degree": "BS Artificial Intelligence",
+    "institution": "Fictional University of Technology",
+    "year": "2026"
+   }
+  ],
+  "skills": [
+   "Python",
+   "PyTorch",
+   "scikit-learn",
+   "FastAPI",
+   "LangChain",
+   "SQL",
+   "Git",
+   "pandas"
+  ],
+  "projects": [
+   {
+    "title": "Campus Policy Assistant (RAG)",
+    "stack": [
+     "LangChain",
+     "FAISS",
+     "FastAPI"
+    ],
+    "outcome": "Evaluated answer faithfulness on 50 hand-written questions and reduced hallucinated answers by 40%."
+   },
+   {
+    "title": "Crop Disease Classifier",
+    "stack": [
+     "scikit-learn",
+     "PyTorch"
+    ],
+    "outcome": "Reached 91% test accuracy."
+   }
+  ],
+  "experience": [
+   {
+    "role": "Machine Learning Intern",
+    "org": "Fictional Data Co.",
+    "duration": "Jun 2025 - Aug 2025",
+    "bullets": [
+     "Wrote Python scripts to clean customer data and train churn prediction models.",
+     "Collaborated through pull requests and code review on GitHub."
+    ]
+   }
+  ],
+  "certifications": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 0.926,
+   "ok": false,
+   "prompt_tokens": null,
+   "completion_tokens": null,
+   "error": "LLMError"
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-3.5-flash",
+   "schema": "CVProfile",
+   "latency_s": 22.278,
+   "ok": true,
+   "prompt_tokens": 469,
+   "completion_tokens": 199,
+   "error": null
+  }
+ ]
+}

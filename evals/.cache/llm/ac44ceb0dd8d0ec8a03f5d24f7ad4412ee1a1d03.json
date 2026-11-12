@@ -1,0 +1,73 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "Python",
+    "verdict": "weak_evidence",
+    "evidence_quote": "Python (basic)",
+    "reason": "Python is only listed as a basic skill, no concrete usage shown."
+   },
+   {
+    "skill": "Machine learning fundamentals",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not mention any machine learning experience or study."
+   },
+   {
+    "skill": "LLMs and RAG pipelines",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of large language models or retrieval‑augmented generation work."
+   },
+   {
+    "skill": "REST APIs with FastAPI",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "FastAPI or REST API development is not referenced."
+   },
+   {
+    "skill": "SQL",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Wrote SQL queries for monthly attendance reports.",
+    "reason": "The candidate explicitly used SQL to generate reports."
+   },
+   {
+    "skill": "Git",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No reference to version control or Git usage."
+   },
+   {
+    "skill": "Docker",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Docker is not mentioned anywhere in the excerpts."
+   },
+   {
+    "skill": "AWS or GCP",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No cloud platform experience is indicated."
+   },
+   {
+    "skill": "Vector databases",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "The CV does not contain any mention of vector databases."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 1.794,
+   "ok": true,
+   "prompt_tokens": 801,
+   "completion_tokens": 624,
+   "error": null
+  }
+ ]
+}
