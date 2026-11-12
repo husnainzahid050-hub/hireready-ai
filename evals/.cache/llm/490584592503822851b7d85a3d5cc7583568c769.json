@@ -1,0 +1,73 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "Python",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Wrote Python scripts to clean customer data and train churn prediction models.",
+    "reason": "Candidate explicitly wrote Python scripts in a work experience."
+   },
+   {
+    "skill": "Machine learning fundamentals",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Trained a scikit-learn random forest and a small PyTorch CNN on 5,000 leaf images.",
+    "reason": "Candidate built and trained ML models using standard libraries."
+   },
+   {
+    "skill": "LLMs and RAG pipelines",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built a retrieval-augmented chatbot over 300 university policy PDFs using LangChain and FAISS.",
+    "reason": "Candidate created a RAG chatbot, demonstrating LLM/RAG experience."
+   },
+   {
+    "skill": "REST APIs with FastAPI",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Served the assistant through a FastAPI REST API with streaming responses.",
+    "reason": "Candidate explicitly deployed a FastAPI REST API."
+   },
+   {
+    "skill": "SQL",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of SQL in the provided excerpts."
+   },
+   {
+    "skill": "Git",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Collaborated through pull requests and code review on GitHub.",
+    "reason": "Candidate used Git for collaboration and code review."
+   },
+   {
+    "skill": "Docker",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Docker is not referenced in the excerpts."
+   },
+   {
+    "skill": "AWS or GCP",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No cloud platform is mentioned."
+   },
+   {
+    "skill": "Vector databases",
+    "verdict": "weak_evidence",
+    "evidence_quote": "using LangChain and FAISS.",
+    "reason": "FAISS is a vector similarity library, indicating some exposure to vector stores."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 2.111,
+   "ok": true,
+   "prompt_tokens": 869,
+   "completion_tokens": 805,
+   "error": null
+  }
+ ]
+}

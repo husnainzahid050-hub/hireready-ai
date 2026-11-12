@@ -1,0 +1,167 @@
+{
+ "step": "insights",
+ "result": {
+  "strengths": [
+   {
+    "title": "Proficient Python programming",
+    "why_it_matters": "The role requires writing robust Python services for model serving and data processing.",
+    "evidence_quote": "Wrote Python scripts to clean customer data and train churn prediction models."
+   },
+   {
+    "title": "Solid machine‑learning fundamentals",
+    "why_it_matters": "You’ll need to evaluate model outputs and track quality metrics for RAG pipelines.",
+    "evidence_quote": "Trained a scikit-learn random forest and a small PyTorch CNN on 5,000 leaf images."
+   },
+   {
+    "title": "Hands‑on experience with LLMs and Retrieval‑Augmented Generation",
+    "why_it_matters": "Building and improving RAG pipelines over customer documents is a core responsibility.",
+    "evidence_quote": "Built a retrieval-augmented chatbot over 300 university policy PDFs using LangChain and FAISS."
+   },
+   {
+    "title": "FastAPI REST‑API development",
+    "why_it_matters": "The job expects you to expose models through streaming FastAPI endpoints.",
+    "evidence_quote": "Served the assistant through a FastAPI REST API with streaming responses."
+   },
+   {
+    "title": "Effective Git collaboration",
+    "why_it_matters": "Team work is done via pull requests and code reviews on GitHub.",
+    "evidence_quote": "Collaborated through pull requests and code review on GitHub."
+   }
+  ],
+  "likely_questions": [
+   {
+    "topic": "Retrieval‑Augmented Generation (RAG) pipelines",
+    "questions": [
+     "Can you walk me through the architecture of the Campus Policy Assistant you built, focusing on how you indexed the PDFs and retrieved relevant passages?",
+     "How did you measure answer faithfulness, and what steps did you take to reduce hallucinations by 40%?",
+     "What trade‑offs did you consider when choosing FAISS versus other vector stores?"
+    ]
+   },
+   {
+    "topic": "FastAPI and RESTful services",
+    "questions": [
+     "Explain how you implemented streaming responses in FastAPI for the chatbot.",
+     "Which HTTP status codes do you return for successful queries, client errors, and server errors, and why?"
+    ]
+   },
+   {
+    "topic": "Machine‑learning fundamentals",
+    "questions": [
+     "Describe the difference between precision and recall and give an example of when you would prioritize one over the other in evaluating a RAG system.",
+     "What is overfitting, and how did you guard against it in your Crop Disease Classifier project?"
+    ]
+   },
+   {
+    "topic": "Git and collaboration (must‑have skill)",
+    "questions": [
+     "Tell me about a time you faced a merge conflict during a pull request. How did you resolve it?",
+     "Walk me through how you contribute a new feature to a shared repository using Git and GitHub."
+    ]
+   },
+   {
+    "topic": "SQL basics (identified gap)",
+    "questions": [
+     "The role may involve storing document metadata in a relational database. How would you design a simple schema for PDFs and their vector IDs?",
+     "Write a SQL query that joins a `documents` table with a `vectors` table to fetch the top‑k most similar vectors for a given document ID."
+    ]
+   },
+   {
+    "topic": "Behavioral",
+    "questions": [
+     "Tell me about a time you worked in a team and faced a disagreement. How did you handle it and what was the outcome?",
+     "Give an example of how you used feedback from a code review to improve your implementation."
+    ]
+   }
+  ],
+  "prep_plan": [
+   {
+    "focus": "SQL fundamentals (no evidence – biggest gap)",
+    "tasks": [
+     "Read the PostgreSQL tutorial and take notes on CREATE TABLE, primary/foreign keys, and basic SELECT syntax.",
+     "Design a simple schema for storing PDF metadata and vector IDs; write the CREATE statements.",
+     "Practice writing JOIN queries that retrieve document text together with its vector representation."
+    ],
+    "resource_urls": [
+     "https://www.postgresql.org/docs/current/tutorial.html",
+     "https://www.postgresql.org/docs/current/tutorial-window.html"
+    ]
+   },
+   {
+    "focus": "Vector databases (weak evidence)",
+    "tasks": [
+     "Review the FAISS documentation and the Supabase AI vectors guide to understand indexing parameters.",
+     "Add a second vector store (e.g., Supabase) to the Campus Policy Assistant project and compare retrieval latency.",
+     "Write a short blog‑style summary of the differences between FAISS and other vector DBs."
+    ],
+    "resource_urls": [
+     "https://supabase.com/docs/guides/ai",
+     "https://huggingface.co/learn/llm-course/chapter1/1"
+    ]
+   },
+   {
+    "focus": "Docker basics (nice‑to‑have)",
+    "tasks": [
+     "Create a Dockerfile for the FastAPI service that installs dependencies and runs the app.",
+     "Build and run the container locally, verifying that the API endpoint works.",
+     "Write a brief README explaining how to spin up the service with Docker."
+    ],
+    "resource_urls": []
+   },
+   {
+    "focus": "Cloud familiarity – AWS/GCP (nice‑to‑have)",
+    "tasks": [
+     "Watch a short introductory video on deploying FastAPI on AWS Elastic Beanstalk or GCP Cloud Run (use free YouTube resources).",
+     "Sketch a deployment diagram showing where the vector store, API, and monitoring would live in the cloud.",
+     "List three cloud services you would consider for scaling the RAG pipeline."
+    ],
+    "resource_urls": []
+   },
+   {
+    "focus": "RAG evaluation & metrics (strength reinforcement)",
+    "tasks": [
+     "Review evaluation techniques for RAG (faithfulness, relevance, latency).",
+     "Create a one‑page cheat sheet with formulas and thresholds you used in the Campus Policy Assistant.",
+     "Run a quick re‑evaluation on a new set of 20 questions to practice metric calculation."
+    ],
+    "resource_urls": [
+     "https://huggingface.co/learn/llm-course/chapter1/1"
+    ]
+   },
+   {
+    "focus": "FastAPI best practices (strength reinforcement)",
+    "tasks": [
+     "Read the FastAPI tutorial sections on dependency injection and background tasks.",
+     "Add input validation with Pydantic models to your API endpoints.",
+     "Implement proper error handling and map exceptions to appropriate HTTP status codes."
+    ],
+    "resource_urls": [
+     "https://fastapi.tiangolo.com/tutorial/",
+     "https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status"
+    ]
+   },
+   {
+    "focus": "Mock interview rehearsal",
+    "tasks": [
+     "Do a timed mock interview covering the question groups above; record your answers.",
+     "Review the recording, note any hesitations or gaps, and refine your STAR stories.",
+     "Ask a peer or mentor to give feedback on technical depth and communication clarity."
+    ],
+    "resource_urls": [
+     "https://capd.mit.edu/resources/the-star-method-for-behavioral-interviews/"
+    ]
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "InsightsDraft",
+   "latency_s": 4.565,
+   "ok": true,
+   "prompt_tokens": 2324,
+   "completion_tokens": 1916,
+   "error": null
+  }
+ ]
+}

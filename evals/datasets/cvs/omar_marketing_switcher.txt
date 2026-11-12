@@ -1,0 +1,18 @@
+Omar Farooq
+Lahore, Pakistan | omar.farooq@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BBA Marketing, Fictional Business School, 2023
+
+SKILLS
+Excel, Google Analytics, social media marketing, SQL, copywriting, presentation skills
+
+EXPERIENCE
+Marketing Executive, Fictional Foods Ltd. (2023 - Present)
+- Planned social media campaigns for four product launches.
+- Tracked campaign results in Excel spreadsheets with pivot tables and charts.
+- Presented monthly campaign reports to the marketing director and the sales team.
+
+CERTIFICATIONS
+SQL for Beginners (online course, in progress)

@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly explains the steps to resolve a merge conflict.",
+   "evidence_quote": "First I pull the latest main into my branch, then Git marks the conflicting files. I open each one, look at both sides between the conflict markers, and decide what the combined code should be"
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "All described steps are correct for resolving merge conflicts in Git.",
+   "evidence_quote": "I open each one, look at both sides between the conflict markers, and decide what the combined code should be"
+  },
+  "depth": {
+   "score": "5",
+   "justification": "The answer includes detailed actions, testing, branch strategy, and real internship example.",
+   "evidence_quote": "During my internship I resolved a conflict in a shared config file this way after checking with the other developer"
+  },
+  "structure": {
+   "score": "5",
+   "justification": "The response follows a logical sequence: pull, inspect, edit, test, commit, and strategy.",
+   "evidence_quote": "First I pull the latest main into my branch, then Git marks the conflicting files. I open each one, look at both sides between the conflict markers, and decide what the combined code should be"
+  },
+  "communication": {
+   "score": "5",
+   "justification": "The answer is concise, clear, and well‑structured.",
+   "evidence_quote": "First I pull the latest main into my branch, then Git marks the conflicting files."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a clear, step‑by‑step explanation of how to resolve a merge conflict, including inspecting markers, editing, testing, and committing, plus collaboration practices.",
+  "improved_answer": "First I pull the latest main into my branch so I have the most recent changes. Git then highlights the conflicting hunks with markers. I open each file, read both sides, and decide on the correct combined code—sometimes I ask the teammate who made the other change. I remove the markers, run the tests to ensure nothing broke, stage the resolved files, and commit the merge. I keep branches short and pull from main often to avoid large conflicts. During my internship I used this process to resolve a conflict in a shared config file after checking with the other developer.",
+  "one_tip": "Mention the importance of running tests after resolving conflicts to catch any unintended side effects.",
+  "feedback_summary": "You gave a thorough, well‑structured answer that covers all key steps and collaboration aspects.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.472,
+   "ok": true,
+   "prompt_tokens": 1737,
+   "completion_tokens": 684,
+   "error": null
+  }
+ ]
+}

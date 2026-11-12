@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly explains what Docker is and why it is useful.",
+   "evidence_quote": "Docker packages an application with its dependencies into an image, and a container is a running instance of that image."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "All technical statements are correct and align with best practices.",
+   "evidence_quote": "Containers are lighter than virtual machines because they share the host kernel."
+  },
+  "depth": {
+   "score": "5",
+   "justification": "The response includes Dockerfile strategy, caching, and secret handling, showing depth.",
+   "evidence_quote": "I write a Dockerfile starting from a slim Python base image, copy requirements first so the dependency layer is cached, then copy the code."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "The answer follows a logical progression from definition to practical example.",
+   "evidence_quote": "For the FastAPI service in my project I used a container so my teammate could run it with one command, and I kept secrets out of the image by passing them as environment variables."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "The response is clear, concise, and well‑organized.",
+   "evidence_quote": "Docker packages an application with its dependencies into an image, and a container is a running instance of that image."
+  },
+  "what_interviewer_wanted": "Explain Docker’s purpose, benefits, and how it solves environment consistency, with a brief mention of best practices like Dockerfile structure and secret handling.",
+  "improved_answer": "Docker packages an application with its dependencies into an image, and a container is a running instance of that image. This lets the app run the same on my laptop, in CI, and on the server, eliminating the “works on my machine” problem. I build images from a slim Python base, cache dependencies by copying requirements first, then add the code. In my FastAPI project I used this approach so teammates could run the service with a single command, and I kept secrets out of the image by passing them as environment variables.",
+  "one_tip": "Mention the benefit of image caching for faster builds.",
+  "feedback_summary": "Great, you covered definition, benefits, and practical Dockerfile tips.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.794,
+   "ok": true,
+   "prompt_tokens": 1795,
+   "completion_tokens": 644,
+   "error": null
+  }
+ ]
+}

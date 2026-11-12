@@ -1,0 +1,77 @@
+{
+ "step": "jd_extract",
+ "result": {
+  "title": "Machine Learning Engineer",
+  "seniority": "mid",
+  "must_have_skills": [
+   {
+    "name": "Python",
+    "competency": "python"
+   },
+   {
+    "name": "PyTorch",
+    "competency": "deep_learning"
+   },
+   {
+    "name": "Deep learning (CNNs)",
+    "competency": "deep_learning"
+   },
+   {
+    "name": "Deploying models to production",
+    "competency": "cloud_devops"
+   },
+   {
+    "name": "MLOps tooling (MLflow)",
+    "competency": "cloud_devops"
+   },
+   {
+    "name": "Docker",
+    "competency": "cloud_devops"
+   },
+   {
+    "name": "SQL",
+    "competency": "sql"
+   }
+  ],
+  "nice_to_have_skills": [
+   {
+    "name": "Kubernetes",
+    "competency": "cloud_devops"
+   },
+   {
+    "name": "Distributed training",
+    "competency": "deep_learning"
+   },
+   {
+    "name": "NLP",
+    "competency": "nlp_llms"
+   }
+  ],
+  "responsibilities": [
+   "Train and evaluate deep learning models on image data.",
+   "Package and deploy models as services and monitor them in production.",
+   "Build reproducible training pipelines and track experiments."
+  ],
+  "tools": [
+   "Python",
+   "PyTorch",
+   "Docker",
+   "SQL",
+   "MLflow",
+   "Kubernetes"
+  ],
+  "soft_skills": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "JobProfile",
+   "latency_s": 0.832,
+   "ok": true,
+   "prompt_tokens": 890,
+   "completion_tokens": 414,
+   "error": null
+  }
+ ]
+}

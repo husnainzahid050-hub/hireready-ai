@@ -171,7 +171,35 @@ with psycopg.connect(uri, autocommit=True) as conn:
     unknown = conn.execute(claim, ("00000000-0000-0000-0000-000000000000", 120)).fetchone()[0]
     print("claim when analyzed / unknown session:", analyzed, unknown)
     ok &= analyzed is False and unknown is False
-    conn.execute("delete from sessions where id = %s", (other,))
+
+    # Report claim (Phase 5, app/services/report.py): the reports primary key IS the lock, so a
+    # second placeholder insert must fail; share tokens are unique; a JSON-path filter deletes
+    # only the placeholder; the report row is cascade-deleted with the session.
+    ins = "insert into reports (session_id, report, share_token) values (%s, %s::jsonb, %s)"
+    conn.execute(ins, (other, '{"state": "generating"}', None))
+    try:
+        conn.execute(ins, (other, '{"state": "generating"}', None))
+        ok = False
+        print("FAIL: second report claim should violate the primary key")
+    except psycopg.errors.UniqueViolation:
+        print("second report claim rejected (pk)")
+    conn.execute("update reports set report = '{\"state\": \"ready\"}', share_token = 'tok1' where session_id = %s", (other,))
+    conn.execute("delete from reports where session_id = %s and report->>'state' = 'generating'", (other,))
+    ok &= conn.execute("select count(*) from reports").fetchone()[0] == 1  # ready row kept
+    third = conn.execute(
+        "insert into sessions (guest_token_hash) values ('h3') returning id"
+    ).fetchone()[0]
+    try:
+        conn.execute(ins, (third, "{}", "tok1"))
+        ok = False
+        print("FAIL: share_token should be unique")
+    except psycopg.errors.UniqueViolation:
+        print("duplicate share token rejected")
+
+    conn.execute("delete from sessions where id in (%s, %s)", (other, third))
+    reports_left = conn.execute("select count(*) from reports").fetchone()[0]
+    print("reports after deleting the session:", reports_left)
+    ok &= reports_left == 0
     usage_left = conn.execute("select count(*) from session_usage").fetchone()[0]
     print("session_usage rows after deleting the session:", usage_left)
     ok &= usage_left == 0

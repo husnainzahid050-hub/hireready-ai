@@ -1,0 +1,17 @@
+Usman Tariq
+Faisalabad, Pakistan | usman.tariq@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BS Computer Science, Fictional Agricultural University, 2025
+
+SKILLS
+Python, Flask, SQLite, Git, Linux, Docker
+
+PROJECTS
+Library Management API
+- Built a Flask REST API with SQLite for book loans, with endpoints for search and returns.
+
+EXPERIENCE
+Software Intern, Fictional Tech Solutions (Jun 2024 - Aug 2024)
+- Fixed bugs in a Python Flask application and wrote documentation for its endpoints.

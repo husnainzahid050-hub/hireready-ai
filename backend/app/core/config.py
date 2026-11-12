@@ -39,8 +39,17 @@ class Settings(BaseSettings):
     upstash_redis_rest_url: str | None = None
     upstash_redis_rest_token: SecretStr | None = None
     turnstile_secret_key: SecretStr | None = None
+    # Email (Phase 5) via Resend's HTTP API. Sending is OFF (503 email_not_configured) until
+    # both are set. EMAIL_FROM: a sender on a domain verified in Resend ("Name <a@b.com>" works).
+    resend_api_key: SecretStr | None = None
+    email_from: str | None = None
     # Set automatically by Vercel ("production" | "preview" | "development").
     vercel_env: str | None = None
+
+    # Optional Langfuse tracing (Phase 8): on only when all three are set. See core/tracing.py.
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: SecretStr | None = None
+    langfuse_host: str | None = None
 
     @field_validator("embedding_dim")
     @classmethod

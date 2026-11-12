@@ -1,0 +1,20 @@
+Hamza Qureshi
+Lahore, Pakistan | hamza.qureshi@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+MS Computer Science, Fictional Institute of Science, 2021
+
+SKILLS
+Python, PyTorch, TensorFlow, MLflow, Docker, Kubernetes, SQL, computer vision
+
+EXPERIENCE
+Machine Learning Engineer, Fictional AgriTech (2022 - Present)
+- Trained PyTorch CNN models for fruit grading on 200,000 images and improved F1 from 0.81 to 0.90.
+- Deployed models to production as Docker containers behind a REST service.
+- Tracked experiments and model versions with MLflow.
+- Wrote SQL queries to build labelled training sets from the image metadata database.
+
+Data Scientist, Fictional Insights (2021 - 2022)
+- Fine-tuned convolutional networks with transfer learning and tuned hyperparameters.
+- Built demand forecasting models in Python.

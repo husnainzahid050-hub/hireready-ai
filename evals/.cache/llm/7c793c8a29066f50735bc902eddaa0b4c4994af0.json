@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "5",
+   "justification": "The answer directly addresses overfitting and prevention methods.",
+   "evidence_quote": "The model learns noise in the training data, so training performance is high but validation performance is poor; detect via a gap between train and validation scores; remedies include more data, regularization (L1/L2), simpler models, early stopping, dropout for neural nets, and cross-validation; gives an example from a project."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "All technical details are correct and align with best practices.",
+   "evidence_quote": "The model learns noise in the training data, so training performance is high but validation performance is poor; detect via a gap between train and validation scores; remedies include more data, regularization (L1/L2), simpler models, early stopping, dropout for neural nets, and cross-validation."
+  },
+  "depth": {
+   "score": "5",
+   "justification": "Provides multiple remedies, detection, and example, showing depth.",
+   "evidence_quote": "remedies include more data, regularization (L1/L2), simpler models, early stopping, dropout for neural nets, and cross-validation; gives an example from a project."
+  },
+  "structure": {
+   "score": "5",
+   "justification": "Logical flow: definition, detection, remedies, example.",
+   "evidence_quote": "The model learns noise in the training data, so training performance is high but validation performance is poor; detect via a gap between train and validation scores; remedies include more data, regularization (L1/L2), simpler models, early stopping, dropout for neural nets, and cross-validation; gives an example from a project."
+  },
+  "communication": {
+   "score": "5",
+   "justification": "Clear, concise, and well‑organized.",
+   "evidence_quote": "The model learns noise in the training data, so training performance is high but validation performance is poor; detect via a gap between train and validation scores; remedies include more data, regularization (L1/L2), simpler models, early stopping, dropout for neural nets, and cross-validation; gives an example from a project."
+  },
+  "what_interviewer_wanted": "Explain what overfitting is, how to detect it, and list practical prevention techniques, ideally with a project example.",
+  "improved_answer": "Overfitting happens when a model captures noise in the training data, giving high training accuracy but low validation accuracy. I detect it by looking for a large gap between train and validation scores. To prevent it I use techniques like adding more data or data augmentation, applying L1/L2 regularization, simplifying the model, early stopping, dropout for neural nets, and cross‑validation. In my campus policy assistant project I reduced hallucinated answers by 40% by applying these methods, especially regularization and cross‑validation.",
+  "one_tip": "When answering, start with a concise definition before diving into detection and remedies.",
+  "feedback_summary": "Great, you covered all key points with clear examples.",
+  "answer_quality": "complete",
+  "follow_up_question": null,
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.55,
+   "ok": true,
+   "prompt_tokens": 1756,
+   "completion_tokens": 633,
+   "error": null
+  }
+ ]
+}

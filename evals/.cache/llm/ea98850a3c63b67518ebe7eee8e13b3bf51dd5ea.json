@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The answer does not address the question of explaining the project to a non-technical person; it dives straight into technical details.",
+   "evidence_quote": "It is a RAG pipeline with embeddings in a FAISS vector index, chunked with a recursive splitter at 512 tokens with 50 overlap, and LangChain LCEL chains served by FastAPI with SSE streaming."
+  },
+  "technical_accuracy": {
+   "score": "5",
+   "justification": "The technical description is accurate based on the candidate’s CV facts.",
+   "evidence_quote": "It is a RAG pipeline with embeddings in a FAISS vector index, chunked with a recursive splitter at 512 tokens with 50 overlap, and LangChain LCEL chains served by FastAPI with SSE streaming."
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No depth beyond listing components; no reasoning, trade-offs, or examples.",
+   "evidence_quote": "It is a RAG pipeline with embeddings in a FAISS vector index, chunked with a recursive splitter at 512 tokens with 50 overlap, and LangChain LCEL chains served by FastAPI with SSE streaming."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No logical order or narrative; purely a list of technical terms.",
+   "evidence_quote": "It is a RAG pipeline with embeddings in a FAISS vector index, chunked with a recursive splitter at 512 tokens with 50 overlap, and LangChain LCEL chains served by FastAPI with SSE streaming."
+  },
+  "communication": {
+   "score": "1",
+   "justification": "The answer is jargon-heavy, lacks clarity for a non-technical audience, and is not concise in the intended sense.",
+   "evidence_quote": "It is a RAG pipeline with embeddings in a FAISS vector index, chunked with a recursive splitter at 512 tokens with 50 overlap, and LangChain LCEL chains served by FastAPI with SSE streaming."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a simple, non-technical explanation that starts with the problem, uses an everyday analogy, and describes the impact in plain language.",
+  "improved_answer": "My final‑year project was a campus policy assistant that helps students find the right rules quickly. I built it by pulling policy documents into a searchable database, then letting a chatbot ask the database for the best answer. The result was a 40 % drop in incorrect answers, so students got reliable guidance faster.",
+  "one_tip": "Start with the problem and the benefit before mentioning any tech.",
+  "feedback_summary": "You gave a very technical description; try framing it in terms of the user problem and impact.",
+  "answer_quality": "off_topic",
+  "follow_up_question": "Can you explain how the 40 % reduction in hallucinated answers translates into a better experience for a student using the assistant?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.377,
+   "ok": true,
+   "prompt_tokens": 1688,
+   "completion_tokens": 605,
+   "error": null
+  }
+ ]
+}

@@ -34,6 +34,8 @@ Attacker can also call FastAPI's own Vercel URL directly (it is public).
 | Malicious file | Crash or freeze the parser, zip/PDF bombs | Size, MIME + magic bytes, page cap, pypdf limits, DOCX unpacked-size + entry caps, parsing in a thread with timeout, 4.5 MB body limit |
 | Prompt injection in CV / JD / answers | Forge verdicts, quotes, scores, leak the prompt, inject links | Fenced untrusted text, data-only rule, strict JSON schemas, quotes verified against the CV and checked for instruction-like text, score computed in code, URL allowlist |
 | Curious operator / log reader | See PII in logs | Log IDs only; formatter masks emails and truncates long strings; no LLM output in error logs |
+| Someone holding a share link | Read more than the report, keep access forever, find links via search | Redacted copy only (no session id, CV text, email; spoken emails / phone numbers masked), 256-bit revocable token, dies with the session (7 days) or on delete, `noindex` header + meta, `no-referrer`, generic OG preview |
+| Abuse of "Email me this report" | Use us as a spam relay | Needs a guest token + a finished interview + a built report; quota 3 emails/session + rate limit 5/h per IP; body is our fixed summary template (user text HTML-escaped); off until a provider is configured |
 | Database leak | Use stolen data | Tokens hashed; RLS on + no anon grants; auto-expiry after 7 days (cleanup cron pending) |
 | Supply chain | Vulnerable dependency | Pinned versions, `pip-audit` and `npm audit` in CI |
 
@@ -67,6 +69,11 @@ say they are based on the candidate's own CV.
 | Docs/OpenAPI hidden in production (`APP_ENV=production` **or** `VERCEL_ENV=production`) | `main.py`, `config.py` |
 | API security headers: `nosniff`, `X-Frame-Options: DENY`, `CSP: default-src 'none'; frame-ancestors 'none'`, `Referrer-Policy: no-referrer`, CORP, HSTS, `Cache-Control: no-store` | `backend/app/core/headers.py` |
 | Page security headers: CSP, HSTS, nosniff, Referrer-Policy, `Permissions-Policy: microphone=(self)`, `frame-ancestors 'none'`, X-Frame-Options, COOP `same-origin` | `frontend/next.config.ts` |
+| **Report (Phase 5)**: built only for a completed interview; all scores computed in code; LLM verdict clamped to one step from the score; flag quotes verified against the referenced transcript; plan URLs allowlisted; one build per session (the `reports` primary key is the lock, stale claims expire after 120 s); rate limit `report` 10/h + quota 3 on fresh builds only | `backend/app/services/report.py`, `backend/app/routers/report.py` |
+| **Answer-scoring injection guard**: an answer that imitates the scorer's output format (2+ scorer field names as keys, bare JSON, or mostly markup) is scored 1 on every criterion in code, marked off-topic and gets fixed "Not a real answer" feedback, whatever the model returned; any 4-5 score with no verified quote from the answer is capped at 3; the prompt also warns that the fenced transcript may imitate the output format | `backend/app/agents/interviewer/tools.py` (`imitates_output_format`, `to_scores`), `prompts.py` |
+| **Share links**: `secrets.token_urlsafe(32)`, unique, revocable, format-checked before any DB call; public copy redacted (`shared_view`); 404 for revoked / deleted / expired; `X-Robots-Tag: noindex, nofollow, noarchive`, `Referrer-Policy: no-referrer`, `Cache-Control: private, no-store` on both the API response and the `/r/*` page; `robots.txt` deliberately **allows** `/r/` so crawlers see the noindex; generic OG text | `backend/app/routers/report.py`, `frontend/next.config.ts`, `frontend/app/r/[token]/page.tsx`, `frontend/app/robots.ts` |
+| **Email**: Resend over httpx behind `EmailProvider`; disabled (503 `email_not_configured`) until `RESEND_API_KEY` + `EMAIL_FROM`; address and content never logged (status code only); recipient shown masked; summary only, no transcripts / CV; all user text HTML-escaped; `Idempotency-Key` holds a hash of the address, not the address; rate limit `email` 5/h + quota 3 | `backend/app/services/email.py`, `backend/app/routers/report.py` |
+| **Delete my data**: `DELETE /sessions/{id}` (owner only) removes the session; every table cascades (checked on real Postgres); the browser forgets the guest token | `backend/app/routers/report.py`, `supabase/tests/test_migrations.py`, `frontend/lib/api.ts` |
 | CI: `permissions: contents: read`, `pip-audit -r requirements.txt`, `npm audit --omit=dev --audit-level=high` | `.github/workflows/ci.yml` |
 
 Tests: `backend/tests/test_security_api.py` (quota loop, 429s, Turnstile, injected CV end to
@@ -93,7 +100,8 @@ injections. Even if it had obeyed, the first line is rejected by the quote check
 | Apply migrations `20261106000004_security.sql` and `20261106000005_analysis_claim.sql` | now | Run them in Supabase **before deploying this backend** (steps in `supabase/PENDING_MIGRATIONS.md`): uploads, analyses and interview turns call `consume_quota` / `claim_analysis` and fail closed (500) without them. |
 | Cleanup cron (delete expired sessions) and reminder cron with `CRON_SECRET` | 7 | `CRON_SECRET` env var; expired sessions are already unreadable, but data stays until the cron runs. |
 | HMAC-signed outbound webhook | 7 | `OUTBOUND_WEBHOOK_URL`, `OUTBOUND_WEBHOOK_SECRET` |
-| Delete-my-data endpoint, share tokens without raw CV / email, `/privacy` page | 5-6 | code only |
+| Share tokens stored in plain text (not hashed) | later | Deliberate: the owner's page must show the active link again, and a DB leak would already expose the reports the tokens protect. Revisit if links outlive sessions. |
+| Email sending | when chosen | Create a Resend account, verify a sending domain, set `RESEND_API_KEY` + `EMAIL_FROM`. Reminder emails, unsubscribe and the outbound webhook stay Phase 7. |
 | Cache the demo analysis across sessions (each demo session costs ~4 LLM calls) | 7 | code only; rate limits cover it meanwhile |
 | Stricter CSP (nonces instead of `'unsafe-inline'` scripts) and moving the guest token from `localStorage` to an HttpOnly cookie | 7 | Nonces force dynamic rendering of every page; the trade-off with the static landing page needs a decision. Today XSS risk is low (React escaping, no `dangerouslySetInnerHTML`, URL allowlist). |
 | Pin GitHub Actions by commit SHA, add Dependabot; pin `pip-audit` | 7 | repo settings |
@@ -118,10 +126,10 @@ injections. Even if it had obeyed, the first line is rejected by the quote check
 | CORS explicit allowlist | Done | Wildcard refused |
 | Audio never stored | Done | Phase 4: parsed in memory only (multipart parser never spools to disk), sent to Groq, dropped; only the transcript + metrics are saved. Limits: 3 MB, MIME + magic bytes, 120 s (client auto-stop + Whisper duration check), same quota/rate limit as text answers, charged before transcription. Transcripts fenced as `<transcript>` like typed answers |
 | Guest data auto-deleted after 7 days | Partial | `expires_at` enforced on read; cleanup cron pending |
-| "Delete my data" button | Pending (Phase 5) | |
-| Shared reports exclude raw CV text and email | Pending (Phase 5) | |
-| No CV text in logs (IDs only) | Done | Enforced by redacting formatter as well |
-| `/privacy` page | Pending (Phase 6) | |
+| "Delete my data" button | Done | Phase 5: on the report page; confirmation dialog, cascade delete, share link dies |
+| Shared reports exclude raw CV text and email | Done | Phase 5: redacted copy, plus masking of emails / phone numbers said in answers; noindex + no-referrer |
+| No CV text in logs (IDs only) | Done | Enforced by redacting formatter as well; optional Langfuse traces carry metadata only (`app/core/tracing.py`) |
+| `/privacy` page | Done | Phase 6; updated in Phase 5 for email, share links and delete |
 | HMAC-signed outbound webhooks | Pending (Phase 7) | |
 | Cron endpoints require `CRON_SECRET` | Pending (Phase 7) | |
 | Pinned versions; `pip-audit` and `npm audit` in CI | Done | Both clean on 2026-11-06 |

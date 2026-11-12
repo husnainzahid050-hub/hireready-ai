@@ -1,0 +1,22 @@
+Data Analyst - Crescent Retail Group (fictional company), Karachi
+
+We are looking for a Data Analyst to turn sales and customer data into decisions. You will build
+dashboards, answer business questions with data and present findings to non-technical managers.
+Entry level: 0-2 years of experience.
+
+Responsibilities
+- Write SQL queries to pull and clean data from our warehouse.
+- Build and maintain dashboards for the sales and marketing teams.
+- Analyse trends and present insights in weekly meetings.
+
+Required skills
+- SQL
+- Excel (pivot tables, lookups)
+- Python with pandas
+- Power BI or Tableau
+- Statistics fundamentals
+- Clear communication with non-technical stakeholders
+
+Preferred (a plus)
+- A/B testing
+- dbt

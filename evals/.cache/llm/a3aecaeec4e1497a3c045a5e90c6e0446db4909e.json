@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "4",
+   "justification": "Answer addresses merge conflict resolution steps.",
+   "evidence_quote": "Git shows you the conflict in the file with arrows and equal signs."
+  },
+  "technical_accuracy": {
+   "score": "4",
+   "justification": "Correctly describes conflict markers and removal, but omits testing and communication.",
+   "evidence_quote": "delete the markers, and then commit again."
+  },
+  "depth": {
+   "score": "2",
+   "justification": "Lacks detail on understanding intent, testing, and collaboration.",
+   "evidence_quote": "Sometimes I use the VS Code buttons for that."
+  },
+  "structure": {
+   "score": "3",
+   "justification": "Logical order but missing STAR structure for technical answer.",
+   "evidence_quote": "Git shows you the conflict in the file with arrows and equal signs."
+  },
+  "communication": {
+   "score": "3",
+   "justification": "Clear but brief, could be more concise.",
+   "evidence_quote": "You pick which version you want, delete the markers, and then commit again."
+  },
+  "what_interviewer_wanted": "Explain the steps to resolve a merge conflict, including understanding both sides, editing, testing, and committing, and mention collaboration if needed.",
+  "improved_answer": "When a merge conflict occurs, Git marks the conflicting sections with <<<<<<<, =======, and >>>>>>>. I read both sides to understand each author’s intent, edit the file to combine the correct changes, remove the markers, run the tests to ensure nothing broke, and then commit the resolved file. If I’m unsure, I discuss it with the other author before finalizing the commit.",
+  "one_tip": "Add a brief mention of running tests after resolving conflicts to show thoroughness.",
+  "feedback_summary": "Good start—just add a bit more detail about testing and collaboration.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you describe a time when you had to discuss a conflict resolution with a teammate and what you learned from that interaction?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 2.393,
+   "ok": true,
+   "prompt_tokens": 1666,
+   "completion_tokens": 416,
+   "error": null
+  }
+ ]
+}

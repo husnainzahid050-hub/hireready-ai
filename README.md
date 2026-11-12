@@ -16,7 +16,9 @@ built for practice only.
 [![CI](https://github.com/husnainzahid050-hub/hireready-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/husnainzahid050-hub/hireready-ai/actions/workflows/ci.yml)
 <!-- TODO(final): add an "evals: last run <date>" static badge once evals/results.md is on main. -->
 
-**Status:** 🚧 Phase 3 (CV + job analysis and a text-mode mock interview working; voice next). Before
+**Status:** 🚧 Phases 5 and 8 done (CV + job analysis, voice or text mock interview, a scored report
+with share link, print-to-PDF, email (when `RESEND_API_KEY` is set) and delete-my-data, and an eval
+suite with published results in [evals/results.md](evals/results.md)); security automation next. Before
 deploying, apply the SQL in [supabase/PENDING_MIGRATIONS.md](supabase/PENDING_MIGRATIONS.md). See [SPEC.md](SPEC.md) for the full plan and
 [CHANGELOG.md](CHANGELOG.md) for progress. The full README (demo, architecture, evals) lands in Phase 9.
 
@@ -213,7 +215,9 @@ npm install
 npm run dev                   # http://localhost:3000 (proxies /api/* to :8000)
 ```
 
-Checks: `ruff check . && mypy app && pytest` (backend), `npm run lint && npm run typecheck` (frontend).
+Checks: `ruff check . && ruff format --check . && mypy app && pytest` (backend),
+`npm run lint && npm run typecheck && npm run build` (frontend). Browser tests against a mocked API:
+`npx next start -p 3001` then `python e2e/report.mock.py` (also `analysis`, `interview`, `voice`).
 
 ### Database and knowledge base (Supabase)
 

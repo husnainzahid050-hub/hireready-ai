@@ -1,0 +1,145 @@
+{
+  "description": "10 fictional CV/JD pairs (5 JDs x 2 CVs). Each JD skill is hand-labelled with the verdict(s) a careful recruiter would accept given JUDGE_SYSTEM's definitions: strong = clearly used in a project/job; weak = only listed, mentioned in passing, or a closely related skill; no = nothing supports it. Ambiguity is only allowed between strong and weak, so the gap label (no_evidence) is always crisp.",
+  "jds": {
+    "junior_ai_engineer": {
+      "file": "jds/junior_ai_engineer.txt",
+      "seniority": ["junior"],
+      "must_have": [
+        {"name": "Python", "competency": "python", "aliases": ["python"]},
+        {"name": "Machine learning fundamentals", "competency": "machine_learning", "aliases": ["machine learning", "ml"]},
+        {"name": "LLMs and RAG pipelines", "competency": "nlp_llms", "aliases": ["rag", "llm", "retrieval"]},
+        {"name": "REST APIs with FastAPI", "competency": "apis_backend", "aliases": ["fastapi", "rest"]},
+        {"name": "SQL", "competency": "sql", "aliases": ["sql"]},
+        {"name": "Git", "competency": "git_collaboration", "aliases": ["git"]}
+      ],
+      "nice_to_have": [
+        {"name": "Docker", "competency": "cloud_devops", "aliases": ["docker"]},
+        {"name": "AWS or GCP", "competency": "cloud_devops", "aliases": ["aws", "gcp"]},
+        {"name": "Vector databases", "competency": "nlp_llms", "aliases": ["vector", "pgvector", "pinecone"]}
+      ]
+    },
+    "data_analyst": {
+      "file": "jds/data_analyst.txt",
+      "seniority": ["junior"],
+      "must_have": [
+        {"name": "SQL", "competency": "sql", "aliases": ["sql"]},
+        {"name": "Excel", "competency": "data_handling", "aliases": ["excel"]},
+        {"name": "Python with pandas", "competency": "data_handling", "aliases": ["pandas", "python"]},
+        {"name": "Power BI or Tableau", "competency": "data_handling", "aliases": ["power bi", "tableau"]},
+        {"name": "Statistics", "competency": "machine_learning", "aliases": ["statistic"]},
+        {"name": "Communication with non-technical stakeholders", "competency": "communication", "aliases": ["communication", "stakeholder"]}
+      ],
+      "nice_to_have": [
+        {"name": "A/B testing", "competency": "machine_learning", "aliases": ["a/b", "ab test"]},
+        {"name": "dbt", "competency": "data_handling", "aliases": ["dbt"]}
+      ]
+    },
+    "backend_python_mid": {
+      "file": "jds/backend_python_mid.txt",
+      "seniority": ["mid"],
+      "must_have": [
+        {"name": "Python", "competency": "python", "aliases": ["python"]},
+        {"name": "FastAPI or Django", "competency": "apis_backend", "aliases": ["fastapi", "django"]},
+        {"name": "PostgreSQL", "competency": "sql", "aliases": ["postgres"]},
+        {"name": "Docker", "competency": "cloud_devops", "aliases": ["docker"]},
+        {"name": "REST API design", "competency": "apis_backend", "aliases": ["rest", "api design"]},
+        {"name": "pytest", "competency": "python", "aliases": ["pytest", "testing"]},
+        {"name": "CI/CD", "competency": "cloud_devops", "aliases": ["ci/cd", "ci", "continuous"]}
+      ],
+      "nice_to_have": [
+        {"name": "Redis", "competency": "system_design", "aliases": ["redis"]},
+        {"name": "Kubernetes", "competency": "cloud_devops", "aliases": ["kubernetes", "k8s"]},
+        {"name": "AWS", "competency": "cloud_devops", "aliases": ["aws"]}
+      ]
+    },
+    "frontend_junior": {
+      "file": "jds/frontend_junior.txt",
+      "seniority": ["junior"],
+      "must_have": [
+        {"name": "JavaScript", "competency": "frontend_basics", "aliases": ["javascript"]},
+        {"name": "React", "competency": "frontend_basics", "aliases": ["react"]},
+        {"name": "HTML and CSS", "competency": "frontend_basics", "aliases": ["html", "css"]},
+        {"name": "TypeScript", "competency": "frontend_basics", "aliases": ["typescript"]},
+        {"name": "Git", "competency": "git_collaboration", "aliases": ["git"]},
+        {"name": "Web accessibility", "competency": "frontend_basics", "aliases": ["accessib", "a11y"]}
+      ],
+      "nice_to_have": [
+        {"name": "Next.js", "competency": "frontend_basics", "aliases": ["next"]},
+        {"name": "Frontend testing (Jest or Playwright)", "competency": "frontend_basics", "aliases": ["jest", "playwright", "testing"]},
+        {"name": "Tailwind CSS", "competency": "frontend_basics", "aliases": ["tailwind"]}
+      ]
+    },
+    "ml_engineer_mid": {
+      "file": "jds/ml_engineer_mid.txt",
+      "seniority": ["mid"],
+      "must_have": [
+        {"name": "Python", "competency": "python", "aliases": ["python"]},
+        {"name": "PyTorch", "competency": "deep_learning", "aliases": ["pytorch"]},
+        {"name": "Deep learning", "competency": "deep_learning", "aliases": ["deep learning", "cnn"]},
+        {"name": "Deploying models to production", "competency": "cloud_devops", "aliases": ["deploy", "production"]},
+        {"name": "MLflow", "competency": "cloud_devops", "aliases": ["mlflow", "mlops"]},
+        {"name": "Docker", "competency": "cloud_devops", "aliases": ["docker"]},
+        {"name": "SQL", "competency": "sql", "aliases": ["sql"]}
+      ],
+      "nice_to_have": [
+        {"name": "Kubernetes", "competency": "cloud_devops", "aliases": ["kubernetes", "k8s"]},
+        {"name": "Distributed training", "competency": "deep_learning", "aliases": ["distributed"]},
+        {"name": "NLP", "competency": "nlp_llms", "aliases": ["nlp", "natural language"]}
+      ]
+    }
+  },
+  "cvs": {
+    "sana_ai_strong": {"file": "cvs/sana_ai_strong.txt", "name": "Sana Malik", "projects": 2, "experience": 1, "skills": ["python", "pytorch", "scikit-learn", "fastapi", "langchain", "sql", "git", "pandas"]},
+    "bilal_ai_weak": {"file": "cvs/bilal_ai_weak.txt", "name": "Bilal Ahmed", "projects": 2, "experience": 1, "skills": ["html", "css", "javascript", "php", "mysql", "python", "wordpress"]},
+    "hira_analyst_strong": {"file": "cvs/hira_analyst_strong.txt", "name": "Hira Khan", "projects": 1, "experience": 1, "skills": ["sql", "excel", "python", "pandas", "tableau", "statistic", "a/b"]},
+    "omar_marketing_switcher": {"file": "cvs/omar_marketing_switcher.txt", "name": "Omar Farooq", "projects": 0, "experience": 1, "skills": ["excel", "google analytics", "sql", "copywriting"]},
+    "zainab_backend_mid": {"file": "cvs/zainab_backend_mid.txt", "name": "Zainab Hussain", "projects": 0, "experience": 2, "skills": ["python", "django", "fastapi", "postgres", "docker", "pytest", "github actions", "redis"]},
+    "usman_backend_junior": {"file": "cvs/usman_backend_junior.txt", "name": "Usman Tariq", "projects": 1, "experience": 1, "skills": ["python", "flask", "sqlite", "git", "linux", "docker"]},
+    "ayesha_frontend_strong": {"file": "cvs/ayesha_frontend_strong.txt", "name": "Ayesha Siddiqui", "projects": 2, "experience": 1, "skills": ["javascript", "typescript", "react", "next", "html", "css", "tailwind", "git", "jest"]},
+    "fatima_designer": {"file": "cvs/fatima_designer.txt", "name": "Fatima Noor", "projects": 1, "experience": 1, "skills": ["figma", "illustrator", "html", "css", "javascript"]},
+    "hamza_ml_mid": {"file": "cvs/hamza_ml_mid.txt", "name": "Hamza Qureshi", "projects": 0, "experience": 2, "skills": ["python", "pytorch", "tensorflow", "mlflow", "docker", "kubernetes", "sql"]},
+    "maryam_ds_grad": {"file": "cvs/maryam_ds_grad.txt", "name": "Maryam Iqbal", "projects": 2, "experience": 1, "skills": ["python", "scikit-learn", "pandas", "tensorflow", "sql", "matplotlib"]}
+  },
+  "pairs": [
+    {"id": "p01", "cv": "sana_ai_strong", "jd": "junior_ai_engineer", "labels": {
+      "Python": ["strong_evidence"], "Machine learning fundamentals": ["strong_evidence"], "LLMs and RAG pipelines": ["strong_evidence"],
+      "REST APIs with FastAPI": ["strong_evidence"], "SQL": ["weak_evidence"], "Git": ["strong_evidence", "weak_evidence"],
+      "Docker": ["no_evidence"], "AWS or GCP": ["no_evidence"], "Vector databases": ["weak_evidence", "strong_evidence"]}},
+    {"id": "p02", "cv": "bilal_ai_weak", "jd": "junior_ai_engineer", "labels": {
+      "Python": ["weak_evidence"], "Machine learning fundamentals": ["no_evidence"], "LLMs and RAG pipelines": ["no_evidence"],
+      "REST APIs with FastAPI": ["no_evidence"], "SQL": ["strong_evidence"], "Git": ["no_evidence"],
+      "Docker": ["no_evidence"], "AWS or GCP": ["no_evidence"], "Vector databases": ["no_evidence"]}},
+    {"id": "p03", "cv": "hira_analyst_strong", "jd": "data_analyst", "labels": {
+      "SQL": ["strong_evidence"], "Excel": ["strong_evidence"], "Python with pandas": ["strong_evidence"],
+      "Power BI or Tableau": ["strong_evidence"], "Statistics": ["strong_evidence"], "Communication with non-technical stakeholders": ["strong_evidence"],
+      "A/B testing": ["weak_evidence"], "dbt": ["no_evidence"]}},
+    {"id": "p04", "cv": "omar_marketing_switcher", "jd": "data_analyst", "labels": {
+      "SQL": ["weak_evidence"], "Excel": ["strong_evidence"], "Python with pandas": ["no_evidence"],
+      "Power BI or Tableau": ["no_evidence"], "Statistics": ["no_evidence"], "Communication with non-technical stakeholders": ["strong_evidence", "weak_evidence"],
+      "A/B testing": ["no_evidence"], "dbt": ["no_evidence"]}},
+    {"id": "p05", "cv": "zainab_backend_mid", "jd": "backend_python_mid", "labels": {
+      "Python": ["strong_evidence"], "FastAPI or Django": ["strong_evidence"], "PostgreSQL": ["strong_evidence"], "Docker": ["strong_evidence"],
+      "REST API design": ["strong_evidence"], "pytest": ["strong_evidence"], "CI/CD": ["strong_evidence"],
+      "Redis": ["strong_evidence"], "Kubernetes": ["no_evidence"], "AWS": ["no_evidence"]}},
+    {"id": "p06", "cv": "usman_backend_junior", "jd": "backend_python_mid", "labels": {
+      "Python": ["strong_evidence"], "FastAPI or Django": ["weak_evidence"], "PostgreSQL": ["weak_evidence"], "Docker": ["weak_evidence"],
+      "REST API design": ["strong_evidence", "weak_evidence"], "pytest": ["no_evidence"], "CI/CD": ["no_evidence"],
+      "Redis": ["no_evidence"], "Kubernetes": ["no_evidence"], "AWS": ["no_evidence"]}},
+    {"id": "p07", "cv": "ayesha_frontend_strong", "jd": "frontend_junior", "labels": {
+      "JavaScript": ["strong_evidence"], "React": ["strong_evidence"], "HTML and CSS": ["strong_evidence"], "TypeScript": ["strong_evidence"],
+      "Git": ["strong_evidence"], "Web accessibility": ["strong_evidence"],
+      "Next.js": ["strong_evidence"], "Frontend testing (Jest or Playwright)": ["strong_evidence"], "Tailwind CSS": ["strong_evidence"]}},
+    {"id": "p08", "cv": "fatima_designer", "jd": "frontend_junior", "labels": {
+      "JavaScript": ["weak_evidence"], "React": ["no_evidence"], "HTML and CSS": ["strong_evidence"], "TypeScript": ["no_evidence"],
+      "Git": ["no_evidence"], "Web accessibility": ["no_evidence"],
+      "Next.js": ["no_evidence"], "Frontend testing (Jest or Playwright)": ["no_evidence"], "Tailwind CSS": ["no_evidence"]}},
+    {"id": "p09", "cv": "hamza_ml_mid", "jd": "ml_engineer_mid", "labels": {
+      "Python": ["strong_evidence"], "PyTorch": ["strong_evidence"], "Deep learning": ["strong_evidence"], "Deploying models to production": ["strong_evidence"],
+      "MLflow": ["strong_evidence"], "Docker": ["strong_evidence"], "SQL": ["strong_evidence"],
+      "Kubernetes": ["weak_evidence"], "Distributed training": ["no_evidence"], "NLP": ["no_evidence"]}},
+    {"id": "p10", "cv": "maryam_ds_grad", "jd": "ml_engineer_mid", "labels": {
+      "Python": ["strong_evidence"], "PyTorch": ["no_evidence"], "Deep learning": ["weak_evidence"], "Deploying models to production": ["no_evidence"],
+      "MLflow": ["no_evidence"], "Docker": ["no_evidence"], "SQL": ["weak_evidence"],
+      "Kubernetes": ["no_evidence"], "Distributed training": ["no_evidence"], "NLP": ["strong_evidence", "weak_evidence"]}}
+  ]
+}

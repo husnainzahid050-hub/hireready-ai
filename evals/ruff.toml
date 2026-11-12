@@ -1,0 +1,6 @@
+# Eval scripts: same rules as the backend, but report-building code has long f-strings.
+extend = "../backend/pyproject.toml"
+line-length = 120
+
+[lint]
+extend-ignore = ["E501", "S101", "S603", "S607"]  # the runner shells out to git for the commit hash

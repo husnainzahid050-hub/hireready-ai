@@ -75,12 +75,12 @@ const FEATURES: { icon: ReactNode; title: string; body: string; status: Status }
   {
     icon: <Share />,
     title: "Scored report, email and share link",
-    body: "Per-question scores with reasons, an improved sample answer, a read-only share link and a printable PDF.",
-    status: "soon",
+    body: "Per-question scores with quotes from what you said, an improved sample answer, a simulated hiring-manager reaction, a read-only share link, email and a printable PDF.",
+    status: "live",
   },
 ];
 
-const STEPS = [
+const STEPS: { icon: ReactNode; title: string; body: string; soon?: boolean }[] = [
   {
     icon: <Upload />,
     title: "Upload",
@@ -100,7 +100,6 @@ const STEPS = [
     icon: <Chart />,
     title: "Report",
     body: "Scores, what the interviewer was looking for, and a better sample answer.",
-    soon: true,
   },
 ];
 

@@ -1,0 +1,79 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "Python",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Python, Django, FastAPI, PostgreSQL, Docker, pytest, GitHub Actions, Redis, REST APIs",
+    "reason": "Python is listed as a skill and used in multiple projects."
+   },
+   {
+    "skill": "FastAPI or Django",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Designed REST APIs in Django REST Framework for a shipment tracking product",
+    "reason": "Django is explicitly used to design REST APIs."
+   },
+   {
+    "skill": "PostgreSQL",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Optimised slow PostgreSQL queries with indexes, cutting p95 latency from 900 ms to 180 ms.",
+    "reason": "PostgreSQL queries were directly optimized."
+   },
+   {
+    "skill": "Docker",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Containerised five services with Docker and set up GitHub Actions CI/CD pipelines with automated deploys.",
+    "reason": "Docker was used to containerise services."
+   },
+   {
+    "skill": "REST API design",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Designed REST APIs in Django REST Framework for a shipment tracking product used by 40 business clients.",
+    "reason": "Explicit REST API design work is described."
+   },
+   {
+    "skill": "pytest",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Wrote pytest unit and integration tests and raised coverage from 45% to 85%.",
+    "reason": "Direct use of pytest for testing."
+   },
+   {
+    "skill": "CI/CD",
+    "verdict": "strong_evidence",
+    "evidence_quote": "set up GitHub Actions CI/CD pipelines with automated deploys.",
+    "reason": "CI/CD pipelines were created using GitHub Actions."
+   },
+   {
+    "skill": "Redis",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Added Redis caching for rate-limited partner APIs.",
+    "reason": "Redis caching was implemented."
+   },
+   {
+    "skill": "Kubernetes",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "Kubernetes is not mentioned in any excerpt."
+   },
+   {
+    "skill": "AWS",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "AWS is not mentioned in any excerpt."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 2.144,
+   "ok": true,
+   "prompt_tokens": 856,
+   "completion_tokens": 789,
+   "error": null
+  }
+ ]
+}

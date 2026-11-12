@@ -14,6 +14,7 @@ from typing import Any
 import pytest
 
 import app.routers.interview as interview_router
+import app.routers.report as report_router
 import app.routers.sessions as sessions_router
 from app.db.client import DatabaseError
 from app.schemas.analysis import (
@@ -45,6 +46,8 @@ def _match(row: dict[str, Any], key: str, cond: str) -> bool:
         return cond.startswith("eq.") and str(_get(row, key)) == cond[3:]
     if cond.startswith("eq."):
         return str(row.get(key)) == cond[3:]
+    if cond.startswith("lt."):
+        return row.get(key) is not None and str(row.get(key)) < cond[3:]
     if cond == "not.is.null":
         return row.get(key) is not None
     if cond.startswith("in.("):
@@ -54,9 +57,22 @@ def _match(row: dict[str, Any], key: str, cond: str) -> bool:
     raise NotImplementedError(cond)
 
 
-# Tables whose primary key isn't `id` (a plain INSERT of a duplicate fails with 409, as in
-# PostgREST).
-PRIMARY_KEYS = {"interview_state": "session_id"}
+# Unique constraints the app relies on (insert without upsert -> 409, like PostgREST).
+# Tables whose primary key isn't `id` count too (interview_state is keyed by session_id).
+UNIQUE: dict[str, tuple[str, ...]] = {
+    "reports": ("session_id", "share_token"),
+    "interview_state": ("session_id",),
+}
+# ON DELETE CASCADE children: table -> [(child table, child column, parent column)].
+CASCADE: dict[str, list[tuple[str, str, str]]] = {
+    "sessions": [
+        ("documents", "session_id", "id"), ("gap_analyses", "session_id", "id"),
+        ("questions", "session_id", "id"), ("interview_state", "session_id", "id"),
+        ("reports", "session_id", "id"), ("reminders", "session_id", "id"),
+    ],
+    "documents": [("doc_chunks", "document_id", "id")],
+    "questions": [("answers", "question_id", "id")],
+}  # fmt: skip
 
 
 class FakeDB:
@@ -94,9 +110,8 @@ class FakeDB:
                 self.t[table] = [
                     x for x in self.rows(table) if x.get(on_conflict) != r[on_conflict]
                 ]
-            elif table in PRIMARY_KEYS:
-                pk = PRIMARY_KEYS[table]
-                if any(x.get(pk) == r[pk] for x in self.rows(table)):
+            for col in UNIQUE.get(table, ()):
+                if r.get(col) is not None and any(x.get(col) == r[col] for x in self.rows(table)):
                     raise DatabaseError(409, "duplicate key value violates unique constraint")
             self.rows(table).append(r)
 
@@ -114,6 +129,11 @@ class FakeDB:
         return dict(r)
 
     async def update(self, table: str, params: dict[str, str], values: dict[str, Any]) -> None:
+        for col in UNIQUE.get(table, ()):
+            if values.get(col) is not None and any(
+                x.get(col) == values[col] for x in self.rows(table)
+            ):
+                raise DatabaseError(409, "duplicate key value violates unique constraint")
         for r in self._filter(table, params):
             r.update(values)
 
@@ -126,11 +146,15 @@ class FakeDB:
         return [{k: r.get(k) for k in select.split(",")} for r in changed]
 
     async def delete(self, table: str, params: dict[str, str]) -> None:
-        doomed = {id(r) for r in self._filter(table, params)}
+        doomed_rows = self._filter(table, params)
+        doomed = {id(r) for r in doomed_rows}
         self.t[table] = [r for r in self.rows(table) if id(r) not in doomed]
-        if table == "documents":  # emulate ON DELETE CASCADE
-            ids = {r["id"] for r in self.rows("documents")}
-            self.t["doc_chunks"] = [c for c in self.rows("doc_chunks") if c["document_id"] in ids]
+        for child, col, parent_col in CASCADE.get(table, []):  # emulate ON DELETE CASCADE
+            for parent_id in {str(r.get(parent_col)) for r in doomed_rows}:
+                await self.delete(child, {col: f"eq.{parent_id}"})
+        if table == "sessions":
+            ids = {str(r["id"]) for r in doomed_rows}
+            self.usage = {k: v for k, v in self.usage.items() if k[0] not in ids}
 
     async def rpc(self, fn: str, args: dict[str, Any]) -> Any:
         self.rpc_calls.append(fn)
@@ -234,6 +258,8 @@ def install(
         monkeypatch.setattr(mod, "get_db", lambda: db)
         monkeypatch.setattr(mod, "get_llm", lambda: llm)
         monkeypatch.setattr(mod, "get_embedder", lambda: emb)
+    monkeypatch.setattr(report_router, "get_db", lambda: db)
+    monkeypatch.setattr(report_router, "get_llm", lambda: llm)
 
 
 def sse_events(text: str) -> list[tuple[str, dict[str, Any]]]:

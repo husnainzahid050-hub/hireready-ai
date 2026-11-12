@@ -1,0 +1,56 @@
+{
+ "step": "cv_extract",
+ "result": {
+  "name": "Fatima Noor",
+  "education": [
+   {
+    "degree": "BFA Graphic Design",
+    "institution": "Fictional College of Arts",
+    "year": "2025"
+   }
+  ],
+  "skills": [
+   "Figma",
+   "Adobe Illustrator",
+   "HTML",
+   "CSS",
+   "JavaScript",
+   "user research"
+  ],
+  "projects": [
+   {
+    "title": "Bakery Landing Page",
+    "stack": [
+     "Figma",
+     "HTML",
+     "CSS"
+    ],
+    "outcome": "Designed a landing page in Figma and coded it in HTML and CSS."
+   }
+  ],
+  "experience": [
+   {
+    "role": "UI Design Intern",
+    "org": "Fictional Creative Agency",
+    "duration": "Jan 2025 - Jun 2025",
+    "bullets": [
+     "Created wireframes and high-fidelity mockups in Figma for two mobile apps.",
+     "Ran five user interviews and summarised the findings for the product team."
+    ]
+   }
+  ],
+  "certifications": []
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "CVProfile",
+   "latency_s": 0.793,
+   "ok": true,
+   "prompt_tokens": 735,
+   "completion_tokens": 345,
+   "error": null
+  }
+ ]
+}

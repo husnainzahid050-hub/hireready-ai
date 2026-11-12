@@ -1,0 +1,45 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "1",
+   "justification": "The response does not address the question about a specific mistake.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "technical_accuracy": null,
+  "depth": {
+   "score": "1",
+   "justification": "No details, no example, no reasoning.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No STAR structure, no situation or action described.",
+   "evidence_quote": "I am a perfectionist, so I don't really make mistakes."
+  },
+  "communication": {
+   "score": "2",
+   "justification": "Answer is concise but lacks substance.",
+   "evidence_quote": "Maybe I work too hard sometimes."
+  },
+  "what_interviewer_wanted": "The interviewer wanted a concrete example of a mistake, ownership, the steps taken to fix it, and a learning outcome, presented in STAR format.",
+  "improved_answer": "I haven't had a major mistake yet, but in my Campus Policy Assistant project I once misconfigured the FAISS index, which caused incorrect answers. I quickly identified the issue, reindexed with the correct parameters, and added a validation step to catch similar errors in the future.",
+  "one_tip": "Provide a specific incident and describe the actions you took and what you learned.",
+  "feedback_summary": "Your answer was too brief; try to share a real example with details and reflection.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you describe a specific instance in your Campus Policy Assistant project where a mistake occurred and how you resolved it?",
+  "transition": "Thanks, that helps."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.144,
+   "ok": true,
+   "prompt_tokens": 1735,
+   "completion_tokens": 459,
+   "error": null
+  }
+ ]
+}

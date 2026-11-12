@@ -1,0 +1,79 @@
+{
+ "step": "judge",
+ "result": {
+  "judgements": [
+   {
+    "skill": "Python",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Built demand forecasting models in Python.",
+    "reason": "Candidate explicitly built models using Python."
+   },
+   {
+    "skill": "PyTorch",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Trained PyTorch CNN models for fruit grading on 200,000 images",
+    "reason": "Candidate clearly used PyTorch to train models."
+   },
+   {
+    "skill": "Deep learning",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Trained PyTorch CNN models for fruit grading on 200,000 images",
+    "reason": "Training CNNs with PyTorch demonstrates deep learning experience."
+   },
+   {
+    "skill": "Deploying models to production",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Deployed models to production as Docker containers behind a REST service.",
+    "reason": "Candidate explicitly deployed models to production."
+   },
+   {
+    "skill": "MLflow",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Tracked experiments and model versions with MLflow.",
+    "reason": "Direct statement of using MLflow for experiment tracking."
+   },
+   {
+    "skill": "Docker",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Deployed models to production as Docker containers behind a REST service.",
+    "reason": "Candidate used Docker containers for deployment."
+   },
+   {
+    "skill": "SQL",
+    "verdict": "strong_evidence",
+    "evidence_quote": "Wrote SQL queries to build labelled training sets from the image metadata database.",
+    "reason": "Candidate wrote SQL queries for data preparation."
+   },
+   {
+    "skill": "Kubernetes",
+    "verdict": "weak_evidence",
+    "evidence_quote": "Kubernetes",
+    "reason": "Kubernetes is only listed in the skills section, no usage described."
+   },
+   {
+    "skill": "Distributed training",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of distributed training in the excerpts."
+   },
+   {
+    "skill": "NLP",
+    "verdict": "no_evidence",
+    "evidence_quote": null,
+    "reason": "No mention of natural language processing work."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "EvidenceJudgements",
+   "latency_s": 2.279,
+   "ok": true,
+   "prompt_tokens": 833,
+   "completion_tokens": 792,
+   "error": null
+  }
+ ]
+}

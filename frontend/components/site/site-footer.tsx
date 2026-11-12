@@ -9,7 +9,7 @@ const linkCls = cn("rounded text-fg-muted transition-colors hover:text-fg", focu
 
 export function SiteFooter() {
   return (
-    <footer className="border-border bg-surface-muted mt-auto border-t">
+    <footer className="border-border bg-surface-muted mt-auto border-t print:hidden">
       <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-12 sm:px-6 md:grid-cols-[1.5fr_1fr_1fr]">
         <div className="space-y-3">
           <Logo />

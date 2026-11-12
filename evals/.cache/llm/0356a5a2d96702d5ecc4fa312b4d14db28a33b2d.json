@@ -1,0 +1,49 @@
+{
+ "step": "score_answer",
+ "result": {
+  "relevance": {
+   "score": "3",
+   "justification": "The candidate attempts to answer the question but proposes an incorrect approach.",
+   "evidence_quote": "I usually delete my local folder and clone the repository again, then copy my changes back in."
+  },
+  "technical_accuracy": {
+   "score": "1",
+   "justification": "Cloning and copying changes does not resolve merge conflicts and can lead to lost work.",
+   "evidence_quote": "I usually delete my local folder and clone the repository again, then copy my changes back in."
+  },
+  "depth": {
+   "score": "1",
+   "justification": "No explanation of conflict markers, understanding intent, or testing.",
+   "evidence_quote": "I usually delete my local folder and clone the repository again, then copy my changes back in."
+  },
+  "structure": {
+   "score": "1",
+   "justification": "No logical steps or structure presented.",
+   "evidence_quote": "I usually delete my local folder and clone the repository again, then copy my changes back in."
+  },
+  "communication": {
+   "score": "3",
+   "justification": "Answer is concise but lacks clarity and detail.",
+   "evidence_quote": "I usually delete my local folder and clone the repository again, then copy my changes back in."
+  },
+  "what_interviewer_wanted": "Explain the steps to resolve a merge conflict in Git, including reading conflict markers, editing to combine changes, testing, and committing, while considering collaboration with the other author.",
+  "improved_answer": "When a merge conflict occurs, Git marks the conflicting sections with <<<<<<<, =======, and >>>>>>>. I review both sides to understand each author’s intent, edit the file to produce the correct combined result, remove the conflict markers, run the relevant tests to ensure nothing broke, and then commit the resolved file. If I’m unsure about the intended change, I reach out to the other author for clarification before finalizing the commit.",
+  "one_tip": "Show how you would inspect conflict markers and communicate with teammates when unsure.",
+  "feedback_summary": "Your answer shows you’re thinking about the problem, but you need to describe the actual Git workflow and collaboration steps.",
+  "answer_quality": "shallow",
+  "follow_up_question": "Can you walk me through what you would do after Git marks a conflict in a file?",
+  "transition": "Thanks for sharing your approach."
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-20b",
+   "schema": "AnswerEvaluationDraft",
+   "latency_s": 1.926,
+   "ok": true,
+   "prompt_tokens": 1645,
+   "completion_tokens": 563,
+   "error": null
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+{
+ "step": "plan",
+ "result": {
+  "opening": "Hi Zainab, thanks for joining today. I'm excited to learn more about your experience building backend systems.",
+  "questions": [
+   {
+    "text": "Can you walk me through how you structure a Python codebase for a medium‑scale service, and what patterns you rely on to keep it maintainable?",
+    "follow_up_hint": "Probe for use of modules, layers (e.g., services, repositories), and testing strategy."
+   },
+   {
+    "text": "When deciding between FastAPI and Django REST Framework for a new API, what trade‑offs do you consider and how do you choose the right framework?",
+    "follow_up_hint": "Ask about performance, ecosystem, authentication, and team familiarity."
+   },
+   {
+    "text": "Tell me about the most challenging problem you solved while designing the shipment‑tracking APIs at Fictional Logistics, especially any decisions around data modeling or performance.",
+    "follow_up_hint": "Look for specifics on query optimization, indexing, or caching choices."
+   },
+   {
+    "text": "I see you haven’t listed Kubernetes experience—how would you approach container orchestration and deployment for a service that needs to scale on a cloud platform?",
+    "follow_up_hint": "Explore their understanding of concepts like pods, services, Helm, and CI/CD integration."
+   },
+   {
+    "text": "Describe a situation where you took initiative beyond your assigned tasks and the impact it had on your team or product.",
+    "follow_up_hint": "Encourage a STAR response focusing on the action and measurable outcome."
+   },
+   {
+    "text": "What draws you to this Backend Engineer role, and how do you see your experience adding value to our team’s API and production ownership responsibilities?",
+    "follow_up_hint": "Probe for alignment with the company’s mission, mentorship, and ownership mindset."
+   }
+  ]
+ },
+ "calls": [
+  {
+   "provider": "groq",
+   "model": "openai/gpt-oss-120b",
+   "schema": "InterviewPlanDraft",
+   "latency_s": 1.413,
+   "ok": true,
+   "prompt_tokens": 1204,
+   "completion_tokens": 432,
+   "error": null
+  }
+ ]
+}

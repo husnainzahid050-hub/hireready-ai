@@ -38,6 +38,13 @@ const securityHeaders = [
   },
 ];
 
+/** Sent on /r/* (asserted by e2e/report.mock.py). */
+const sharedReportHeaders = [
+  { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+  { key: "Referrer-Policy", value: "no-referrer" },
+  { key: "Cache-Control", value: "private, no-store" },
+];
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
@@ -51,7 +58,12 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Shared reports: the share token is in the URL. Later entries override earlier ones for
+      // the same key, so these win over the site-wide Referrer-Policy.
+      { source: "/r/:path*", headers: sharedReportHeaders },
+    ];
   },
   async rewrites() {
     // Browser calls same-origin /api/v1/*; Next.js proxies to FastAPI.
