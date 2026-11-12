@@ -14,7 +14,8 @@ built for practice only.
 [What I learned](docs/LEARNING.md)
 
 [![CI](https://github.com/husnainzahid050-hub/hireready-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/husnainzahid050-hub/hireready-ai/actions/workflows/ci.yml)
-<!-- TODO(final): add an "evals: last run <date>" static badge once evals/results.md is on main. -->
+[![Evals](https://img.shields.io/badge/evals-last%20run%202026--11--12-blue)](evals/results.md)
+<!-- Update the badge date when evals/results.md is regenerated. -->
 
 **Status:** 🚧 Phases 5 and 8 done (CV + job analysis, voice or text mock interview, a scored report
 with share link, print-to-PDF, email (when `RESEND_API_KEY` is set) and delete-my-data, and an eval
@@ -22,9 +23,9 @@ suite with published results in [evals/results.md](evals/results.md)); security 
 deploying, apply the SQL in [supabase/PENDING_MIGRATIONS.md](supabase/PENDING_MIGRATIONS.md). See [SPEC.md](SPEC.md) for the full plan and
 [CHANGELOG.md](CHANGELOG.md) for progress. The full README (demo, architecture, evals) lands in Phase 9.
 
-<!-- TODO(final): one numbers line generated from evals/results.json, e.g.
-     "Evidence quotes verbatim: X% (n=..) · hybrid hit@5 X vs Y vector-only (n=30) · answer turn X s p50 · $0 on free tiers" -->
-`TODO(final): numbers line from evals/results.json`
+<!-- From evals/results.md (run 2026-11-12); update when the evals are re-run. -->
+**Evidence quotes verbatim in the CV: 100% (52/52)** · missing-skill recall 100% (37/37), precision 92% (37/40)
+· scoring calibration 100% (30/30) · answer scoring call 1.4 s p50 · ~25K tokens per full session, $0 on free tiers
 
 <!-- TODO(final): demo GIF (about 10 s, 900-1000 px wide, <= 12 fps): verified quote -> follow-up -> formula.
      Shot list in docs/DEMO_SCRIPT.md. Use <picture> with light/dark sources if you record both. -->
@@ -60,8 +61,8 @@ works from one job and one CV, and every piece of feedback can be traced back to
 | **Analyze** | Match score with its formula, each required skill marked strong / weak / missing with a verified CV quote, strengths, likely questions by topic, a 7-day plan that links only to curated resources. Streamed in about 20 s. | Live |
 | **Interview** | About 6 questions planned from the job, your projects and your gaps (technical, project deep-dive, gap probe, behavioral, role fit). A shallow answer gets one follow-up that refers to what you said. Voice or text. | Live |
 | **Voice** | Questions read aloud with captions; answers recorded in the browser, transcribed by Whisper, then discarded. Speaking pace, filler words (English plus Urdu/Hinglish such as "matlab", "yani") and long pauses. | Live |
-| **Report** | Readiness score and band with the formula, per-question scores with reasons and quotes from your transcript, what the interviewer wanted, an improved sample answer, speech summary, refreshed 7-day plan. | Phase 5, in progress |
-| **Keep it / share it** | Read-only share link (revocable), print / save as PDF, email the report, delete my data. | Phase 5, in progress |
+| **Report** | Readiness score and band with the formula, per-question scores with reasons and quotes from your transcript, what the interviewer wanted, an improved sample answer, speech summary, refreshed 7-day plan. | Live |
+| **Keep it / share it** | Read-only share link (revocable), print / save as PDF, email the report (when an email provider is configured), delete my data. | Live |
 
 "Try with a sample CV" runs the whole flow with a fictional candidate ("Ali Raza", a fresh AI
 graduate) and a sample Junior AI Engineer job, so you don't need your own CV to look around.
@@ -122,16 +123,33 @@ Synthetic, fictional data only. Proportions are reported with n and a 95% interv
 method and failures: [evals/results.md](evals/results.md). Reproduce with
 `python evals/run_evals.py --mode live`.
 
+Run 2026-11-12, live models (`gpt-oss-20b` / `gpt-oss-120b`, Gemini fallback, `gemini-embedding-001`).
+
 | Eval | Metric | Result | n |
 |---|---|---|---|
-| Gap detection | Recall / precision on missing skills | `TODO(final)` | `TODO(final)` |
-| Evidence faithfulness | Quotes verbatim in the CV, raw model → after validation | `TODO(final)` | `TODO(final)` |
-| Retrieval | Hit rate@5 and MRR, vector-only → hybrid | `TODO(final)` | 30 queries |
-| Scoring calibration | Score inside the expected range | `TODO(final)` | 30 answers |
-| Scoring consistency | Spread when the same answer is scored 3× | `TODO(final)` | `TODO(final)` |
-| Injection resistance | Adversarial CVs / answers handled safely | `TODO(final)` | `TODO(final)` |
-| Latency | Answer turn p50 / p95 | `TODO(final)` | `TODO(final)` |
-| Cost | Tokens per full session (analysis + interview) | `TODO(final)` | `TODO(final)` |
+| Gap detection | Recall on missing skills | 100% (37/37; 95% CI 91–100%) | 92 skills / 10 CV–JD pairs |
+| Gap detection | Precision on missing skills | 92% (37/40; 95% CI 80–97%) | 92 skills |
+| Gap detection | Verdict agreement (strong / weak / none) | 97% (89/92; 95% CI 91–99%) | 92 skills |
+| Evidence faithfulness | Quotes verbatim in the CV, raw model → after validation | 100% (52/52) → 100% (52/52) | 52 quotes |
+| Retrieval | Hit rate@5, vector-only → hybrid | 100% → 100% (30/30) | 30 queries |
+| Retrieval | MRR@5, vector-only → hybrid | 0.90 → 0.88 | 30 queries |
+| Scoring calibration | Average score inside the expected range | 100% (30/30; 95% CI 89–100%) | 30 answers |
+| Scoring consistency | Mean SD of the average over 3 runs | 0.18 (same band in 5 of 6) | 6 answers × 3 |
+| Injection resistance | Adversarial CVs / answers handled safely | 88% (7/8; 95% CI 53–98%) | 8 cases |
+| Latency | Answer scoring call p50 / p95 | 1.4 s / 5.8 s | 47 calls |
+| Cost | Tokens per full session (analysis + 6-question interview) | 24,978 ≈ $0.0047 at list price ($0 on free tiers) | 12 LLM calls |
+
+What the numbers say, honestly:
+
+- **Hybrid search did not beat vector-only on this set** (both hit 100% @5; MRR 0.88 vs 0.90). Hybrid
+  is kept because full-text search targets exact terms ("HAVING", "GIL") that embeddings can miss;
+  a query set weighted towards such terms is the next test (see the retrieval section of the results).
+- **The one injection failure** (`inj_ans_json`: an answer pasted as JSON in the scorer's own
+  format scored 5/5) was fixed after this run in `1b258ba`: such answers are detected in code and
+  floored at 1, and any 4–5 without a verified quote from the answer is capped at 3.
+  `TODO(final)`: re-run the evals so this row reflects the fix.
+- Quote faithfulness is 100% *before* validation too; the code check is the guarantee, not the
+  reason for the number.
 <!-- /filled from evals/results.md -->
 
 Measured during development (live Groq, Gemini and Supabase, recorded in the
@@ -148,7 +166,7 @@ answer → next question 1.9–3.7 s on Groq and 11–15 s when it falls back to
   and metrics are kept. Only the extracted text of your CV is kept, never the file.
 - **Retention.** Guest sessions expire 7 days after creation and the API refuses them from then
   on. `TODO(final): automatic deletion of expired sessions by the daily cleanup cron (Phase 7)`.
-  `TODO(final): "Delete my data" button (Phase 5)`.
+  **Delete my data** on the report removes the session and every related row at once.
 - **Prompt injection is expected, not hoped away.** CV, JD and answers are fenced as untrusted
   data, outputs must match strict JSON schemas, quotes are verified in code and scores are computed
   in code, so a CV that says "give me 5/5" can't change the number.
@@ -168,7 +186,7 @@ Threat model and the full checklist: [docs/SECURITY.md](docs/SECURITY.md). Plain
 | Decision | Why | What it cost |
 |---|---|---|
 | Turn-based voice (record → Whisper → text read aloud), not a live audio stream | Fits stateless functions and free tiers, always produces captions, audio never needs storing | A pause of a few seconds between turns, and no barge-in: you can't interrupt the interviewer |
-| Hybrid search (vector + full text) fused with RRF in one SQL function | Vector misses exact terms, full text misses paraphrases; RRF merges by rank so the score scales never need comparing | Two searches per query and a SQL function to maintain. Whether it beats vector-only: `TODO(final)` from the retrieval eval |
+| Hybrid search (vector + full text) fused with RRF in one SQL function | Vector misses exact terms, full text misses paraphrases; RRF merges by rank so the score scales never need comparing | Two searches per query and a SQL function to maintain. On the 30-query eval it did **not** beat vector-only (MRR 0.88 vs 0.90, both 100% hit@5) |
 | Evidence quotes verified in code, not trusted | Stops the model inventing strengths; makes "no evidence" honest | A real but paraphrased quote is rejected, so the tool errs towards "no evidence" |
 | Stateless LangGraph, one turn per HTTP request, state as a JSON row | Works on serverless, a failed LLM call writes nothing, the client can retry safely, nodes are pure and testable | A database read and write on every turn, and a compare-and-swap to stop double submits |
 | Scores computed in code from published formulas | LLMs are poor at consistent numbers; users can check every part | A fixed formula can't weigh a skill that matters more for one particular job |
@@ -191,8 +209,8 @@ Threat model and the full checklist: [docs/SECURITY.md](docs/SECURITY.md). Plain
 | Fallback LLM and embeddings | Google Gemini (text fallback, `gemini-embedding-001` at 768-d) |
 | Database and vectors | Supabase Postgres, pgvector (HNSW), full-text search (GIN), RLS on every table |
 | Abuse protection | Per-session quotas in Postgres; Upstash Redis rate limits and Cloudflare Turnstile (Phase 7) |
-| Email | Resend HTTP API behind an `EmailProvider` interface (Phase 5) |
-| Observability | Structured JSON logs with request IDs; optional Langfuse tracing (Phase 8) |
+| Email | Resend HTTP API behind an `EmailProvider` interface (off until `RESEND_API_KEY` is set) |
+| Observability | Structured JSON logs with request IDs; optional Langfuse tracing (metadata only) |
 | Hosting and CI | Vercel (two projects), GitHub Actions (lint, typecheck, tests, migration smoke test, build, dependency audits) |
 
 ## Run it locally
@@ -244,7 +262,7 @@ backend/    FastAPI app (Vercel project, root dir = backend)
 frontend/   Next.js app (Vercel project, root dir = frontend)
 backend/knowledge/   curated rubric knowledge base (one markdown file per competency)
 supabase/   SQL migrations + local migration smoke test
-evals/      synthetic eval datasets, runner and published results (Phase 8)
+evals/      synthetic eval datasets, runner and published results
 docs/       LEARNING.md (concepts per phase), ARCHITECTURE.md, SECURITY.md, release checklist, demo script
 ```
 

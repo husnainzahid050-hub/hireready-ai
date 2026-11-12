@@ -4,7 +4,7 @@ Use this for the Phase 9 production release and for any later release that chang
 environment. Work top to bottom; each box is something a person checks, not something to assume.
 Items marked **(Phase N)** only apply once that phase is merged into `main`.
 
-`TODO(final)`: after Phases 5, 7 and 8 merge, remove the "(Phase N)" qualifiers that no longer
+`TODO(final)`: after Phase 7 merges, remove the "(Phase N)" qualifiers that no longer
 apply and add anything new those branches introduced (check each branch's CHANGELOG entry and
 `.env.example` diff).
 
@@ -12,7 +12,7 @@ apply and add anything new those branches introduced (check each branch's CHANGE
 
 - [ ] `main` is green in CI (backend lint/type/tests, migration smoke test, frontend lint/type/build, `pip-audit`, `npm audit`).
 - [ ] Locally: `cd backend && ruff check . && mypy app && pytest` and `cd frontend && npm run lint && npm run typecheck && npm run build`.
-- [ ] Mocked browser tests pass against `next start -p 3001`: `python frontend/e2e/analysis.mock.py`, `interview.mock.py`, `voice.mock.py`, and `report.mock.py` **(Phase 5)**.
+- [ ] Mocked browser tests pass against `next start -p 3001`: `python frontend/e2e/analysis.mock.py`, `interview.mock.py`, `voice.mock.py`, and `report.mock.py`.
 - [ ] `CHANGELOG.md` has the release entry; `README.md` has no `TODO(final)` left that you can already fill (`grep -rn "TODO(final)" README.md docs frontend/app frontend/components`).
 - [ ] Decide the production domain. If it isn't the default `*.vercel.app` URL, add it to the frontend project and use it everywhere below as `<FRONTEND_URL>`.
 
@@ -26,8 +26,8 @@ apply and add anything new those branches introduced (check each branch's CHANGE
 | Google AI Studio (Gemini) | Fallback LLM + embeddings | Exists |
 | Upstash Redis | Per-IP rate limits **(Phase 7)** | [ ] create a Redis database, copy the REST URL + token |
 | Cloudflare Turnstile | Bot check on session creation **(Phase 7)** | [ ] create a widget for `<FRONTEND_URL>` (and `localhost` for dev), copy site key + secret |
-| Resend | "Email me this report" **(Phase 5)** | [ ] verify a sending domain (`onboarding@resend.dev` only mails your own address), create an API key |
-| Langfuse Cloud | Optional tracing **(Phase 8)** | [ ] create a project, copy public/secret key and the host for its region |
+| Resend | "Email me this report" | [ ] verify a sending domain (`onboarding@resend.dev` only mails your own address), create an API key |
+| Langfuse Cloud | Optional tracing | [ ] create a project, copy public/secret key and the host for its region |
 
 ## 2. Database migrations (Supabase SQL editor)
 
@@ -41,7 +41,7 @@ The live project has `20261106000001_init_schema.sql` and `20261106000002_hybrid
   select column_name from information_schema.columns
    where table_name = 'sessions' and column_name = 'analysis_started_at';             -- 1 row
   ```
-- [ ] Phase 5 (report): no new migration on the `report-agent` branch at the time of writing (the `reports` table already exists). Re-check `supabase/migrations/` after the merge.
+- [ ] Phases 5 and 8 added no migration (the `reports` table already existed).
 - [ ] Phase 7: run any new migration it adds (e.g. for cleanup or reminders). `TODO(final)`: list file names here.
 - [ ] Re-check RLS: `select relname, relrowsecurity from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r';` → every row `true`.
 - [ ] Knowledge base is ingested: `select count(*) from knowledge_chunks;` → 157 (or the current count from `python -m scripts.ingest_knowledge --dry-run`).
@@ -71,10 +71,10 @@ Preview if you use preview deploys). Never put a secret in a `NEXT_PUBLIC_` vari
 | `SUPABASE_SERVICE_ROLE_KEY` | `sb_secret_...` | Backend only, never the frontend |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | **(Phase 7)** | Rate limits are a no-op until set |
 | `TURNSTILE_SECRET_KEY` | **(Phase 7)** | **Only after** the frontend renders the widget and sends `X-Turnstile-Token`, or every session creation returns 403 |
-| `RESEND_API_KEY`, `EMAIL_FROM` | **(Phase 5)** | `EMAIL_FROM` on the verified domain, e.g. `HireReady AI <reports@yourdomain>`. Email is disabled (button greyed out) until both are set |
+| `RESEND_API_KEY`, `EMAIL_FROM` | | `EMAIL_FROM` on the verified domain, e.g. `HireReady AI <reports@yourdomain>`. Email is disabled (button greyed out) until both are set |
 | `CRON_SECRET` | random, ≥ 32 chars **(Phase 7)** | Vercel sends it as `Authorization: Bearer ...` to cron paths |
 | `OUTBOUND_WEBHOOK_URL`, `OUTBOUND_WEBHOOK_SECRET` | optional **(Phase 7)** | HMAC-signed webhook (e.g. n8n) |
-| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | optional **(Phase 8)** | Tracing is off unless all three are set |
+| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | optional | Tracing is off unless all three are set |
 
 ### Frontend project (root `frontend/`)
 
@@ -101,7 +101,7 @@ Preview if you use preview deploys). Never put a secret in a `NEXT_PUBLIC_` vari
 
 - [ ] `curl -sI <FRONTEND_URL>/` shows `Content-Security-Policy`, `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Permissions-Policy` with `microphone=(self)`.
 - [ ] `curl -sI <FRONTEND_URL>/api/v1/health` shows `Cache-Control: no-store`.
-- [ ] **(Phase 5)** `curl -sI <FRONTEND_URL>/r/<token>` shows `X-Robots-Tag: noindex`.
+- [ ] `curl -sI <FRONTEND_URL>/r/<token>` shows `X-Robots-Tag: noindex`.
 - [ ] `<FRONTEND_URL>/robots.txt` and `/sitemap.xml` use the production domain.
 - [ ] Share `<FRONTEND_URL>` in a LinkedIn post preview (or an OG debugger): title, description and image render.
 - [ ] Lighthouse on `/` (mobile and desktop) on the deployed site. Record the numbers in the CHANGELOG. `TODO(final)`: results.
@@ -125,10 +125,10 @@ both: "waiting" (sum of spinners and streams) and "total" (wall clock including 
 | **Start interview**, choose **Voice** | Mic permission prompt; question read aloud with caption; mute and replay work | [ ] | [ ] |
 | Answer Q1 by voice (one short, deliberately shallow answer) | "Transcribing…", then a **follow-up that refers to what you said** | [ ] ___ s | [ ] ___ s |
 | Answer the rest (mix voice and text; use the Voice / Text switch or **Type instead** once) | Progress "Question X of ~6"; each turn returns in a few seconds | [ ] | [ ] |
-| Finish → **See your report** **(Phase 5)** | Report streams: readiness score + band, **How is this calculated?** shows the formula, question cards with transcript quotes and an improved answer, speech section (pace, fillers) | [ ] ___ s | [ ] ___ s |
+| Finish → **See your report** | Report streams: readiness score + band, **How is this calculated?** shows the formula, question cards with transcript quotes and an improved answer, speech section (pace, fillers) | [ ] ___ s | [ ] ___ s |
 | **Waiting time total** | **< 90 s** | ___ s | ___ s |
 
-### 6.2 Report actions (Phase 5)
+### 6.2 Report actions
 
 | Step | Expect | Desktop | Phone |
 |---|---|---|---|

@@ -42,9 +42,9 @@ in its caption. Timings are the edited length.
 | 9 | Engineering page eval table | 6 s | `/engineering#evals` table | "Evals are published, including the misses." |
 | 10 | End card | 4 s | Logo, `<FRONTEND_URL>`, GitHub URL | "Practice only. Never for live interviews." |
 
-Total: about 63 s. Shots 5–8 depend on the Phase 5 report UI; shot 9 on Phase 8 evals being on
+Total: about 63 s. Shots 5–8 use the report UI and shot 9 the eval table on
 the Engineering page. `TODO(final)`: re-check labels ("How is this calculated?", share sheet) on
-the merged UI before recording.
+the production UI before recording.
 
 No voice-over is needed; if you add one, keep it to the captions' words. Optional quiet
 background music; the interviewer's spoken question in shot 3 should stay audible.

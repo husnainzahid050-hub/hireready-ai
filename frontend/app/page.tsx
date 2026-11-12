@@ -24,6 +24,9 @@ import {
   Upload,
 } from "@/components/ui/icons";
 import { Container, SectionHeading } from "@/components/ui/section";
+import { evalResults, pct } from "@/lib/evals";
+
+const EVIDENCE = evalResults.headline.evidence;
 
 // The landing page must stay fully prerendered (SPEC 8.1): the build fails if anything here
 // starts reading request data.
@@ -156,19 +159,18 @@ const WORKING: { icon: ReactNode; title: string; body: ReactNode; detail: ReactN
   },
   {
     icon: <Scan />,
-    title: "Measured, not claimed",
-    // TODO(final): once Phase 8 evals are on main, say "Eval results are published" and link
-    // /engineering#evals with the headline number from evals/results.json.
-    body: "Latency and quality are measured on live runs, and the Engineering page explains how each number was taken, including the slow paths.",
+    title: "Evals published, misses included",
+    // Read from lib/eval-results.json at build time, so the number can't drift from the evals.
+    body: `Gap detection, scoring, retrieval, injection resistance, latency and cost are tested on a synthetic set. In the last run, ${pct(EVIDENCE?.final_verbatim)} of ${EVIDENCE?.final_verbatim.n ?? "the"} evidence quotes were verbatim in the CV.`,
     detail: (
       <Link
-        href="/engineering#numbers"
+        href="/engineering#evals"
         className={cn(
           "text-link inline-flex items-center gap-1.5 rounded text-sm font-medium hover:underline",
           focusRing,
         )}
       >
-        See the measured numbers <ArrowRight className="size-4" />
+        See the eval results <ArrowRight className="size-4" />
       </Link>
     ),
   },

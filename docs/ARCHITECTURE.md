@@ -2,10 +2,10 @@
 
 How HireReady AI is put together: components, the four main request flows, the data model,
 retention, how it is deployed, and what happens when something fails. Written against the code on
-`main` (commit 905b0a0). Parts that are still being built on other branches are marked
+`main` (Phases 0-6, 5 and 8 merged). Parts that are still being built on other branches are marked
 **(in progress, Phase N)**; check them again when those phases merge.
 
-`TODO(final)`: re-check every "(in progress)" marker after Phases 5, 7 and 8 are on `main`.
+`TODO(final)`: re-check every "(in progress)" marker after Phase 7 is on `main`.
 
 ## 1. Components
 
@@ -22,7 +22,7 @@ flowchart LR
         API["FastAPI (Python 3.12)<br/>routers, quotas, SSE"]
         PIPE["Analysis pipeline"]
         AG["LangGraph interviewer"]
-        REP["Report builder (Phase 5)"]
+        REP["Report builder"]
     end
     DB[("Supabase Postgres<br/>pgvector · tsvector · RLS")]
     GROQ["Groq<br/>gpt-oss-20b / 120b, Whisper"]
@@ -45,7 +45,7 @@ flowchart LR
 | API client | `frontend/lib/api.ts`, `lib/types.ts` | Typed calls mirroring the backend contract, SSE parsing, guest token in `localStorage`. |
 | Recorder | `frontend/components/interview/voice/` | Lazy-loaded `MediaRecorder` (webm/opus), 120 s auto-stop, level meter via `requestAnimationFrame`, mic released on stop/unmount. |
 | FastAPI app | `backend/app/main.py` | Request IDs, structured logs, CORS allowlist, body-size limit (4.5 MB), security headers, error envelope. |
-| Routers | `backend/app/routers/` | `health`, `sessions` (create, documents, analyze, analysis), `interview` (start, get, answer). `report` **(in progress, Phase 5)**. Cron + unsubscribe **(in progress, Phase 7)**. |
+| Routers | `backend/app/routers/` | `health`, `sessions` (create, documents, analyze, analysis), `interview` (start, get, answer). `report` (report, share, email, delete). Cron + unsubscribe **(in progress, Phase 7)**. |
 | Analysis pipeline | `backend/app/services/analysis.py` | Extraction, CV indexing, hybrid retrieval, evidence judging, quote verification, match score, insights. Streamed as SSE. |
 | Interviewer agent | `backend/app/agents/interviewer/` | LangGraph state machine: `plan_interview`, `ask_question`, `evaluate_answer`, `decide_next`, `ask_follow_up`, `finish`; tools `search_cv`, `search_rubric`, `score_answer`. |
 | Interview service | `backend/app/services/interview.py` | Load state → one graph turn → persist with compare-and-swap → API response. |
@@ -55,9 +55,9 @@ flowchart LR
 | Scoring | `backend/app/services/scoring.py`, `evidence.py` | Deterministic match score; quote verification and normalisation. |
 | Guards | `backend/app/core/` | `security.py` (guest tokens), `quotas.py`, `rate_limit.py`, `turnstile.py`, `injection.py`, `body_limit.py`, `headers.py`, `sse.py` (budgets + "slow" notices). |
 | Knowledge base | `backend/knowledge/*.md` → `knowledge_chunks` | 14 competency files, 157 chunks: what's evaluated, question banks, 1/3/5 anchors, curated resource URLs. Ingested by `scripts/ingest_knowledge.py` (idempotent by content hash). |
-| Report builder **(in progress, Phase 5)** | `backend/app/services/report.py`, `routers/report.py`, `services/email.py` | Scores in code, one strong-model write-up, share links, email via Resend, delete-my-data. |
-| Tracing **(in progress, Phase 8)** | `backend/app/core/tracing.py` | Per-call usage records; optional Langfuse export over OTLP/HTTP, metadata only, never prompt or output text. |
-| Evals **(in progress, Phase 8)** | `evals/` | Synthetic datasets, `run_evals.py`, `results.md` / `results.json`, manual GitHub Actions workflow. |
+| Report builder | `backend/app/services/report.py`, `routers/report.py`, `services/email.py` | Scores in code, one strong-model write-up, share links, email via Resend, delete-my-data. |
+| Tracing | `backend/app/core/tracing.py` | Per-call usage records; optional Langfuse export over OTLP/HTTP, metadata only, never prompt or output text. |
+| Evals | `evals/` | Synthetic datasets, `run_evals.py`, `results.md` / `results.json`, manual GitHub Actions workflow. |
 
 ## 2. Request flows
 
@@ -164,9 +164,9 @@ START --(event=answer)-> evaluate_answer --> decide_next --+--> ask_follow_up --
 9. The next question comes back as text; the browser speaks it with `speechSynthesis` and shows
    the caption (mute persisted, replay button).
 
-### 2.5 Report (in progress, Phase 5)
+### 2.5 Report
 
-Read from the `report-agent` branch; re-check after merge.
+Merged with Phase 5 (`backend/app/services/report.py`, `routers/report.py`).
 
 1. `POST /sessions/{id}/report` (SSE). Interview must be completed. A cached report is streamed
    back for free. Otherwise the `reports` row itself is the lock: a placeholder insert without
@@ -220,7 +220,7 @@ functions are executable by `service_role` only. Everything cascades from `sessi
 | `questions` | `session_id`, `order_index`, `type` (technical / project / gap_probe / behavioral / role_fit / follow_up), `competency`, `text`, `parent_question_id`, `rubric_chunk_ids` | interview |
 | `answers` | `question_id`, `transcript` (≤ 10k), `duration_seconds`, `words_per_minute`, `filler_count`, `filler_breakdown`, `long_pauses`, `scores`, `feedback` | interview |
 | `interview_state` | `session_id` (pk), `state` (the whole LangGraph state as JSON), `updated_at` | interview (compare-and-swap) |
-| `reports` | `session_id` (pk), `report` (jsonb; also the generation lock), `share_token` (unique), `emailed_at` | report **(Phase 5)** |
+| `reports` | `session_id` (pk), `report` (jsonb; also the generation lock), `share_token` (unique), `emailed_at` | report |
 | `reminders` | `session_id`, `next_send_date`, `day_index`, `active`, `unsubscribe_token` | reminders cron **(Phase 7)** |
 | `session_usage` | `(session_id, action)` pk, `count` | `consume_quota()` |
 
@@ -241,10 +241,10 @@ hashed IP): session create 10/h, upload 10/h, analyze 10/h, interview start 3/da
 |---|---|---|
 | Audio | Never stored | Parsed in memory, sent to Whisper, dropped when the request ends |
 | CV file | Never stored | Only the extracted text is kept |
-| CV/JD text, profiles, chunks, analysis, questions, answers, interview state, report | Until the session expires (7 days after creation) or is deleted | Expiry is enforced on every read today (the API refuses expired sessions, and shared links die with them). Physical deletion: **cleanup cron, in progress (Phase 7)**. "Delete my data": **in progress (Phase 5)** |
+| CV/JD text, profiles, chunks, analysis, questions, answers, interview state, report | Until the session expires (7 days after creation) or is deleted | Expiry is enforced on every read today (the API refuses expired sessions, and shared links die with them). Physical deletion: **cleanup cron, in progress (Phase 7)**. "Delete my data" on the report removes everything at once |
 | Knowledge base | Permanent | Curated content, no user data |
 | Logs (Vercel) | Vercel's log retention | IDs, timings and error types only; emails masked, long strings truncated, no LLM output |
-| Traces (Langfuse, optional) | Langfuse's retention | Metadata only (model, tokens, latency, request id) **(Phase 8)** |
+| Traces (Langfuse, optional) | Langfuse's retention | Metadata only (model, tokens, latency, request id) |
 | Data sent to providers | Their terms | Groq, Google Gemini, Supabase, Vercel (and Resend for email) process data to produce the feedback; listed on `/privacy` |
 
 `TODO(final)`: once the cleanup cron ships, change the "Physical deletion" cell to "daily cron,
@@ -281,7 +281,7 @@ Browser ── HTTPS ──▶   │ frontend project (root: frontend/)         
 | Failure | What happens | Where |
 |---|---|---|
 | Groq 429 (per-minute token limit), 5xx, network error or invalid JSON | One quick retry, then the same request goes to Gemini with the same schema. The stream sends `slow` so the user knows. Measured: answer turns 11–15 s on Gemini vs 2–4 s on Groq | `services/llm.py` |
-| Both providers fail | Analysis: `error` event with `ai_unavailable`, claim released, Try again. Interview: 503 `ai_unavailable`, **nothing written**, the typed answer is kept in the browser and can be resent. Report: deterministic fallback report **(Phase 5)** | `llm.py`, `services/interview.py`, `services/report.py` |
+| Both providers fail | Analysis: `error` event with `ai_unavailable`, claim released, Try again. Interview: 503 `ai_unavailable`, **nothing written**, the typed answer is kept in the browser and can be resent. Report: deterministic fallback report | `llm.py`, `services/interview.py`, `services/report.py` |
 | A provider hangs | Each provider has 25 s including retries; the analysis has a 50 s budget and the report 55 s, inside Vercel's 60 s | `llm.py`, `core/sse.py` |
 | Function killed mid-run (timeout, crash) | The analysis claim and the report placeholder expire after 120 s, so the next request can run. The browser sees a stream that closed without `done` and offers Try again | `services/analysis.py`, `services/report.py` |
 | Two tabs / double click | Analysis: the second caller streams `waiting`, then the first result. Interview start: idempotent. Answers: compare-and-swap, the loser gets 409 `turn_conflict` | `analysis.py`, `interview.py` |
@@ -290,8 +290,8 @@ Browser ── HTTPS ──▶   │ frontend project (root: frontend/)         
 | Upstash unreachable | Rate limiter **fails open** (per-session quotas in Postgres still apply) | `core/rate_limit.py` |
 | Turnstile unreachable or token invalid | **Fails closed**: 403 `bot_check_failed` on session creation | `core/turnstile.py` |
 | Quota migration missing | Upload, analyze and interview fail closed with 500: apply `supabase/PENDING_MIGRATIONS.md` before deploying | `core/quotas.py` |
-| Email provider not configured or failing | 503 `email_not_configured` / error; the button is shown disabled with an explanation **(Phase 5)** | `services/email.py` |
-| Langfuse misconfigured or down | Tracing errors are swallowed; requests never wait for export **(Phase 8)** | `core/tracing.py` |
+| Email provider not configured or failing | 503 `email_not_configured` / error; the button is shown disabled with an explanation | `services/email.py` |
+| Langfuse misconfigured or down | Tracing errors are swallowed; requests never wait for export | `core/tracing.py` |
 | Malicious upload (zip/PDF bomb, wrong type) | 400 / 413 / 422 before any LLM call | `services/parsing.py`, `core/body_limit.py` |
 | Prompt injection in CV, JD or answers | Fenced as data, strict schemas, quotes verified, scores in code; worst case equals a false claim on your own CV | `llm.py`, `evidence.py`, `core/injection.py` |
 
