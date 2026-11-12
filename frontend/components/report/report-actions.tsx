@@ -6,8 +6,8 @@ import { useEffect, useId, useRef, useState } from "react";
 import { formatDate } from "@/components/report/report-body";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input, Label } from "@/components/ui/field";
-import { ApiError, deleteSession, emailReport, setShareLink } from "@/lib/api";
+import { Checkbox, Input, Label } from "@/components/ui/field";
+import { ApiError, deleteSession, emailReport, setShareLink, subscribeReminders } from "@/lib/api";
 import type { ReportResponse, ShareInfo } from "@/lib/types";
 
 type Panel = "share" | "email" | null;
@@ -166,35 +166,109 @@ function EmailPanel({
 
   const last = sent ?? (emailedAt ? { to: null, at: emailedAt } : null);
   return (
-    <form onSubmit={submit} className="space-y-2 text-sm">
-      <Label htmlFor="report-email">Email address</Label>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <Input
-          id="report-email"
-          type="email"
-          autoComplete="email"
-          maxLength={320}
-          placeholder="Leave empty to use the one you gave at the start"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+    <div className="space-y-4">
+      <form onSubmit={submit} className="space-y-2 text-sm">
+        <Label htmlFor="report-email">Email address</Label>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input
+            id="report-email"
+            type="email"
+            autoComplete="email"
+            maxLength={320}
+            placeholder="Leave empty to use the one you gave at the start"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <Button type="submit" disabled={busy}>
+            {busy ? "Sending…" : "Send"}
+          </Button>
+        </div>
+        <p className="text-fg-subtle text-xs">
+          You get a short summary: your band and score, the top 3 fixes and day 1 of your plan. Your
+          answers and CV are never put in the email.
+        </p>
+        <p aria-live="polite" className="text-success-fg">
+          {last && `Sent${last.to ? ` to ${last.to}` : ""} · ${formatDate(last.at, true) ?? ""}`}
+        </p>
+        {error && (
+          <p role="alert" className="text-danger-fg">
+            {error}
+          </p>
+        )}
+      </form>
+      <ReminderOptIn sessionId={sessionId} email={email.trim() || null} />
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ reminders (Phase 7)
+
+/**
+ * Separate, unticked opt-in for daily 7-day-plan emails (double opt-in: the server sends one
+ * confirmation email; nothing daily goes out until the person clicks it). Uses the address typed
+ * in the email panel above, or the one given at the start.
+ */
+function ReminderOptIn({ sessionId, email }: { sessionId: string; email: string | null }) {
+  const [checked, setChecked] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
+  const [result, setResult] = useState<"pending" | "exists" | null>(null);
+
+  async function subscribe() {
+    setBusy(true);
+    setError(null);
+    try {
+      setResult((await subscribeReminders(sessionId, email)).status);
+    } catch (e) {
+      if (e instanceof ApiError && e.code === "reminders_not_configured") setUnavailable(true);
+      setError(message(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const locked = unavailable || result !== null;
+  return (
+    <fieldset className="border-border space-y-2 border-t pt-4 text-sm">
+      <legend className="sr-only">Daily prep-plan reminders</legend>
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id="reminder-opt-in"
+          checked={checked}
+          disabled={locked || busy}
+          onChange={(e) => setChecked(e.target.checked)}
+          aria-describedby="reminder-hint"
+          className="mt-0.5"
         />
-        <Button type="submit" disabled={busy}>
-          {busy ? "Sending…" : "Send"}
-        </Button>
+        <div className="space-y-1">
+          <Label htmlFor="reminder-opt-in" className="font-medium">
+            Also send me a short daily reminder for each day of my 7-day plan
+          </Label>
+          <p id="reminder-hint" className="text-fg-subtle text-xs">
+            Optional and separate from the report email. We&apos;ll send one confirmation email
+            first; daily emails start only after you click the link in it, and every one has a
+            one-click unsubscribe. Uses the address above, or the one you gave at the start.
+          </p>
+        </div>
       </div>
-      <p className="text-fg-subtle text-xs">
-        You get a short summary: your band and score, the top 3 fixes and day 1 of your plan. Your
-        answers and CV are never put in the email.
-      </p>
+      {checked && !locked && (
+        <Button size="sm" onClick={subscribe} disabled={busy} className="sm:ml-8">
+          {busy ? "Setting up…" : "Set up reminders"}
+        </Button>
+      )}
       <p aria-live="polite" className="text-success-fg">
-        {last && `Sent${last.to ? ` to ${last.to}` : ""} · ${formatDate(last.at, true) ?? ""}`}
+        {result === "pending" &&
+          "Check your inbox: click the confirmation link to start your daily reminders."}
+        {result === "exists" &&
+          "Reminders are already set up for this session. If you haven't confirmed yet, look for the confirmation email."}
       </p>
       {error && (
         <p role="alert" className="text-danger-fg">
           {error}
         </p>
       )}
-    </form>
+    </fieldset>
   );
 }
 
@@ -319,7 +393,8 @@ export function ReportActions({
       </div>
       {!meta.email_configured && (
         <p className="text-fg-subtle text-xs">
-          Email isn&apos;t set up on this server yet. Use a share link or Save as PDF instead.
+          Email isn&apos;t set up on this server yet, so report emails and daily plan reminders are
+          off. Use a share link or Save as PDF instead.
         </p>
       )}
       {panel === "share" && (

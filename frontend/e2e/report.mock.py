@@ -2,8 +2,9 @@
 
 Covers: the streamed report (code-computed overview renders before the AI write-up), the
 research-brief order, share create / copy / revoke, email disabled vs enabled, print media,
-delete-my-data (Cancel focused first, then /deleted), the public /r/[token] page (read-only,
-redacted payload, gone message), and the /r/* response headers + robots.txt.
+the daily-reminder opt-in (unticked, double opt-in, server not configured), delete-my-data
+(Cancel focused first, then /deleted), the public /r/[token] page (read-only, redacted payload,
+gone message), and the /r/* response headers + robots.txt.
 
 Usage (with the production build running):
     npm run build && npx next start -p 3001
@@ -125,8 +126,11 @@ def _err(code: str, message: str) -> dict:
 
 
 class FakeReport:
-    def __init__(self, *, email: bool = False, stream: str | None = None, saved: bool = False):
+    def __init__(self, *, email: bool = False, stream: str | None = None, saved: bool = False,
+                 reminders: bool = True):  # fmt: skip
         self.email = email
+        self.reminders = reminders
+        self.reminder_body: dict | None = None
         self.stream = stream if stream is not None else sse(
             ("status", {"step": "collect", "message": "Collecting your answers and scores…"}),
             ("overview", OVERVIEW),
@@ -177,6 +181,13 @@ class FakeReport:
             self.emailed_at = "2026-11-12T10:05:00+00:00"
             return _json(route, 200, {"sent": True, "emailed_at": self.emailed_at,
                                       "sent_to": "a•••@example.com"})  # fmt: skip
+        if path == f"{base}/reminders" and req.method == "POST":
+            if not (self.email and self.reminders):
+                return _json(route, 503, _err("reminders_not_configured",
+                                              "Daily prep emails aren't set up on this server yet."))
+            status = "exists" if self.reminder_body is not None else "pending"
+            self.reminder_body = req.post_data_json or {}
+            return _json(route, 200, {"status": status})
         if path == base and req.method == "DELETE":
             self.deleted = True
             return route.fulfill(status=204, body="")
@@ -259,6 +270,7 @@ def share_lifecycle_and_public_page(browser) -> None:
     page = open_page(browser, fake, f"/session/{SID}/report")
     expect(page.get_by_role("button", name="Email me this report")).to_be_disabled()
     expect(page.get_by_text("Email isn't set up on this server yet").first).to_be_visible()
+    expect(page.get_by_text("daily plan reminders").first).to_be_visible()
     page.get_by_role("button", name="Share").click()
     expect(page.get_by_text("It never shows")).to_be_visible()
     page.get_by_role("button", name="Create share link").click()
@@ -299,6 +311,19 @@ def email_and_delete(browser) -> None:
     page.get_by_role("button", name="Send").click()
     expect(page.get_by_text("Sent to a•••@example.com")).to_be_visible()
 
+    # Daily-reminder opt-in: separate, unticked, double opt-in copy, nothing sent until asked.
+    box = page.get_by_label("Also send me a short daily reminder")
+    expect(box).not_to_be_checked()
+    expect(page.get_by_text("send one confirmation email first")).to_be_visible()
+    expect(page.get_by_role("button", name="Set up reminders")).to_have_count(0)
+    assert f"POST /sessions/{SID}/reminders" not in fake.calls, fake.calls
+    box.check()
+    page.get_by_role("button", name="Set up reminders").click()
+    expect(page.get_by_text("click the confirmation link")).to_be_visible()
+    assert fake.reminder_body == {"email": "ali@example.com"}, fake.reminder_body
+    expect(box).to_be_disabled()
+    page.screenshot(path=str(SHOTS / "report-reminder-opt-in.png"), full_page=False)
+
     page.get_by_role("button", name="Delete my data").click()
     dialog = page.get_by_role("dialog")
     expect(dialog).to_be_visible()
@@ -311,6 +336,19 @@ def email_and_delete(browser) -> None:
     expect(page.get_by_role("heading", name="Deleted.")).to_be_visible()
     assert fake.deleted
     assert page.evaluate(f"localStorage.getItem('hireready:token:{SID}')") is None
+    page.context.close()
+
+
+def reminders_not_configured(browser) -> None:
+    fake = FakeReport(saved=True, email=True, reminders=False)
+    page = open_page(browser, fake, f"/session/{SID}/report")
+    page.get_by_role("button", name="Email me this report").click()
+    box = page.get_by_label("Also send me a short daily reminder")
+    box.check()
+    page.get_by_role("button", name="Set up reminders").click()
+    expect(page.get_by_text("Daily prep emails aren't set up on this server yet.")).to_be_visible()
+    expect(box).to_be_disabled()
+    expect(page.get_by_role("button", name="Set up reminders")).to_have_count(0)
     page.context.close()
 
 
@@ -337,6 +375,7 @@ def main() -> int:
             ("overview stays after a synthesis error; no pulsing", overview_shows_before_synthesis_error),
             ("share create / copy / public page / revoke", share_lifecycle_and_public_page),
             ("email sent line; delete dialog cancel-first then /deleted", email_and_delete),
+            ("reminder opt-in off when the server has no reminder secret", reminders_not_configured),
             ("no guest token shows the private-session panel", no_token),
         ]:  # fmt: skip
             fn(browser)

@@ -238,6 +238,19 @@ export function emailReport(
   return sessionJson(sessionId, "/email", { method: "POST", body: email ? { email } : {} });
 }
 
+/**
+ * Opt in to daily 7-day-plan reminders (double opt-in: the server sends one confirmation email).
+ * `exists` = this session already has a reminder. Errors: 400 `email_required`,
+ * 409 `report_not_ready` / `no_plan`, 429 `rate_limited`, 502 `email_failed`,
+ * 503 `reminders_not_configured`.
+ */
+export function subscribeReminders(
+  sessionId: string,
+  email: string | null,
+): Promise<{ status: "pending" | "exists" }> {
+  return sessionJson(sessionId, "/reminders", { method: "POST", body: email ? { email } : {} });
+}
+
 /** Delete the session and everything in it; forgets the guest token in this browser. */
 export async function deleteSession(sessionId: string): Promise<void> {
   const res = await fetch(`${BASE}/sessions/${sessionId}`, {
