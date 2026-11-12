@@ -1,0 +1,21 @@
+Hira Khan
+Karachi, Pakistan | hira.khan@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BS Statistics, Fictional University of Karachi, 2025
+
+SKILLS
+SQL, Excel, Python, pandas, Tableau, statistics, A/B testing
+
+EXPERIENCE
+Junior Data Analyst, Fictional Mart (Sep 2025 - Present)
+- Wrote SQL queries with joins and window functions to build weekly sales reports.
+- Built Tableau dashboards used by 12 regional managers to track revenue.
+- Used Excel pivot tables and XLOOKUP to reconcile monthly inventory data.
+- Presented weekly findings to non-technical store managers in plain language.
+
+PROJECTS
+Customer Churn Analysis
+- Cleaned 80,000 transaction records with Python and pandas and found the three biggest churn drivers.
+- Applied hypothesis tests and confidence intervals to compare customer segments.

@@ -1,0 +1,24 @@
+Sana Malik
+Lahore, Pakistan | sana.malik@example.com
+Fictional candidate created for HireReady evaluations.
+
+EDUCATION
+BS Artificial Intelligence, Fictional University of Technology, 2026
+
+SKILLS
+Python, PyTorch, scikit-learn, FastAPI, LangChain, SQL, Git, pandas
+
+PROJECTS
+Campus Policy Assistant (RAG)
+- Built a retrieval-augmented chatbot over 300 university policy PDFs using LangChain and FAISS.
+- Served the assistant through a FastAPI REST API with streaming responses.
+- Evaluated answer faithfulness on 50 hand-written questions and reduced hallucinated answers by 40%.
+
+Crop Disease Classifier
+- Trained a scikit-learn random forest and a small PyTorch CNN on 5,000 leaf images.
+- Used a validation split and early stopping to prevent overfitting; reached 91% test accuracy.
+
+EXPERIENCE
+Machine Learning Intern, Fictional Data Co. (Jun 2025 - Aug 2025)
+- Wrote Python scripts to clean customer data and train churn prediction models.
+- Collaborated through pull requests and code review on GitHub.
