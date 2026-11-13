@@ -478,6 +478,19 @@ def build_questions(answers: list[AnswerData]) -> list[QuestionReport]:
     return cards
 
 
+def ats_summary(analysis: dict[str, Any] | None) -> dict[str, Any]:
+    """ATS readiness + its top 3 fixes (checks are stored fail-first), if the analysis has it."""
+    ats = ((analysis or {}).get("breakdown") or {}).get("ats")
+    if not isinstance(ats, dict) or not isinstance(ats.get("score"), int):
+        return {}
+    fixes = [
+        f"{c['title']}: {c['fix']}"
+        for c in ats.get("checks") or []
+        if isinstance(c, dict) and c.get("status") in ("fail", "warn") and c.get("fix")
+    ]
+    return {"ats_score": ats["score"], "ats_fixes": fixes[:3]}
+
+
 def readiness(cards: list[QuestionReport], match_score: int | None) -> Readiness:
     interview = round_half_up(sum(c.score for c in cards) / len(cards)) if cards else 0
     if match_score is None:
@@ -785,7 +798,7 @@ async def build_report(
     gaps = open_gaps(analysis)
 
     cards = build_questions(answers)
-    ready = readiness(cards, match_score)
+    ready = readiness(cards, match_score).model_copy(update=ats_summary(analysis))
     _, _, implied = band_for(ready.score)
     speech = speech_summary(answers)
     yield (

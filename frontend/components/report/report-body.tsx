@@ -146,7 +146,18 @@ export function ReadinessHero({ r }: { r: Readiness }) {
           <p className="text-fg-muted text-sm tabular-nums">
             Interview {r.interview_score}
             {r.match_score !== null && <> · CV match {r.match_score}</>}
+            {r.ats_score != null && <> · ATS readiness {r.ats_score}</>}
           </p>
+          {r.ats_fixes && r.ats_fixes.length > 0 && (
+            <div className="text-sm">
+              <p className="font-medium">Top CV fixes before you apply</p>
+              <ul className="text-fg-muted mt-1 list-disc space-y-0.5 pl-5">
+                {r.ats_fixes.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {r.next_band_label && r.points_to_next_band !== null && (
             <p className="text-sm">
               <Badge tone={BAND_TONE[r.band]}>

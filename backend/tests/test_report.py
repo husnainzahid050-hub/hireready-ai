@@ -676,3 +676,19 @@ def test_delete_removes_everything(
     assert client.get(f"/api/v1/reports/shared/{token}").status_code == 404
     assert client.get(f"/api/v1/sessions/{sid}/report", headers=HDR).status_code == 404
     assert any(s["id"] == other for s in db.rows("sessions"))
+
+
+def test_ats_summary_shows_score_and_top_fixes_never_in_the_formula() -> None:
+    from app.services.report import ats_summary
+
+    checks = [
+        {"title": "Contact", "status": "fail", "fix": "Move your email into the body."},
+        {"title": "Dates", "status": "warn", "fix": "Use one format."},
+        {"title": "Length", "status": "warn", "fix": "Trim."},
+        {"title": "Title", "status": "warn", "fix": "Add a headline."},
+        {"title": "Text", "status": "pass", "fix": None},
+    ]
+    got = ats_summary({"breakdown": {"ats": {"score": 71, "checks": checks}}})
+    assert got["ats_score"] == 71 and len(got["ats_fixes"]) == 3
+    assert got["ats_fixes"][0] == "Contact: Move your email into the body."
+    assert ats_summary({"breakdown": {"role_title": "x"}}) == {} and ats_summary(None) == {}

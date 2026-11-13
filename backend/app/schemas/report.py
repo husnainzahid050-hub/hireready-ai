@@ -115,6 +115,9 @@ class Readiness(BaseModel):
     # "6 points to Interview-ready" (computed from BANDS; None at the top band).
     next_band_label: str | None = None
     points_to_next_band: int | None = None
+    # ATS readiness from the analysis: shown next to readiness, never part of its formula.
+    ats_score: int | None = None
+    ats_fixes: list[str] = []
 
 
 class Flag(BaseModel):
