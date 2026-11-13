@@ -6,7 +6,7 @@ requires-python = ">=3.12,<3.13"
 # Vercel installs from THIS list when pyproject.toml exists (requirements.txt is ignored).
 # Keep it identical to requirements.txt; tests/test_dependencies.py enforces that.
 dependencies = [
-    "fastapi==0.162.0",
+    "fastapi==0.162.2",
     "pydantic==2.14.3",
     "pydantic-settings==2.16.2",
     "httpx==0.28.1",
