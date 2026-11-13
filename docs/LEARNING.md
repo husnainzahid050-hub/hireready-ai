@@ -775,3 +775,45 @@ wins: fences survive forged tags, instruction-like quotes don't count as evidenc
 real evidence are capped, the match score is arithmetic, and out-of-schema output is rejected. The
 attack list is shared with the Phase 8 evals (`evals/datasets/adversarial.json`), which run the
 same cases against the real model.
+
+## ATS readiness score (2026-11-13)
+
+### 1. Score what ATSs really do, not a myth
+"75% of CVs are auto-rejected by ATS" traces back to a 2012 sales pitch with no data. What ATSs do
+is parse the file into fields (text in columns, tables, headers and text boxes can be scrambled or
+lost) and let recruiters search by skills and job title; automatic rejection mostly comes from
+screening questions. So the score checks exactly those two things, and the page lists the JD's
+knockout requirements separately. Competitors keep their formulas private and give the same CV
+very different numbers; this one publishes the formula and is a pure function of CV + JD.
+
+### 2. Facts only the file knows must be collected at upload
+The file is never stored, so "is it two columns?" can't be asked later. pypdf's `extract_text`
+accepts visitor callbacks that see every text run with its position and the current fill colour;
+collecting them during the extraction we already do costs no second pass. Only summaries are kept
+(counts, flags, three 80-character samples), inside the existing `documents.structured` JSON next
+to the profile, so no migration was needed.
+
+### 3. Heuristics need a counter-example test
+Column detection looks for two clusters of line starts far apart. A single-column CV with
+right-aligned dates ("Jun 2024 - Present") looks the same, so right-hand runs that are dates or
+shorter than 25 characters are ignored, and a test builds exactly that PDF and expects "one
+column". Likewise "R" must not match inside "React", short aliases (ML, AI, REST) count only in
+capitals ("the rest of the team" is not REST), and "MS Office" is not a master's degree.
+
+### 4. Never ask for a keyword the job doesn't contain
+The skill list comes from the LLM's job profile, which paraphrases ("Machine learning
+fundamentals"). Each name is split into searchable terms (alternatives on "or" and "/", parts on
+"and", "with" and commas, filler words removed) and a term is kept only if the JD text contains
+it, a variant or an alias. Required degrees, certifications and work authorisation from the model
+are checked against the JD the same way the CV quotes are checked against the CV.
+
+### 5. The unique fix comes from data we already verified
+The evidence judge already found quotes that prove a skill. When the proof exists but the job's
+words don't ("Containerized the service" without "Docker"), a recruiter's keyword search misses
+the candidate. The chip says so and points at the verified bullet as the place to add the words.
+It is shown, not scored, so the number never depends on the LLM.
+
+### 6. A bug found by asking "what does a parser lose?"
+python-docx's `doc.paragraphs` never returns header, footer or text-box text, so a CV with its
+email in the page header lost it before any LLM saw it. The fix keeps that text for the analysis
+and still warns: if our first-party parser missed it, many ATS parsers will too.

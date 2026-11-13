@@ -73,7 +73,11 @@ cheap checks, so rejected requests cost nothing.
    `session_id` and a random 32-byte guest token; only its SHA-256 is stored.
 2. `POST /sessions/{id}/documents` (multipart CV + JD text). PDF/DOCX only, 2 MB, 5 pages, MIME
    must match magic bytes, pypdf/DOCX bomb limits, parsing in a worker thread with a 15 s timeout.
-   Only the extracted text is stored (30k chars max), never the file.
+   Only the extracted text is stored (30k chars max), never the file. DOCX header, footer and
+   text-box text is kept too (python-docx's paragraphs skip it). While parsing, layout signals for
+   the ATS check are summarised (`services/layout.py`: pages, characters and images per page, PDF
+   side-by-side columns from text positions, white text, DOCX tables / text boxes / Word columns /
+   header-footer text, generic file name) and stored in `documents.structured.ats_file`.
 
 ### 2.2 Analysis (SSE)
 
@@ -94,12 +98,16 @@ sequenceDiagram
         A->>L: JD → JobProfile (fast, cached by content hash)
     end
     A-->>B: profiles
+    A->>A: ATS readiness in code (services/ats.py)
+    A-->>B: ats
     A->>E: embed CV chunks (once per CV) → doc_chunks
     A->>E: embed all skill queries (one batch)
     A->>DB: hybrid_search per skill (session-filtered)
     A->>L: judge all skills, quotes required (strong, temp 0)
     A->>A: verify quotes in code, compute match score
     A-->>B: score, gaps
+    A->>A: ATS again, with the proven-but-not-searchable overlay
+    A-->>B: ats
     A->>DB: hybrid_search rubric per competency
     A->>L: strengths, likely questions, 7-day plan (strong)
     A->>A: drop unquoted strengths, allowlist URLs, rebuild 7 days
@@ -108,11 +116,15 @@ sequenceDiagram
     A-->>B: done
 ```
 
-- **Events:** `status`, `profiles`, `score`, `gaps`, `insights`, `done`, `error`, plus `slow`
+- **Events:** `status`, `profiles`, `ats`, `score`, `gaps`, `ats` (again), `insights`, `done`, `error`, plus `slow`
   after 15 s without progress or as soon as the LLM falls back to Gemini.
 - **Budget:** 50 s for the whole stream (`ANALYSIS_BUDGET_S`, inside the 60 s `maxDuration` in
   `backend/vercel.json`), at most 25 s per provider including retries. Over budget →
   `analysis_timeout`. The page shows Try again if the stream closes without `done` or `error`.
+- **ATS readiness:** `ATS = 100 × (0.40 R + 0.45 K + 0.15 C)` from readability checks R1–R8,
+  keyword coverage K1–K5 (`knowledge/aliases.yaml`) and content checks C1–C6, capped at 40 when the
+  text can't be read. Pure code (~0.1 s), deterministic; stored in `gap_analyses.breakdown.ats`.
+  Analyses saved before it existed (and demo-cache copies) get it computed on read and saved back.
 - **Cost:** 3–4 LLM calls per fresh analysis (the JD profile is cached by content hash). Re-opening
   a saved analysis is a database read.
 
@@ -224,10 +236,10 @@ functions are executable by `service_role` only. Everything cascades from `sessi
 | Table | Key columns | Written by |
 |---|---|---|
 | `sessions` | `id`, `guest_token_hash`, `status` (created / analyzed / interviewing / completed), `mode`, `difficulty`, `interview_type`, `email_opt_in`, `email`, `is_demo`, `analysis_started_at` (claim), `created_at`, `expires_at` (default now + 7 days) | create, analyze, interview |
-| `documents` | `session_id`, `kind` (cv / jd, unique per session), `raw_text` (≤ 60k), `structured` (profile JSON), `content_hash` | upload, analyze |
+| `documents` | `session_id`, `kind` (cv / jd, unique per session), `raw_text` (≤ 60k), `structured` (profile JSON; a CV's also holds `ats_file` layout signals from upload), `content_hash` | upload, analyze |
 | `doc_chunks` | `document_id`, `chunk_index`, `content`, `embedding vector(768)` (HNSW cosine), `tsv` (generated, GIN) | analyze (once per CV) |
 | `knowledge_chunks` | `source_file`, `competency`, `level` (all / junior / mid), `content`, `content_hash` (unique), `embedding`, `tsv` | `scripts/ingest_knowledge.py` |
-| `gap_analyses` | `session_id` (pk), `match_score`, `breakdown`, `gaps`, `strengths`, `likely_questions`, `prep_plan` (jsonb) | analyze |
+| `gap_analyses` | `session_id` (pk), `match_score`, `breakdown` (also `role_title` and the `ats` report), `gaps`, `strengths`, `likely_questions`, `prep_plan` (jsonb) | analyze |
 | `questions` | `session_id`, `order_index`, `type` (technical / project / gap_probe / behavioral / role_fit / follow_up), `competency`, `text`, `parent_question_id`, `rubric_chunk_ids` | interview |
 | `answers` | `question_id`, `transcript` (≤ 10k), `duration_seconds`, `words_per_minute`, `filler_count`, `filler_breakdown`, `long_pauses`, `scores`, `feedback` | interview |
 | `interview_state` | `session_id` (pk), `state` (the whole LangGraph state as JSON), `updated_at` | interview (compare-and-swap) |

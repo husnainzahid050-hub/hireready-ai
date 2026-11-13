@@ -61,6 +61,7 @@ works from one job and one CV, and every piece of feedback can be traced back to
 | Stage | What you get | Status on `main` |
 |---|---|---|
 | **Analyze** | Match score with its formula, each required skill marked strong / weak / missing with a verified CV quote, strengths, likely questions by topic, a 7-day plan that links only to curated resources. Streamed in about 20 s. | Live |
+| **ATS readiness** | Will an applicant tracking system read your CV cleanly and find this job's keywords? A published formula computed in code: readability (scans, icon fonts, columns, text boxes, contact details in a header, headings, dates, length), keyword coverage (exact, alias-only and missing terms with where to add them, including skills you can prove but haven't named the job's way) and bullet quality, plus the JD's knockout requirements. Not a vendor score. | Live |
 | **Interview** | About 6 questions planned from the job, your projects and your gaps (technical, project deep-dive, gap probe, behavioral, role fit). A shallow answer gets one follow-up that refers to what you said. Voice or text. | Live |
 | **Voice** | Questions read aloud with captions; answers recorded in the browser, transcribed by Whisper, then discarded. Speaking pace, filler words (English plus Urdu/Hinglish such as "matlab", "yani") and long pauses. | Live |
 | **Report** | Readiness score and band with the formula, per-question scores with reasons and quotes from your transcript, what the interviewer wanted, an improved sample answer, speech summary, refreshed 7-day plan. | Live |

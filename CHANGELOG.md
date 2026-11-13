@@ -4,6 +4,87 @@ All notable changes per build phase. Format loosely follows [Keep a Changelog](h
 
 ## [Unreleased]
 
+### ATS readiness score (2026-11-13)
+
+Built from the research brief `hireready-research/ATS_BRIEF.md` (competitor study of Jobscan,
+Resume Worded, Enhancv, Teal, Rezi, SkillSyncer and others, plus how Greenhouse, Workday, Lever and
+Taleo really parse and search CVs).
+
+#### Added
+- **`backend/app/services/ats.py`**: an ATS readiness score computed in code (no LLM call, same CV
+  + job = byte-identical report): `ATS readiness = 100 × (0.40 × readability + 0.45 × keyword
+  coverage + 0.15 × content quality)`; pass 1 / warn 0.5 / fail 0; checks that don't apply are
+  dropped and the rest renormalised; capped at 40 when the text can't be read (R1 or R2 fails).
+  Bands: 80+ "Ready to submit", 60–79 "A few fixes", below 60 "Fix before applying".
+  - Readability R1–R8: text layer per page (scans), clean characters (icon fonts, `(cid:)`,
+    letter-spaced headings), reading order (two columns **warn**, never fail; right-aligned dates
+    are not columns; DOCX text boxes fail; tables over 30% warn), contact details in the page body
+    (not only in a header/footer/text box), standard headings (Projects stand in for Experience
+    on junior roles), parseable dates in ≤ 2 formats, length for the level, no hidden or pasted
+    text (injection phrases, > 15% of the JD's 8-word shingles, white text). Info only: file type,
+    images, generic file name, LinkedIn.
+  - Keywords K1–K5: must-have 55, nice-to-have 15, job title 15, required degree/certifications 10,
+    stuffing 5. Token-boundary matching (C++, C#, .NET, Node.js; "R" never inside "React"); plurals,
+    -ing/-ed, hyphen and dot spellings count as exact; `backend/knowledge/aliases.yaml` (~150
+    concepts) counts half ("alias only"); short aliases (ML, AI, REST) only in capitals. Terms come
+    from the cached job profile and are kept only if the JD text contains them.
+  - Content C1–C6 on bullets taken from the raw text: quantified results, strong openers, 8–35
+    words, pronouns, buzzwords, repeated openers; each quotes the offending line.
+  - **Proven but not searchable**: a skill the judge verified with a CV quote but whose job wording
+    is missing is flagged with that quote as the place to add the words (shown, never scored).
+  - **Knockout readiness**: work authorisation, minimum years, required degrees and certifications
+    the JD states (each verified in the JD text): the screening questions that really auto-reject.
+- `JobProfile` gains `required_degrees`, `required_certifications`, `min_years`,
+  `work_authorization` (prompt updated; JD profiles cached before this still validate).
+- Upload collects **layout signals** while parsing (`services/layout.py`): pages, characters and
+  images per page, PDF side-by-side columns (from pypdf text positions), white text, DOCX tables,
+  text boxes, Word columns, header/footer text, a 3 × 80-char sample of that text, and whether the
+  file name is generic (the name itself is not kept).
+- New `ats` SSE event right after `profiles`, sent again after `gaps` with the overlay; `done` and
+  `GET /analysis` include `ats`. Analysis page: `#ats` section (gauge + band, three bars, formula,
+  disclaimer, keyword chips Missing / Written differently / Found with "where to add" and links to
+  the plan day or the verified quote, checklist fail → warn → pass with passes collapsed, knockout
+  card, "What this score is, and isn't" with the 75% myth explained); the summary row shows both
+  gauges. Report: "ATS readiness N" and the top 3 CV fixes next to the readiness score (not part of
+  its formula). Landing: ATS feature card (Live) and ATS in the sample product preview.
+  Engineering: the formula. Privacy: the layout facts and header/text-box text.
+- Tests: `tests/test_ats.py` (43: every check, fixture PDFs/DOCX for two columns, right-aligned
+  dates, scanned page, table, text box, header contact, Word columns, missing email, no headings,
+  icon glyphs, letter spacing, injection and pasted JD, alias table, determinism),
+  `tests/test_ats_api.py` (stream order, persistence, upload signals, backfill, demo cache, a
+  failing ATS never breaks a saved analysis); `e2e/analysis.mock.py` ATS scenario; eval suite
+  `ats` (11 synthetic files, fake and live give the same numbers): status accuracy 18/19, flag
+  precision 9/9, flag recall 9/9. The one mismatch is a label written before the run: creative
+  headings for a junior role are a warn, not a fail, because Projects stand in for Experience.
+
+#### Fixed
+- **DOCX header, footer and text-box text was dropped** (`parsing._docx_text` read only paragraphs
+  and tables): a CV with its email in the page header "had no email". That text is now kept (in
+  reading order) and the ATS check warns that real parsers may skip it.
+
+#### Storage (no migration)
+- Signals live in `documents.structured.ats_file` (the analysis merges the profile next to them
+  instead of overwriting); the report lives in `gap_analyses.breakdown.ats`, like `role_title`.
+  `copy_demo_analysis` copies `breakdown`, so cached demos carry it. Analyses saved before this
+  (and demo-cache copies of them) get the report computed on read from the stored profiles and
+  saved back; any failure there leaves `ats: null` and the page says "Not available".
+
+#### Brief: applied / changed / skipped
+- Applied: the formula, gate, bands, disclaimer, R1–R8, K1–K5, C1–C6 with the brief's weights and
+  thresholds, aliases.yaml, proven-but-not-searchable, knockout panel, the JD-term verification,
+  determinism test, `ats` after `profiles`, two gauges, chips, checklist, report summary line,
+  eval fixtures, the 75% myth paragraph.
+- Changed: storage in existing jsonb (`structured.ats_file`, `breakdown.ats`) instead of new
+  `documents.parse_signals` / `gap_analyses.ats` columns: no migration, works on the live database
+  before anything is applied, and the demo cache carries it unchanged. Column detection uses
+  clusters of line starts ≥ 25% of the page apart (the brief's "x < 0.40W and x > 0.50W" misses a
+  narrow left sidebar, as in the Chrome fixture), still ignoring right-hand dates and short runs.
+  JD skill names are split into searchable terms ("REST APIs with FastAPI" → REST APIs, FastAPI;
+  "AWS or GCP" → either; "CI/CD" stays whole). R8 also warns on white text. Degree level is
+  matched in code (BS < MS < PhD; "MS Office" is not a degree).
+- Skipped (open): "What the ATS sees" raw-text panel, re-upload score delta, ATS detection from a
+  job URL, the optional LLM bullet rewrite, the CV-only (no JD) check.
+
 ### UX fixes: analysis, interview and report pages (2026-11-12)
 
 Applies `docs/UX_REVIEW.md` (items marked there). After screenshots: `docs/ux-review/after/`.
