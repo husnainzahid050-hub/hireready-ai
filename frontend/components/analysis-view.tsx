@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
+import { AtsGauge, AtsSection, atsBand } from "@/components/ats-section";
+import { ScoreGauge } from "@/components/score-gauge";
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card as UiCard } from "@/components/ui/card";
@@ -11,6 +13,7 @@ import { Alert, ArrowRight, Check, ChevronDown, ExternalLink } from "@/component
 import { Notice } from "@/components/ui/notice";
 import { ApiError, getAnalysis, getToken, streamAnalysis } from "@/lib/api";
 import type {
+  AtsReport,
   GapItem,
   PrepDay,
   Profiles,
@@ -39,6 +42,7 @@ type State = {
   profiles: Profiles | null;
   score: { match_score: number; breakdown: ScoreBreakdown } | null;
   gaps: GapItem[] | null;
+  ats: AtsReport | null;
   strengths: Strength[] | null;
   questions: QuestionGroup[] | null;
   plan: PrepDay[] | null;
@@ -55,6 +59,7 @@ const INITIAL: State = {
   profiles: null,
   score: null,
   gaps: null,
+  ats: null,
   strengths: null,
   questions: null,
   plan: null,
@@ -178,54 +183,16 @@ function scoreBand(value: number): { label: string; stroke: string; tone: BadgeT
   return { label: "Big gaps to close", stroke: "stroke-warning-solid", tone: "warning" };
 }
 
-function ScoreGauge({ value, size = "lg" }: { value: number; size?: "sm" | "lg" }) {
-  const r = 52;
-  const c = 2 * Math.PI * r;
+function MatchGauge({ value, size = "lg" }: { value: number; size?: "sm" | "lg" }) {
   const band = scoreBand(value);
   return (
-    <div className={cn("relative shrink-0", size === "lg" ? "size-36" : "size-16")}>
-      <svg viewBox="0 0 120 120" className="size-full -rotate-90" aria-hidden>
-        <circle
-          cx="60"
-          cy="60"
-          r={r}
-          fill="none"
-          strokeWidth="10"
-          className="stroke-surface-sunken"
-        />
-        <circle
-          cx="60"
-          cy="60"
-          r={r}
-          fill="none"
-          strokeWidth="10"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * (1 - value / 100)}
-          className={cn(
-            band.stroke,
-            "transition-[stroke-dashoffset] duration-700 motion-reduce:transition-none",
-          )}
-        />
-      </svg>
-      <span
-        role="img"
-        aria-label={`Match score ${value} out of 100: ${band.label}`}
-        className="absolute inset-0 flex flex-col items-center justify-center"
-      >
-        <span
-          aria-hidden
-          className={cn("font-semibold tabular-nums", size === "lg" ? "text-4xl" : "text-lg")}
-        >
-          {value}
-        </span>
-        {size === "lg" && (
-          <span aria-hidden className="text-fg-subtle text-xs">
-            / 100
-          </span>
-        )}
-      </span>
-    </div>
+    <ScoreGauge
+      value={value}
+      size={size}
+      label="Match score"
+      bandLabel={band.label}
+      stroke={band.stroke}
+    />
   );
 }
 
@@ -449,6 +416,7 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
             roleTitle: saved.role_title,
             score: { match_score: saved.match_score, breakdown: saved.breakdown },
             gaps: saved.gaps,
+            ats: saved.ats ?? null,
             strengths: saved.strengths,
             questions: saved.likely_questions,
             plan: saved.prep_plan,
@@ -475,6 +443,8 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
                 return { ...prev, score: ev.data };
               case "gaps":
                 return { ...prev, gaps: ev.data.gaps };
+              case "ats":
+                return { ...prev, ats: ev.data };
               case "insights":
                 return {
                   ...prev,
@@ -489,6 +459,7 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
                   roleTitle: ev.data.role_title,
                   score: { match_score: ev.data.match_score, breakdown: ev.data.breakdown },
                   gaps: ev.data.gaps,
+                  ats: ev.data.ats ?? prev.ats,
                   strengths: ev.data.strengths,
                   questions: ev.data.likely_questions,
                   plan: ev.data.prep_plan,
@@ -583,22 +554,39 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
           tone="raised"
           className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
         >
-          <div className="flex items-center gap-4">
-            <ScoreGauge value={s.score.match_score} size="sm" />
-            <div className="space-y-1">
-              <Badge tone={scoreBand(s.score.match_score).tone}>
-                {scoreBand(s.score.match_score).label}
-              </Badge>
-              <p className="text-fg-muted text-sm">
-                <span className="text-fg font-medium">{count("strong_evidence")} strong</span>
-                {" · "}
-                {count("weak_evidence")} weak
-                {" · "}
-                <span className="text-danger-fg font-medium">
-                  {count("no_evidence")} gap{count("no_evidence") === 1 ? "" : "s"}
-                </span>
-              </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+            <div className="flex items-center gap-4">
+              <MatchGauge value={s.score.match_score} size="sm" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  Match <span className="text-fg-subtle font-normal">· can you do the job?</span>
+                </p>
+                <Badge tone={scoreBand(s.score.match_score).tone}>
+                  {scoreBand(s.score.match_score).label}
+                </Badge>
+                <p className="text-fg-muted text-sm">
+                  <span className="text-fg font-medium">{count("strong_evidence")} strong</span>
+                  {" · "}
+                  {count("weak_evidence")} weak
+                  {" · "}
+                  <span className="text-danger-fg font-medium">
+                    {count("no_evidence")} gap{count("no_evidence") === 1 ? "" : "s"}
+                  </span>
+                </p>
+              </div>
             </div>
+            {s.ats && (
+              <a href="#ats" className={cn("flex items-center gap-4 rounded-xl", focusRing)}>
+                <AtsGauge ats={s.ats} size="sm" />
+                <span className="space-y-1">
+                  <span className="block text-sm font-medium">
+                    ATS readiness{" "}
+                    <span className="text-fg-subtle font-normal">· will the system read you?</span>
+                  </span>
+                  <Badge tone={atsBand(s.ats.score).tone}>{atsBand(s.ats.score).label}</Badge>
+                </span>
+              </a>
+            )}
           </div>
           <ButtonLink href={interviewHref} size="lg" className="w-full sm:w-auto">
             Start mock interview
@@ -611,7 +599,7 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
         {s.score ? (
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
             <div className="flex flex-col items-center gap-2">
-              <ScoreGauge value={s.score.match_score} />
+              <MatchGauge value={s.score.match_score} />
               <p className="text-fg-muted text-sm font-medium">
                 {scoreBand(s.score.match_score).label}
               </p>
@@ -661,6 +649,18 @@ export function AnalysisView({ sessionId }: { sessionId: string }) {
           </div>
         ) : (
           <Pending stopped={stopped} />
+        )}
+      </Section>
+
+      <Section id="ats" title="ATS readiness">
+        {s.ats ? (
+          <AtsSection ats={s.ats} plan={s.plan} />
+        ) : s.done ? (
+          <p className="text-fg-subtle text-sm">
+            Not available for this saved analysis. Analyze the CV again to get it.
+          </p>
+        ) : (
+          <Pending lines={4} stopped={stopped} />
         )}
       </Section>
 

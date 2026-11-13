@@ -23,6 +23,53 @@ export type Strength = { title: string; why_it_matters: string; evidence_quote: 
 export type QuestionGroup = { topic: string; questions: string[] };
 export type PrepDay = { day: number; focus: string; tasks: string[]; resource_urls: string[] };
 
+// ------------------------------------------------------------------ ATS readiness
+// Mirrors backend/app/schemas/ats.py. Computed in code (services/ats.py), no LLM.
+
+export type AtsStatus = "pass" | "warn" | "fail" | "info";
+export type AtsCategory = "readability" | "keywords" | "content";
+
+export type AtsCheck = {
+  id: string;
+  category: AtsCategory;
+  title: string;
+  status: AtsStatus;
+  weight: number;
+  points: number;
+  message: string;
+  fix: string | null;
+  evidence: string | null;
+};
+
+export type KeywordHit = {
+  term: string;
+  importance: "must_have" | "nice_to_have" | "title" | "credential";
+  status: "exact" | "alias_only" | "missing";
+  matched_as: string | null;
+  count: number;
+  jd_count: number;
+  sections: string[];
+  proven_not_searchable: boolean;
+  evidence_quote: string | null;
+  where_to_add: string | null;
+};
+
+export type AtsReport = {
+  score: number;
+  band: "ready" | "few_fixes" | "fix_first";
+  band_label: string;
+  formula: string;
+  gated: boolean;
+  readability: ScoreComponent;
+  keywords: ScoreComponent;
+  content: ScoreComponent;
+  checks: AtsCheck[];
+  keyword_hits: KeywordHit[];
+  knockouts: string[];
+  file_kind: "pdf" | "docx" | "text";
+  version: number;
+};
+
 export type Analysis = {
   role_title: string;
   match_score: number;
@@ -31,6 +78,8 @@ export type Analysis = {
   strengths: Strength[];
   likely_questions: QuestionGroup[];
   prep_plan: PrepDay[];
+  /** null for analyses saved before the ATS check (the server backfills when it can). */
+  ats?: AtsReport | null;
 };
 
 export type Profiles = {
@@ -46,6 +95,7 @@ export type AnalysisEvent =
   | { event: "profiles"; data: Profiles }
   | { event: "score"; data: { match_score: number; breakdown: ScoreBreakdown } }
   | { event: "gaps"; data: { gaps: GapItem[] } }
+  | { event: "ats"; data: AtsReport }
   | {
       event: "insights";
       data: { strengths: Strength[]; likely_questions: QuestionGroup[]; prep_plan: PrepDay[] };
@@ -176,6 +226,9 @@ export type Readiness = {
   weights: Record<string, number>;
   next_band_label: string | null;
   points_to_next_band: number | null;
+  /** ATS readiness from the analysis (not part of the readiness formula); absent on old reports. */
+  ats_score?: number | null;
+  ats_fixes?: string[];
 };
 
 export type Flag = {
