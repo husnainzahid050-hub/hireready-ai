@@ -52,6 +52,12 @@ const FEATURES: { icon: ReactNode; title: string; body: string; status: Status }
     status: "live",
   },
   {
+    icon: <Scan />,
+    title: "ATS readiness check",
+    body: "Will the systems recruiters use read your CV cleanly, and find this job's keywords in it? Columns, text boxes, headers, dates and headings are checked in code, with a fix for every issue and the exact keywords to add, only if they're true. Not a vendor score.",
+    status: "live",
+  },
+  {
     icon: <MessageQuestion />,
     title: "Questions this role will ask",
     body: "Likely interview questions grouped by topic, built from the job description, your own projects and a curated rubric for 14 competencies.",
@@ -92,7 +98,7 @@ const STEPS: { icon: ReactNode; title: string; body: string; soon?: boolean }[] 
   {
     icon: <Scan />,
     title: "Analyze",
-    body: "Match score, skill gaps with quotes, likely questions and a 7-day plan, streamed in about 20 seconds.",
+    body: "Match score, ATS readiness, skill gaps with quotes, likely questions and a 7-day plan, streamed in about 20 seconds.",
   },
   {
     icon: <Mic />,

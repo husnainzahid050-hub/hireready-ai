@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
 };
 
-const LAST_UPDATED = "12 November 2026";
+const LAST_UPDATED = "13 November 2026";
 
 const SUMMARY = [
   "Audio is never stored. Voice answers are transcribed, then discarded.",
@@ -30,8 +30,13 @@ const SUMMARY = [
 const COLLECTED: React.ReactNode[][] = [
   [
     "CV text",
-    "Text extracted from your PDF/DOCX (up to 30,000 characters), split into chunks with embeddings for search",
+    "Text extracted from your PDF/DOCX (up to 30,000 characters, including any page header, footer and text-box text), split into chunks with embeddings for search",
     "Gap analysis and tailored questions",
+  ],
+  [
+    "CV layout facts",
+    "Counts taken from the file while it is read: pages, characters and images per page, columns, tables, text boxes, header/footer length, the first words of any header or text-box text, and whether the file name is generic (the name itself is not kept)",
+    "The ATS readiness check, computed in code with no AI call",
   ],
   ["Job description", "The text you paste", "Gap analysis and questions"],
   [

@@ -27,6 +27,7 @@ const docUrl = (path: string) => `${GITHUB_URL}/blob/main/${path}`;
 const TOC = [
   { id: "architecture", label: "Architecture" },
   { id: "data-flow", label: "Data flow" },
+  { id: "ats", label: "ATS readiness" },
   { id: "decisions", label: "Design decisions" },
   { id: "numbers", label: "Measured numbers" },
   { id: "evals", label: "Evaluation" },
@@ -36,12 +37,17 @@ const TOC = [
 const ANALYSIS_FLOW: { title: string; body: string; calls?: string }[] = [
   {
     title: "Validate and extract",
-    body: "2 MB, PDF/DOCX only, declared MIME must match the magic bytes, at most 5 pages, parsed off the event loop with a timeout. Only the extracted text is stored, never the file.",
+    body: "2 MB, PDF/DOCX only, declared MIME must match the magic bytes, at most 5 pages, parsed off the event loop with a timeout. Only the extracted text is stored, never the file, plus a few layout counts for the ATS check (columns, text boxes, header text, images per page).",
   },
   {
     title: "Profile the CV and the job",
     body: "Two structured-output calls run in parallel against strict JSON schemas. The job profile is cached by a hash of its text, so the sample JD costs nothing after the first run.",
     calls: "1–2 LLM calls",
+  },
+  {
+    title: "ATS readiness, in code",
+    body: "Streamed right after the profiles: readability, keyword coverage and content checks over the CV text and layout counts. Re-sent when the skill verdicts arrive, to flag skills you can prove but haven't named the way the job does.",
+    calls: "0 LLM calls",
   },
   {
     title: "Index the CV",
@@ -330,6 +336,61 @@ START -(answer)-> evaluate_answer --> decide_next -+-> ask_follow_up --> END
                 </li>
               </ul>
             </Card>
+          </DocSection>
+
+          <DocSection id="ats" title="ATS readiness formula">
+            <p className="text-fg-muted max-w-3xl">
+              An estimate of two things Applicant Tracking Systems really do: the parser turns the
+              file into fields, and recruiters search those fields by skills and job title. It is
+              computed in <code>backend/app/services/ats.py</code> with no LLM call, so the same CV
+              and job always give the same number. It is not the ranking any vendor (Workday,
+              Greenhouse, Lever, Taleo) computes; those are private and set per job by each
+              recruiter.
+            </p>
+            <Card tone="muted" className="space-y-4">
+              <p className="font-mono text-xs leading-relaxed sm:text-sm">
+                ATS readiness = 100 × (0.40 × readability + 0.45 × keyword coverage + 0.15 × content
+                quality)
+              </p>
+              <ul className="text-fg-muted space-y-2 text-sm">
+                <li>
+                  <strong className="text-fg">Points per check:</strong> pass 1, warn 0.5, fail 0; a
+                  category is the weighted mean of its checks. Checks that don&apos;t apply (no
+                  degree required, no dated roles) are dropped and the rest renormalised.
+                </li>
+                <li>
+                  <strong className="text-fg">Readability (40%):</strong> text layer per page
+                  (scans), clean characters (icon fonts, letter-spaced headings), reading order (two
+                  columns warn, never fail; text boxes fail), contact details in the page body,
+                  standard headings, parseable dates, length for the level, no hidden or pasted
+                  text.
+                </li>
+                <li>
+                  <strong className="text-fg">Keywords (45%):</strong> must-have terms 55,
+                  nice-to-have 15, job title 15, required degree and certifications 10, no stuffing
+                  5. Terms come from the cached job profile and must appear in the job text.
+                  Matching respects token boundaries (C++, C#, .NET, Node.js); plurals and
+                  hyphen/dot spellings count as exact, an alias only (ML for Machine Learning)
+                  counts half. Repeating a term earns nothing extra.
+                </li>
+                <li>
+                  <strong className="text-fg">Content (15%):</strong> quantified bullets 30, strong
+                  openers 25, bullet length 15, pronouns 10, buzzwords 10, repeated openers 10.
+                </li>
+                <li>
+                  <strong className="text-fg">Gate:</strong> if the text layer or clean-characters
+                  check fails, the score is capped at 40: unreadable text has no keywords to find.
+                  Bands: 80+ ready to submit, 60–79 a few fixes, below 60 fix before applying.
+                </li>
+              </ul>
+            </Card>
+            <p className="text-fg-muted max-w-3xl text-sm">
+              Why no &ldquo;75% of CVs are auto-rejected&rdquo; claim: it traces back to a 2012
+              sales pitch by a vendor that closed in 2013 and published no data. Recruiters do
+              search and filter by keyword and title, and parsers do lose text in text boxes and
+              headers, so those are what we check. Automatic rejections mostly come from screening
+              questions, which the analysis lists as &ldquo;knockout readiness&rdquo;.
+            </p>
           </DocSection>
 
           <DocSection id="decisions" title="Design decisions and tradeoffs">

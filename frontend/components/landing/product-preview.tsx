@@ -1,10 +1,30 @@
 // A static, HTML/CSS-only mock of the analysis page (no screenshot, no video, no image request).
-// The numbers follow the real formula: 100 x (0.7 x 0.79 + 0.2 x 0.5 + 0.1 x 1.0) = 75.
+// The numbers follow the real formulas: match 100 x (0.7 x 0.79 + 0.2 x 0.5 + 0.1 x 1.0) = 75;
+// ATS readiness 100 x (0.40 x 0.90 + 0.45 x 0.75 + 0.15 x 0.80) = 82.
 import { Badge, type BadgeTone } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Check } from "@/components/ui/icons";
 
 const SCORE = 75;
+const ATS_SCORE = 82;
+
+const ATS_KEYWORDS: { term: string; note: string; className: string }[] = [
+  {
+    term: "Python",
+    note: "×3",
+    className: "border-success-solid/30 bg-success-soft text-success-fg",
+  },
+  {
+    term: "Machine Learning",
+    note: "you wrote “ML”",
+    className: "border-warning-solid/30 bg-warning-soft text-warning-fg",
+  },
+  {
+    term: "AWS",
+    note: "missing",
+    className: "border-danger-solid/25 bg-danger-soft text-danger-fg",
+  },
+];
 
 const BREAKDOWN = [
   { label: "Must-have skills", weight: 70, value: 79 },
@@ -97,6 +117,30 @@ export function ProductPreview() {
                 </li>
               ))}
             </ul>
+          </div>
+
+          <div className="border-border bg-surface rounded-xl border p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-medium">
+                ATS readiness <span className="tabular-nums">{ATS_SCORE}</span>
+                <span className="text-fg-subtle font-normal"> / 100</span>
+              </span>
+              <Badge tone="success">Ready to submit</Badge>
+            </div>
+            <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Sample keywords">
+              {ATS_KEYWORDS.map((k) => (
+                <li
+                  key={k.term}
+                  className={`rounded-full border px-2 py-0.5 text-[0.7rem] ${k.className}`}
+                >
+                  <span className="font-medium">{k.term}</span> {k.note}
+                </li>
+              ))}
+            </ul>
+            <p className="text-fg-subtle mt-2 text-[0.7rem]">
+              Columns, headers, dates and headings checked in code. Not a Workday or Greenhouse
+              score.
+            </p>
           </div>
 
           <ul className="space-y-2.5">
