@@ -63,6 +63,9 @@ from app.services.retrieval import Retriever  # noqa: E402
 from app.services.scoring import compute_match  # noqa: E402
 
 from evals import metrics as M  # noqa: E402
+from evals.ats_cases import CASES as ATS_CASES  # noqa: E402
+from evals.ats_cases import run_case as ats_case  # noqa: E402
+from evals.ats_cases import summarise as ats_summarise  # noqa: E402
 from evals.harness import (  # noqa: E402
     BACKEND,
     REPO,
@@ -84,7 +87,7 @@ from evals.harness import (  # noqa: E402
 DATASETS = EVALS / "datasets"
 CACHE = EVALS / ".cache"
 FRONTEND_JSON = REPO / "frontend" / "lib" / "eval-results.json"
-SUITES = ("extraction", "gap", "retrieval", "scoring", "injection", "pipeline")
+SUITES = ("extraction", "gap", "retrieval", "scoring", "injection", "ats", "pipeline")
 FOLLOW_UPS_PER_INTERVIEW = 1  # SPEC: ~6 questions, at most 1 follow-up each; we assume 1 per interview
 
 
@@ -549,6 +552,21 @@ async def suite_injection(ctx: Ctx, data: dict[str, Any], answers: dict[str, Any
 # ====================================================================== pipeline (insights + plan)
 
 
+async def suite_ats(ctx: Ctx) -> dict[str, Any]:
+    """ATS readiness on synthetic files (deterministic: no LLM, same numbers in fake and live)."""
+    rows = [ats_case(c) for c in ATS_CASES]
+    t = ats_summarise(rows)
+    flagged_pred, flagged_true = t["tp"] + t["fp"], t["tp"] + t["fn"]
+    return {
+        "n": len(rows),
+        "rows": rows,
+        "status_accuracy": frac(t["exact"], t["total"]),
+        "flag_precision": frac(t["tp"], flagged_pred),
+        "flag_recall": frac(t["tp"], flagged_true),
+        "deterministic": all(r["deterministic"] for r in rows),
+    }
+
+
 async def suite_pipeline(ctx: Ctx, data: dict[str, Any]) -> dict[str, Any]:
     """Run the two remaining LLM steps of a full session (insights, interview plan) on 3 pairs,
     only to measure their latency and tokens. Their quality is not scored here."""
@@ -775,6 +793,15 @@ def summary_rows(r: dict[str, Any]) -> list[dict[str, str]]:
             f"{inj['n']} cases",
             "100%",
         )
+    at = r.get("ats")
+    if at:
+        add(
+            "ATS readiness",
+            "Check status matches the label (flag recall)",
+            f"{pct(at['status_accuracy'])} ({pct(at['flag_recall'])})",
+            f"{at['n']} files",
+            "flag recall 100%",
+        )
     lat = r.get("latency")
     if lat and "score_answer" in lat["steps"]:
         st = lat["steps"]["score_answer"]
@@ -823,6 +850,11 @@ def known_failures(r: dict[str, Any]) -> list[str]:
             items.append(
                 f'**Retrieval {q["id"]}** ({q["kind"]}): "{q["query"]}" - no expected chunk in hybrid top 5 (top hit: {q["hybrid_top"]}).'
             )
+    at = r.get("ats")
+    if at:
+        items += [
+            f"**ATS {x['id']}**: expected {x['expect']}, got {x['got']}." for x in at["rows"] if x["got"] != x["expect"]
+        ]
     inj = r.get("injection")
     if inj:
         items += [f"**Injection {x['id']}**: not handled safely ({x['detail']})." for x in inj["rows"] if not x["safe"]]
@@ -932,6 +964,14 @@ def render_md(r: dict[str, Any]) -> str:
               "", f"Consistency: {s['consistency']['n_answers']} answers scored 3 times each; mean SD "
               f"{s['consistency']['mean_sd']}, max spread {s['consistency']['max_spread']}, same band in "
               f"{pct(s['consistency']['same_band'])}."]  # fmt: skip
+    at = r.get("ats")
+    if at:
+        L += ["", "## ATS readiness (deterministic, synthetic files)", "",
+              f"Status accuracy {pct(at['status_accuracy'])}, flag precision {pct(at['flag_precision'])}, "
+              f"flag recall {pct(at['flag_recall'])}; identical report on a second run: {'yes' if at['deterministic'] else 'NO'}.",
+              "", md_table(["Case", "File", "Score", "Expected", "Got"],
+                           [[x["id"], x["describe"], x["score"], ", ".join(f"{k} {v}" for k, v in x["expect"].items()),
+                             ", ".join(f"{k} {v}" for k, v in x["got"].items())] for x in at["rows"]])]  # fmt: skip
     inj = r.get("injection")
     if inj:
         L += ["", "## Injection resistance", "", md_table(["Case", "Type", "Safe", "Detail"],
@@ -1094,6 +1134,8 @@ async def main(args: argparse.Namespace) -> int:
                     results[name] = await suite_scoring(ctx, answers)
                 elif name == "injection":
                     results[name] = await suite_injection(ctx, adversarial, answers)
+                elif name == "ats":
+                    results[name] = await suite_ats(ctx)
                 elif name == "pipeline":
                     results[name] = await suite_pipeline(ctx, pairs)
             except Exception as exc:  # noqa: BLE001
