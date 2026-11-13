@@ -55,9 +55,17 @@ async def cached_jd_structure(db: SupabaseRest, content_hash: str) -> dict[str, 
 
 
 async def save_document(
-    db: SupabaseRest, session_id: UUID, kind: str, raw_text: str, content_hash: str
+    db: SupabaseRest,
+    session_id: UUID,
+    kind: str,
+    raw_text: str,
+    content_hash: str,
+    structured: dict[str, Any] | None = None,
 ) -> None:
-    """Replace this session's CV or JD. Cascades remove old chunks and the old analysis."""
+    """Replace this session's CV or JD. Cascades remove old chunks and the old analysis.
+
+    `structured` starts as `{"ats_file": FileSignals}` for an uploaded CV (layout facts only the
+    file can tell); the analysis later adds the extracted profile next to it."""
     await db.delete("documents", {"session_id": f"eq.{session_id}", "kind": f"eq.{kind}"})
     await db.delete("gap_analyses", {"session_id": f"eq.{session_id}"})
     await db.insert(
@@ -68,6 +76,7 @@ async def save_document(
                 "kind": kind,
                 "raw_text": raw_text,
                 "content_hash": content_hash,
+                "structured": structured,
             }
         ],
     )

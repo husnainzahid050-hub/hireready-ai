@@ -379,11 +379,11 @@ def test_docx_zip_bomb_is_rejected() -> None:
 async def test_slow_parse_times_out_without_blocking_the_event_loop(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def slow(_: bytes, __: str | None) -> str:
+    def slow(_: bytes, __: str | None) -> parsing.ParsedCV:
         time.sleep(1.0)
-        return "never used"
+        raise AssertionError("the timeout fires first")
 
-    monkeypatch.setattr(parsing, "extract_cv_text", slow)
+    monkeypatch.setattr(parsing, "extract_cv", slow)
     ticks = 0
 
     async def ticker() -> None:

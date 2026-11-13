@@ -16,9 +16,12 @@ import io
 import re
 import unicodedata
 import zipfile
+from dataclasses import dataclass
 from typing import Literal
 
 from app.core.errors import AppError
+from app.schemas.ats import FileSignals
+from app.services import layout
 
 MAX_BYTES = 2 * 1024 * 1024
 MAX_PDF_PAGES = 5
@@ -77,7 +80,7 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 
-def _pdf_text(data: bytes) -> str:
+def _pdf_text(data: bytes) -> tuple[str, FileSignals]:
     # lazy import: keeps cold start fast for other endpoints
     from pypdf import PdfReader, apply_configuration, get_configuration
 
@@ -92,21 +95,31 @@ def _pdf_text(data: bytes) -> str:
             if len(reader.pages) > MAX_PDF_PAGES:
                 raise _bad("too_many_pages", f"Your CV must be at most {MAX_PDF_PAGES} pages.")
             parts: list[str] = []
+            signals = FileSignals(kind="pdf", pages=len(reader.pages))
             size = 0
             for page in reader.pages:
-                text = page.extract_text() or ""
+                # The visitors see every text run with its position and fill colour while the
+                # text is extracted anyway, so the layout checks cost no second pass.
+                probe = layout.PdfPageProbe(float(page.mediabox.width))
+                text = (
+                    page.extract_text(
+                        visitor_text=probe.on_text, visitor_operand_before=probe.on_operator
+                    )
+                    or ""
+                )
                 parts.append(text)
+                probe.add_to(signals, page, len(clean_text(text)))
                 size += len(text)
                 if size > MAX_CV_CHARS:  # we only keep MAX_CV_CHARS anyway
                     break
-            return "\n".join(parts)
+            return "\n".join(parts), signals
     except AppError:
         raise
     except Exception as exc:  # PyPdfError/LimitReachedError, and KeyError/ValueError/... on junk
         raise _bad("invalid_file", "We couldn't read this PDF. Try re-exporting it.") from exc
 
 
-def _docx_text(data: bytes) -> str:
+def _docx_text(data: bytes) -> tuple[str, FileSignals]:
     try:
         with zipfile.ZipFile(io.BytesIO(data)) as zf:
             names = set(zf.namelist())
@@ -119,6 +132,7 @@ def _docx_text(data: bytes) -> str:
             # lying header can't produce more output than we checked here.
             if sum(i.file_size for i in infos) > MAX_DOCX_UNCOMPRESSED:
                 raise _bad("invalid_file", "This DOCX file is too large when unpacked.")
+            extras = layout.docx_signals(zf)
     except zipfile.BadZipFile as exc:
         raise _bad("invalid_file", "We couldn't read this DOCX file.") from exc
 
@@ -129,19 +143,39 @@ def _docx_text(data: bytes) -> str:
     except Exception as exc:  # python-docx raises a variety of errors on bad files
         raise _bad("invalid_file", "We couldn't read this DOCX file.") from exc
     parts = [p.text for p in doc.paragraphs]
+    table_chars = 0
     for table in doc.tables:
         for row in table.rows:
-            parts.append(" | ".join(cell.text for cell in row.cells))
-    return "\n".join(parts)
+            line = " | ".join(cell.text for cell in row.cells)
+            table_chars += len(line)
+            parts.append(line)
+    body = "\n".join(parts)
+    signals = extras.signals
+    signals.table_count = len(doc.tables)
+    signals.table_chars = table_chars
+    signals.body_chars = len(clean_text(body))
+    # Header, footer and text-box text is not in `doc.paragraphs`. It used to be dropped, so a CV
+    # with its email in the page header "had no email". Keep it (in reading order) for the
+    # analysis; the ATS check still warns that many real ATS parsers skip it (FileSignals).
+    text = "\n".join(t for t in (extras.header, body, *extras.textboxes, extras.footer) if t)
+    signals.page_chars = [len(clean_text(text))]
+    return text, signals
 
 
-def extract_cv_text(data: bytes, content_type: str | None) -> str:
+@dataclass(frozen=True)
+class ParsedCV:
+    text: str
+    signals: FileSignals
+
+
+def extract_cv(data: bytes, content_type: str | None) -> ParsedCV:
+    """Validated CV text plus the layout signals the ATS check needs (see services/ats.py)."""
     if not data:
         raise _bad("empty_file", "The uploaded file is empty.")
     if len(data) > MAX_BYTES:
         raise _bad("file_too_large", "Your CV must be 2 MB or smaller.", 413)
     kind = detect_kind(data, content_type)
-    raw = _pdf_text(data) if kind == "pdf" else _docx_text(data)
+    raw, signals = _pdf_text(data) if kind == "pdf" else _docx_text(data)
     text = clean_text(raw)
     if len(text) < 100:
         raise _bad(
@@ -149,25 +183,33 @@ def extract_cv_text(data: bytes, content_type: str | None) -> str:
             "We couldn't find text in this file. If it's a scanned PDF, please upload a "
             "text-based PDF (exported from Word or Google Docs).",
         )
-    return text[:MAX_CV_CHARS]
+    return ParsedCV(text[:MAX_CV_CHARS], signals)
 
 
-async def extract_cv_text_async(
+def extract_cv_text(data: bytes, content_type: str | None) -> str:
+    return extract_cv(data, content_type).text
+
+
+async def extract_cv_async(
     data: bytes, content_type: str | None, timeout_s: float = PARSE_TIMEOUT_S
-) -> str:
-    """`extract_cv_text` off the event loop, with a wall-clock timeout.
+) -> ParsedCV:
+    """`extract_cv` off the event loop, with a wall-clock timeout.
 
     Note: Python can't kill a thread, so a timed-out parse keeps running in the background
     until pypdf's own limits stop it; the request still gets a fast, clear error.
     """
     try:
-        return await asyncio.wait_for(
-            asyncio.to_thread(extract_cv_text, data, content_type), timeout_s
-        )
+        return await asyncio.wait_for(asyncio.to_thread(extract_cv, data, content_type), timeout_s)
     except TimeoutError as exc:
         raise _bad(
             "parse_timeout", "This file took too long to read. Try re-exporting it as a PDF.", 422
         ) from exc
+
+
+async def extract_cv_text_async(
+    data: bytes, content_type: str | None, timeout_s: float = PARSE_TIMEOUT_S
+) -> str:
+    return (await extract_cv_async(data, content_type, timeout_s)).text
 
 
 def validate_jd(text: str) -> str:
