@@ -63,8 +63,11 @@ export function ProductPreview() {
           <span aria-hidden className="bg-border-strong size-2.5 rounded-full" />
           <span aria-hidden className="bg-border-strong size-2.5 rounded-full" />
           <span className="text-fg-subtle ml-2 truncate text-xs">
-            Your match for Junior AI Engineer
+            Sample: Sara Ahmed (fictional) for Junior AI Engineer
           </span>
+          <Badge tone="neutral" className="ml-auto shrink-0">
+            Sample data
+          </Badge>
         </div>
 
         <div className="space-y-5 p-5">
@@ -107,11 +110,11 @@ export function ProductPreview() {
                   <p className="border-border-strong text-fg-muted mt-2 border-l-2 pl-2.5 text-xs">
                     “{s.quote}”
                     <span className="text-success-fg mt-1 flex items-center gap-1 text-[0.7rem]">
-                      <Check className="size-3.5" /> verified in your CV
+                      <Check className="size-3.5" /> verified in the CV
                     </span>
                   </p>
                 ) : (
-                  <p className="text-fg-subtle mt-2 text-xs">No evidence found in your CV.</p>
+                  <p className="text-fg-subtle mt-2 text-xs">No evidence found in the CV.</p>
                 )}
               </li>
             ))}
@@ -119,7 +122,8 @@ export function ProductPreview() {
         </div>
       </Card>
       <figcaption className="text-fg-subtle mt-3 text-center text-xs">
-        Example output for a fictional candidate. Every quote is checked against the CV in code.
+        Sample data for a made-up candidate, not a real person. Your own analysis appears only after
+        you upload your CV, and only in your browser.
       </figcaption>
     </figure>
   );
