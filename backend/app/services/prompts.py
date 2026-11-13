@@ -26,7 +26,12 @@ Rules:
   "Teamwork"). Merge duplicates. At most 12 must-have and 8 nice-to-have skills.
 - Alternatives are ONE skill: "Power BI or Tableau", "AWS/GCP" -> "Power BI or Tableau", "AWS or GCP".
 - competency: map each skill to exactly one of: {COMPETENCY_LIST}.
-- seniority: intern, junior, mid, senior, or unknown, based on title and years required."""
+- seniority: intern, junior, mid, senior, or unknown, based on title and years required.
+- required_degrees / required_certifications: only ones the JD REQUIRES, copied word for word
+  (e.g. "Bachelor's degree in Computer Science"). Preferred ones do not count. [] if none.
+- min_years: the minimum years of experience required as a number, or null.
+- work_authorization: a stated work-permit, visa, citizenship or must-live-in requirement,
+  copied word for word, or null."""
 
 JUDGE_SYSTEM = """You are a fair technical recruiter checking whether a CV shows evidence for each
 required skill. You receive numbered CV excerpts [E1], [E2], ... and, for each skill, the ids of the

@@ -6,7 +6,9 @@ field present). Optional values are expressed as `X | None`.
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from app.schemas.ats import AtsReport
 
 Competency = Literal[
     "python", "sql", "machine_learning", "deep_learning", "nlp_llms", "data_handling",
@@ -85,6 +87,31 @@ class JobProfile(BaseModel):
     responsibilities: list[str]
     tools: list[str]
     soft_skills: list[str]
+    # ATS readiness (knockout requirements). services/ats.py keeps only terms found in the JD.
+    required_degrees: list[str] = Field(
+        description="Degrees the JD requires, copied as written, e.g. \"Bachelor's degree in "
+        'Computer Science". Empty if none.'
+    )
+    required_certifications: list[str] = Field(
+        description="Certifications or licences the JD requires, copied as written. Empty if none."
+    )
+    min_years: int | None = Field(description="Minimum years of experience required, or null")
+    work_authorization: str | None = Field(
+        description="Work authorisation / visa / location requirement copied from the JD, or null"
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _pre_ats_cache(cls, v: Any) -> Any:
+        # JD extractions are cached by content hash; ones saved before these fields existed
+        # (and copied demo profiles) still validate. The LLM schema keeps them required.
+        if isinstance(v, dict):
+            v = dict(v)
+            for key in ("required_degrees", "required_certifications"):
+                v.setdefault(key, [])
+            v.setdefault("min_years", None)
+            v.setdefault("work_authorization", None)
+        return v
 
 
 # ---------------------------------------------------------------- evidence judging (LLM output)
@@ -139,6 +166,7 @@ class Insights(BaseModel):
     strengths: list[Strength]
     likely_questions: list[QuestionGroup]
     prep_plan: list[PrepDay]
+    ats: AtsReport | None = None
 
 
 # ---------------------------------------------------------------- final analysis (API response)
@@ -168,6 +196,8 @@ class ScoreBreakdown(BaseModel):
 
 
 class Analysis(BaseModel):
+    """API response. `ats` is None for analyses saved before the ATS check existed."""
+
     role_title: str
     match_score: int
     breakdown: ScoreBreakdown
@@ -175,3 +205,4 @@ class Analysis(BaseModel):
     strengths: list[Strength]
     likely_questions: list[QuestionGroup]
     prep_plan: list[PrepDay]
+    ats: AtsReport | None = None

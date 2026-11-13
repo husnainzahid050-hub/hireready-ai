@@ -33,6 +33,8 @@ ignore = []
 "app/services/prompts.py" = ["E501"]
 "app/agents/interviewer/prompts.py" = ["E501"]
 "app/demo/samples.py" = ["E501"]
+# One user-facing ATS check message per line (pass / warn / fail copy is easier to review whole).
+"app/services/ats.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

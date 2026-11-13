@@ -21,14 +21,17 @@ from app.db.repositories import get_owned_session, save_document
 from app.demo.samples import DEMO_CV, DEMO_JD
 from app.services.analysis import (
     claim_run,
+    ensure_ats,
     release_run,
     run_analysis,
     saved_analysis,
     wait_for_run,
 )
+from app.services.ats import SAMPLE_SIGNALS
 from app.services.embeddings import get_embedder
+from app.services.layout import generic_file_name
 from app.services.llm import LLMError, get_llm
-from app.services.parsing import MAX_BYTES, extract_cv_text_async, validate_jd
+from app.services.parsing import MAX_BYTES, extract_cv_async, validate_jd
 
 log = get_logger(__name__)
 router = APIRouter(prefix="/sessions", tags=["sessions"])
@@ -87,7 +90,15 @@ async def create_session(
     row = await db.insert_returning("sessions", values)
     sid = UUID(row["id"])
     if demo:
-        await save_document(db, sid, "cv", DEMO_CV, content_hash(DEMO_CV))
+        # The sample has no file: it is scored as a clean single-column text CV.
+        await save_document(
+            db,
+            sid,
+            "cv",
+            DEMO_CV,
+            content_hash(DEMO_CV),
+            {"ats_file": SAMPLE_SIGNALS.model_dump()},
+        )
         await save_document(db, sid, "jd", DEMO_JD, content_hash(DEMO_JD))
     log.info("session_created", extra={"extra_fields": {"session_id": str(sid), "demo": demo}})
     return CreateSessionResponse(session_id=sid, guest_token=token, demo=demo, status=row["status"])
@@ -115,8 +126,18 @@ async def upload_documents(
     # Each upload deletes the old analysis, so uploads are capped too (else: upload/analyze loop).
     await consume_quota(db, session_id, "upload")
     data = await cv.read(MAX_BYTES + 1)  # read at most 1 byte past the limit
-    cv_text = await extract_cv_text_async(data, cv.content_type)
-    await save_document(db, session_id, "cv", cv_text, content_hash(cv_text))
+    parsed = await extract_cv_async(data, cv.content_type)
+    cv_text = parsed.text
+    # Only "is the name generic?" is kept, never the file name itself.
+    parsed.signals.generic_file_name = generic_file_name(cv.filename)
+    await save_document(
+        db,
+        session_id,
+        "cv",
+        cv_text,
+        content_hash(cv_text),
+        {"ats_file": parsed.signals.model_dump()},
+    )
     await save_document(db, session_id, "jd", jd, content_hash(jd))
     await db.update("sessions", {"id": f"eq.{session_id}"}, {"status": "created"})
     return DocumentsResponse(cv_chars=len(cv_text), jd_chars=len(jd))
@@ -190,12 +211,14 @@ async def analyze(
     # Already analyzed? Return the saved result instead of spending LLM calls again.
     saved = await saved_analysis(db, session_id)
     if saved:
+        saved = await ensure_ats(db, session, saved)
         return _sse_response(_single("done", saved.model_dump()))
 
     # Demo sessions reuse an earlier demo session's analysis (same CV + JD): no LLM calls at all.
     if session.get("is_demo") and await copy_demo_analysis(db, session_id):
         cached = await saved_analysis(db, session_id)
         if cached:
+            cached = await ensure_ats(db, session, cached)
             log.info("demo_cache_hit", extra={"extra_fields": {"session_id": str(session_id)}})
             return _sse_response(_single("done", cached.model_dump()))
 
@@ -233,6 +256,8 @@ async def get_analysis(session_id: UUID, token: GuestToken = NO_TOKEN) -> dict[s
     db = get_db()
     session = await get_owned_session(db, session_id, token)
     saved = await saved_analysis(db, session_id)
+    if saved:
+        saved = await ensure_ats(db, session, saved)
     return {
         "session": {
             "id": session["id"],

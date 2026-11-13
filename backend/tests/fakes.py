@@ -83,6 +83,7 @@ class FakeDB:
         self.usage: dict[tuple[str, str], int] = {}  # session_usage (quota counters)
         self.rpc_calls: list[str] = []
         self.demo_cache: dict[str, Any] | None = None  # gap_analyses row copy_demo_analysis copies
+        self.demo_structured: dict[str, Any] = {}  # documents.structured it copies, by kind
 
     def rows(self, table: str) -> list[dict[str, Any]]:
         return self.t.setdefault(table, [])
@@ -166,6 +167,11 @@ class FakeDB:
         if self._filter("gap_analyses", {"session_id": f"eq.{sid}"}):
             return False
         self.rows("gap_analyses").append({**self.demo_cache, "session_id": sid})
+        for d in self._filter(
+            "documents", {"session_id": f"eq.{sid}"}
+        ):  # like the SQL: profiles too
+            if d["kind"] in self.demo_structured:
+                d["structured"] = self.demo_structured[d["kind"]]
         for s in self._filter("sessions", {"id": f"eq.{sid}"}):
             s["status"] = "analyzed"
         return True

@@ -8,6 +8,8 @@ Steps:
  5. Deterministic match score.
  6. LLM writes strengths, likely questions (adapted from the rubric KB) and a 7-day plan that may
     only use curated resource URLs.
+ATS readiness (services/ats.py, no LLM) is streamed right after step 1 and again after step 4,
+when the skill verdicts add the "proven but not searchable" overlay.
 
 Only one run per session at a time: the router claims the session first (`claim_run`, an atomic
 SQL function), and a second caller waits for the first run's result instead (`wait_for_run`).
@@ -34,6 +36,8 @@ from app.schemas.analysis import (
     JobSkill,
     PrepDay,
 )
+from app.schemas.ats import AtsReport, FileSignals
+from app.services.ats import SAMPLE_SIGNALS, compute_ats
 from app.services.catalog import allowed_urls, resources_for
 from app.services.embeddings import Embedder, to_pgvector
 from app.services.evidence import normalize, quote_in_text, validate_judgement
@@ -64,6 +68,57 @@ Event = tuple[str, dict[str, Any]]
 async def saved_analysis(db: SupabaseRest, session_id: UUID) -> "Analysis | None":
     rows = await db.select("gap_analyses", {"select": "*", "session_id": f"eq.{session_id}"})
     return analysis_from_row(rows[0]) if rows else None
+
+
+def file_signals(cv_doc: dict[str, Any], is_demo: bool) -> FileSignals | None:
+    """The upload's layout signals; the text-only demo sample has its own fixed ones."""
+    raw = (cv_doc.get("structured") or {}).get("ats_file")
+    if raw:
+        try:
+            return FileSignals.model_validate(raw)
+        except ValueError:
+            log.warning("ats_signals_invalid")
+    return SAMPLE_SIGNALS if is_demo else None
+
+
+def ats_report(
+    docs: dict[str, dict[str, Any]],
+    cv: CVProfile,
+    job: JobProfile,
+    gaps: list[GapItem],
+    is_demo: bool,
+) -> AtsReport:
+    return compute_ats(
+        docs["cv"]["raw_text"], docs["jd"]["raw_text"], file_signals(docs["cv"], is_demo), cv, job,
+        gaps,
+    )  # fmt: skip
+
+
+async def ensure_ats(db: SupabaseRest, session: dict[str, Any], analysis: Analysis) -> Analysis:
+    """Analyses saved before the ATS check (and demo-cache copies of them) get it computed now
+    from the stored profiles (pure code, no LLM call) and saved back. Any failure: no ATS."""
+    if analysis.ats is not None:
+        return analysis
+    try:
+        sid = UUID(session["id"])
+        docs = await get_documents(db, sid)
+        cv_s, jd_s = (
+            (docs.get("cv") or {}).get("structured"),
+            (docs.get("jd") or {}).get("structured"),
+        )
+        if not has_profile(cv_s) or not jd_s:
+            return analysis
+        cv, job = CVProfile.model_validate(cv_s), JobProfile.model_validate(jd_s)
+        ats = ats_report(docs, cv, job, analysis.gaps, bool(session.get("is_demo")))
+        breakdown = analysis.breakdown.model_dump() | {
+            "role_title": analysis.role_title,
+            "ats": ats.model_dump(),
+        }
+        await db.update("gap_analyses", {"session_id": f"eq.{sid}"}, {"breakdown": breakdown})
+        return analysis.model_copy(update={"ats": ats})
+    except Exception:
+        log.exception("ats_backfill_failed")
+        return analysis
 
 
 async def claim_run(db: SupabaseRest, session_id: UUID) -> bool:
@@ -116,14 +171,21 @@ async def wait_for_run(db: SupabaseRest, session_id: UUID) -> AsyncIterator[Even
 # ------------------------------------------------------------------ pipeline steps
 
 
+def has_profile(structured: dict[str, Any] | None) -> bool:
+    """A CV's `structured` holds only `ats_file` until the profile has been extracted."""
+    return bool(structured) and "skills" in structured  # type: ignore[operator]
+
+
 async def extract_profiles(
     db: SupabaseRest, llm: LLMClient, docs: dict[str, dict[str, Any]]
 ) -> tuple[CVProfile, JobProfile]:
     cv_doc, jd_doc = docs["cv"], docs["jd"]
 
+    cv_structured = cv_doc.get("structured") or {}
+
     async def cv_task() -> CVProfile:
-        if cv_doc.get("structured"):
-            return CVProfile.model_validate(cv_doc["structured"])
+        if has_profile(cv_structured):
+            return CVProfile.model_validate(cv_structured)
         return await llm.structured(
             system=CV_SYSTEM,
             user=wrap_untrusted("cv", cv_doc["raw_text"][:MAX_CV_CHARS_FOR_LLM]),
@@ -154,7 +216,12 @@ async def extract_profiles(
         }
     )
     await asyncio.gather(
-        db.update("documents", {"id": f"eq.{cv_doc['id']}"}, {"structured": cv.model_dump()}),
+        db.update(
+            "documents",
+            {"id": f"eq.{cv_doc['id']}"},
+            # keep the upload's layout signals (`ats_file`) next to the profile
+            {"structured": cv_structured | cv.model_dump()},
+        ),
         db.update("documents", {"id": f"eq.{jd_doc['id']}"}, {"structured": job.model_dump()}),
     )
     return cv, job
@@ -364,6 +431,9 @@ async def run_analysis(
         },
     )
 
+    is_demo = bool(session.get("is_demo"))
+    yield "ats", ats_report(docs, cv, job, [], is_demo).model_dump()
+
     yield "status", {"step": "index", "message": "Indexing your CV for evidence search…"}
     await index_cv(db, embedder, docs["cv"])
 
@@ -375,6 +445,8 @@ async def run_analysis(
     score, breakdown = compute_match(gaps, job.seniority, cv)
     yield "score", {"match_score": score, "breakdown": breakdown.model_dump()}
     yield "gaps", {"gaps": [g.model_dump() for g in gaps]}
+    ats = ats_report(docs, cv, job, gaps, is_demo)  # same score, plus the evidence overlay
+    yield "ats", ats.model_dump()
 
     yield "status", {"step": "insights", "message": "Writing likely questions and your 7-day plan…"}
     insights = await build_insights(llm, retriever, cv, job, gaps, session["difficulty"], cv_text)
@@ -388,6 +460,7 @@ async def run_analysis(
         strengths=insights.strengths,
         likely_questions=insights.likely_questions,
         prep_plan=insights.prep_plan,
+        ats=ats,
     )
     await db.insert(
         "gap_analyses",
@@ -395,7 +468,10 @@ async def run_analysis(
             {
                 "session_id": str(sid),
                 "match_score": score,
-                "breakdown": breakdown.model_dump() | {"role_title": job.title},
+                # role_title and ats ride in the breakdown jsonb: no migration, and the demo
+                # cache (copy_demo_analysis copies breakdown) carries them along.
+                "breakdown": breakdown.model_dump()
+                | {"role_title": job.title, "ats": ats.model_dump()},
                 "gaps": [g.model_dump() for g in gaps],
                 "strengths": [s.model_dump() for s in insights.strengths],
                 "likely_questions": [q.model_dump() for q in insights.likely_questions],
@@ -414,6 +490,7 @@ async def run_analysis(
 def analysis_from_row(row: dict[str, Any]) -> Analysis:
     breakdown = dict(row["breakdown"])
     role_title = breakdown.pop("role_title", "")
+    ats = breakdown.pop("ats", None)
     return Analysis.model_validate(
         {
             "role_title": role_title,
@@ -423,5 +500,6 @@ def analysis_from_row(row: dict[str, Any]) -> Analysis:
             "strengths": row["strengths"],
             "likely_questions": row["likely_questions"],
             "prep_plan": row["prep_plan"],
+            "ats": ats,
         }
     )
